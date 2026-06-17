@@ -1,0 +1,17 @@
+# Transient review state — never commit
+review/inbox/
+.refine.lock
+
+# Mac
+.DS_Store
+
+# Secrets / env
+.env
+.env.local
+.dev.vars
+
+# Build output
+dist/
+build/
+node_modules/
+.wrangler/

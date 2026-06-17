@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>WM 2026 — Feedback</title>
+  <meta name="theme-color" content="#0a1d3b">
+  <style>
+    :root { --bg:#0a1d3b; --card:#14315a; --ink:#fff; --dim:#b9c6da; --line:rgba(255,255,255,.12); --accent:#e63329; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html,body { height:100%; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; -webkit-font-smoothing:antialiased; }
+    main { max-width:480px; margin:0 auto; padding:max(24px,env(safe-area-inset-top)) 20px 40px; }
+    h1 { font-size:22px; font-weight:800; margin:8px 0 6px; }
+    p { color:var(--dim); line-height:1.5; margin-bottom:18px; }
+    a.btn { display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:12px; color:var(--ink); text-decoration:none; font-weight:700; }
+    a.btn:active { background:#1b3c6b; }
+    a.btn .i { font-size:22px; }
+    a.btn.accent { background:var(--accent); border-color:var(--accent); }
+    .back { display:inline-block; margin-top:14px; color:var(--dim); text-decoration:none; font-size:14px; }
+    footer { color:#7e8ca3; font-size:11px; margin-top:24px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Feedback ⚽</h1>
+    <p>Etwas kaputt, eine Idee, ein fehlendes Spiel? Sag es uns — danke!</p>
+
+    <a class="btn accent" href="https://github.com/Wilhofstrasse/world-cup-viewer/issues/new" target="_blank" rel="noopener">
+      <span class="i">🐙</span> Auf GitHub melden
+    </a>
+    <a class="btn" href="mailto:us@filipeandrade.com?subject=WM%202026%20Feedback">
+      <span class="i">✉️</span> E-Mail schreiben
+    </a>
+
+    <a class="back" href="./">← zurück zur App</a>
+    <footer>WM 2026 · world-cup-viewer</footer>
+  </main>
+</body>
+</html>

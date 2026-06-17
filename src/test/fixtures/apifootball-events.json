@@ -1,0 +1,39 @@
+{
+  "response": [
+    {
+      "time": { "elapsed": 30, "extra": null },
+      "team": { "id": 775, "name": "Austria" },
+      "player": { "id": 1, "name": "R. Schmid" },
+      "type": "Goal",
+      "detail": "Normal Goal"
+    },
+    {
+      "time": { "elapsed": 45, "extra": 2 },
+      "team": { "id": 1110, "name": "Jordan" },
+      "player": { "id": 2, "name": "Al-Arab" },
+      "type": "Goal",
+      "detail": "Own Goal"
+    },
+    {
+      "time": { "elapsed": 58, "extra": null },
+      "team": { "id": 775, "name": "Austria" },
+      "player": { "id": 3, "name": "M. Arnautović" },
+      "type": "Card",
+      "detail": "Yellow Card"
+    },
+    {
+      "time": { "elapsed": 70, "extra": null },
+      "team": { "id": 1110, "name": "Jordan" },
+      "player": { "id": 4, "name": "Olwan" },
+      "type": "Goal",
+      "detail": "Normal Goal"
+    },
+    {
+      "time": { "elapsed": 82, "extra": null },
+      "team": { "id": 775, "name": "Austria" },
+      "player": { "id": 5, "name": "Gregoritsch" },
+      "type": "Goal",
+      "detail": "Missed Penalty"
+    }
+  ]
+}

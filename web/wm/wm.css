@@ -1,0 +1,305 @@
+/* ════════════════════════════════════════════════════════════════════════
+   wm.css — WM 2026 section. Dark, feed-first theme (own DNA, not base.css —
+   the video feed reads better dark, and it keeps the chess cockpit untouched).
+   Two views: a full-screen Reels-style highlight feed, and a match list.
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --wm-bg:      #0a1d3b;   /* deep football navy */
+  --wm-bg-2:    #0f2748;
+  --wm-card:    #14315a;
+  --wm-ink:     #ffffff;
+  --wm-ink-dim: #b9c6da;
+  --wm-faint:   #7e8ca3;
+  --wm-line:    rgba(255,255,255,.12);
+  --wm-accent:  #e63329;   /* SRF red */
+  --wm-win:     #45c08a;
+  --wm-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --wm-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --wm-bar-h: 92px;
+
+  /* Pull-to-refresh pill colour (dark page → accent pill, pops on navy) */
+  --ptr-bg: #e63329;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--wm-bg);
+  color: var(--wm-ink);
+  font-family: var(--wm-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* ── Top bar (floats over the feed) ── */
+.wm-bar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: max(10px, env(safe-area-inset-top)) 14px 10px;
+  background: linear-gradient(180deg, rgba(5,14,30,.92) 0%, rgba(5,14,30,.55) 70%, rgba(5,14,30,0) 100%);
+}
+.wm-appnav { display: flex; align-items: center; gap: 8px; }
+.wm-appnav-link {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--wm-ink-dim);
+  text-decoration: none;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid var(--wm-line);
+}
+.wm-appnav-link.is-active { color: #fff; background: rgba(255,255,255,.16); }
+
+.wm-tabs { display: inline-flex; gap: 4px; background: rgba(255,255,255,.08); border-radius: 999px; padding: 3px; align-self: flex-start; }
+.wm-tab {
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--wm-ink-dim);
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.wm-tab[aria-selected="true"] { background: #fff; color: var(--wm-bg); }
+
+/* ── Views ── */
+.wm-view { min-height: 100%; }
+.wm-body[data-tab="highlights"] #view-spiele,
+.wm-body[data-tab="spiele"] #view-highlights { display: none; }
+
+/* ── Sidebar: pick a match → jump to its clip ── */
+.wm-menu-btn {
+  position: fixed;
+  z-index: 31;
+  /* below the bar (appnav + tabs) so it never overlaps the Highlights/Spiele tabs */
+  top: calc(env(safe-area-inset-top) + 100px);
+  left: 14px;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--wm-line);
+  background: rgba(0,0,0,.45);
+  color: #fff;
+  font-size: 16px; line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.wm-drawer-scrim {
+  position: fixed; inset: 0;
+  z-index: 39;
+  background: rgba(0,0,0,.5);
+}
+.wm-drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 40;
+  width: 80%; max-width: 330px;
+  background: var(--wm-bg-2);
+  border-right: 1px solid var(--wm-line);
+  transform: translateX(-100%);
+  transition: transform .22s ease;
+  overflow-y: auto;
+  padding: max(14px, env(safe-area-inset-top)) 0 calc(20px + env(safe-area-inset-bottom));
+  box-shadow: 2px 0 24px rgba(0,0,0,.5);
+}
+.wm-drawer.open { transform: translateX(0); }
+.wm-drawer-head {
+  font-family: var(--wm-mono);
+  font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--wm-faint);
+  padding: 6px 18px 10px;
+}
+.wm-drawer-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--wm-line);
+  color: var(--wm-ink);
+  padding: 13px 18px;
+  cursor: pointer;
+  font-size: 15px;
+}
+.wm-drawer-item:active { background: rgba(255,255,255,.06); }
+.wm-drawer-item { font-size: 14px; }
+.wm-drawer-item .f { font-size: 18px; flex: none; }
+.wm-drawer-item .t { font-weight: 700; flex: 1; min-width: 0; }
+.wm-drawer-item .d { font-family: var(--wm-mono); font-size: 11px; color: var(--wm-faint); flex: none; }
+
+/* ── Reels-style feed ── */
+.wm-feed {
+  height: 100dvh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+}
+.wm-feed::-webkit-scrollbar { display: none; }
+
+.wm-slide {
+  position: relative;
+  height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  overflow: hidden;
+  background: var(--wm-bg-2);
+  display: flex;
+  align-items: flex-end;
+}
+.wm-thumb {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+.wm-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5,14,30,.35) 0%, rgba(5,14,30,0) 35%, rgba(5,14,30,.85) 100%);
+  pointer-events: none;
+}
+.wm-playbtn {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 84px; height: 84px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,.92);
+  color: var(--wm-bg);
+  font-size: 30px;
+  padding-left: 6px;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0,0,0,.4);
+  z-index: 5;
+}
+.wm-slide.playing .wm-playbtn,
+.wm-slide.playing .wm-scrim,
+.wm-slide.loading .wm-playbtn { display: none; }
+.wm-slide.loading::after {
+  content: "";
+  position: absolute; top: 50%; left: 50%;
+  width: 44px; height: 44px; margin: -22px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: wm-spin .8s linear infinite;
+  z-index: 6;
+}
+@keyframes wm-spin { to { transform: rotate(360deg); } }
+
+.wm-video {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  background: #000;
+  z-index: 4;
+}
+
+.wm-meta {
+  position: relative;
+  z-index: 3;
+  padding: 18px 18px calc(28px + env(safe-area-inset-bottom));
+  width: 100%;
+  pointer-events: none;
+}
+.wm-flags { font-size: 30px; line-height: 1; display: block; margin-bottom: 7px; }
+.wm-teams { font-size: 17px; font-weight: 800; display: block; margin-bottom: 4px; }
+.wm-vs { color: var(--wm-faint); font-weight: 600; }
+.wm-title { font-size: 13px; font-weight: 600; line-height: 1.3; margin-bottom: 8px; max-width: 34ch; }
+.wm-sub { font-size: 12px; color: var(--wm-ink-dim); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.wm-kind { font-family: var(--wm-mono); text-transform: uppercase; letter-spacing: .04em; color: var(--wm-faint); }
+.wm-dot { color: var(--wm-faint); }
+
+.wm-slide.wm-empty { align-items: center; justify-content: center; text-align: center; color: var(--wm-ink-dim); }
+.wm-slide.wm-empty p { font-size: 15px; line-height: 1.5; }
+.wm-slide.wm-error .wm-meta::after { content: "Konnte nicht geladen werden."; display: block; color: var(--wm-accent); font-size: 12px; margin-top: 6px; }
+
+/* ── Match list (Spiele) ── */
+#view-spiele {
+  padding: calc(var(--wm-bar-h) + 8px) 14px calc(24px + env(safe-area-inset-bottom));
+  max-width: 620px;
+  margin: 0 auto;
+}
+.wm-state { font-family: var(--wm-mono); font-size: 13px; color: var(--wm-ink-dim); text-align: center; padding: 24px 0; }
+.wm-daygroup { margin-bottom: 18px; }
+.wm-dayhead { font-family: var(--wm-mono); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--wm-faint); margin: 14px 2px 8px; }
+.wm-match {
+  background: var(--wm-card);
+  border: 1px solid var(--wm-line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.wm-match-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.wm-match-team { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; flex: 1; min-width: 0; }
+.wm-match-team.end { justify-content: flex-end; text-align: right; }
+.wm-match-team .f { font-size: 22px; }
+.wm-match-score { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 20px; white-space: nowrap; }
+.wm-match-when { font-family: var(--wm-mono); font-size: 12px; color: var(--wm-faint); }
+.wm-match.live { border-color: var(--wm-accent); }
+.wm-live-badge { color: var(--wm-accent); font-weight: 800; font-size: 11px; font-family: var(--wm-mono); }
+.wm-goals { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--wm-line); font-size: 12.5px; color: var(--wm-ink-dim); line-height: 1.7; }
+.wm-g { white-space: nowrap; }
+.wm-g .m { font-variant-numeric: tabular-nums; color: var(--wm-faint); }
+/* round + group structure */
+.wm-round-head { font-size: 18px; font-weight: 800; margin: 20px 2px 8px; }
+.wm-round-head:first-child { margin-top: 4px; }
+.wm-group-head { font-family: var(--wm-mono); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--wm-faint); margin: 14px 2px 7px; }
+.wm-watch {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 10px;
+  font-size: 13px; font-weight: 700;
+  color: #fff; background: var(--wm-accent);
+  border: none; border-radius: 999px; padding: 8px 14px; cursor: pointer;
+}
+
+/* ── Version stamp + floating refresh (PWA orientation) ── */
+.wm-ver { font-family: var(--wm-mono); font-size: 11px; color: var(--wm-faint); }
+.app-refresh {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  z-index: 50;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--wm-line);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 18px; line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-user-select: none; user-select: none;
+}
+.app-refresh:active { background: rgba(0, 0, 0, 0.65); }
+.app-refresh.update {
+  background: var(--wm-accent);
+  border-color: var(--wm-accent);
+  animation: app-refresh-pulse 1.4s ease-in-out infinite;
+}
+@keyframes app-refresh-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(230, 51, 41, 0.5); }
+  50% { box-shadow: 0 0 0 7px rgba(230, 51, 41, 0); }
+}
+
+/* ── iPad / large screens: keep a phone-width column so video + cards stay
+   readable instead of stretching across the whole display ── */
+@media (min-width: 760px) {
+  .wm-feed { max-width: 520px; margin: 0 auto; }
+  #view-spiele { max-width: 560px; }
+}
+
+/* Drawer footer link (feedback) */
+.wm-drawer-foot { display:block; padding:15px 18px; border-top:1px solid var(--wm-line); color:var(--wm-ink-dim); text-decoration:none; font-size:14px; font-weight:700; }
+.wm-drawer-foot:active { background:rgba(255,255,255,.06); }

@@ -1,0 +1,19 @@
+{
+  "name": "world-cup-viewer",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "dev": "wrangler dev",
+    "predeploy": "bash .deploy-gate.sh",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260601.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.6",
+    "wrangler": "^4.19.0"
+  }
+}
