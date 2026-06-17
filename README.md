@@ -9,7 +9,7 @@ Built for a phone home screen; works on iPad too. German UI.
 
 ## Live
 
-- App: _https://… (custom domain pending)_
+- App: **https://wm.filipeandrade.com**
 - Send feedback: open a [GitHub issue](https://github.com/Wilhofstrasse/world-cup-viewer/issues/new) or use the in-app **Feedback** page (`/feedback.html`).
 
 ## How it works
