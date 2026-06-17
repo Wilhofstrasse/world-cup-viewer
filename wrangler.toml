@@ -18,6 +18,12 @@ WM_SEASON = "2026"
 binding = "WM_R2"
 bucket_name = "world-cup-data"
 
+# Public custom domain (nice URL, no CF Access). wrangler provisions the DNS
+# record + edge cert on deploy — filipeandrade.com is on this Cloudflare account.
+[[routes]]
+pattern = "wm.filipeandrade.com"
+custom_domain = true
+
 [assets]
 directory = "./web"
 
