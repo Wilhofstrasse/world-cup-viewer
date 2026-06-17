@@ -16,7 +16,22 @@
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
 
-  <link rel="stylesheet" href="wm/wm.css?v=1.0.1">
+  <style>
+    /* Critical view visibility — inlined so a stale/blocked external wm.css
+       can never hide the active panel (root cause of blank Spiele). The
+       !important show-rule beats the UA [hidden] rule AND any old non-important
+       rule from a cached wm.css. JS no longer needs to clear [hidden]. */
+    .wm-view { min-height: 100%; }
+    .wm-body[data-tab="highlights"] #view-highlights,
+    .wm-body[data-tab="spiele"]     #view-spiele { display: block !important; }
+    .wm-body[data-tab="highlights"] #view-spiele,
+    .wm-body[data-tab="spiele"]     #view-highlights { display: none !important; }
+    body:not([data-tab]) #view-highlights { display: block !important; }
+    body:not([data-tab]) #view-spiele { display: none !important; }
+    #view-spiele { padding: 100px 14px 24px; max-width: 620px; margin: 0 auto; }
+    .wm-state { font-size: 13px; text-align: center; padding: 24px 0; color: #b9c6da; }
+  </style>
+  <link rel="stylesheet" href="wm/wm.css?v=1.0.2">
 </head>
 <body class="wm-body" data-tab="highlights">
 
@@ -47,13 +62,13 @@
   </main>
 
   <!-- ── Spiele: schedule + scores + scorers ── -->
-  <section id="view-spiele" class="wm-view" role="tabpanel" aria-label="Spiele" hidden>
+  <section id="view-spiele" class="wm-view" role="tabpanel" aria-label="Spiele">
     <div class="wm-matches" id="wmMatches" aria-live="polite">
       <p class="wm-state">Spielplan wird geladen…</p>
     </div>
   </section>
 
-  <script type="module" src="wm/app.js?v=1.0.1"></script>
-  <script src="appshell.js?v=1.0.1" defer></script>
+  <script type="module" src="wm/app.js?v=1.0.2"></script>
+  <script src="appshell.js?v=1.0.2" defer></script>
 </body>
 </html>

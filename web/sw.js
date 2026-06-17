@@ -18,10 +18,13 @@
 
 "use strict";
 
-const SHELL_CACHE = "wm-shell-v9";
+const SHELL_CACHE = "wm-shell-v10";
 const DATA_CACHE = "wm-data-v2";
 const THUMB_CACHE = "wm-thumbs-v2";
 const THUMB_MAX = 120; // cap stored thumbnails
+// One-shot marker so the kill-switch (below) evicts the frozen v1.0.0 worker
+// exactly once, then lets the re-registered worker persist (Codex P1).
+const KILL_DONE = "wm-killswitch-v10-done";
 
 // Sub-resources only — NOT the page documents. Navigations are never served by
 // the SW (see fetch handler), so precaching the HTML would be both pointless
@@ -53,12 +56,21 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      // Drop superseded WM cache versions.
-      const keep = new Set([SHELL_CACHE, DATA_CACHE, THUMB_CACHE]);
       const names = await caches.keys();
-      await Promise.all(
-        names.filter((n) => n.startsWith("wm-") && !keep.has(n)).map((n) => caches.delete(n)),
-      );
+      // ONE-SHOT recovery: a stale v1.0.0 worker froze wm-shell-v9 and kept
+      // serving the pre-fix wm.css/app.js (Spiele blank). The first time this
+      // byte-changed worker activates, wipe ALL caches (drop every stale asset),
+      // drop a sentinel, claim, and self-unregister so the device reloads
+      // worker-less against fresh files. app.js re-registers on the next load;
+      // that worker sees the sentinel and just claims — so it PERSISTS (no
+      // thrash, offline/push return). Codex P1.
+      if (!names.includes(KILL_DONE)) {
+        await Promise.all(names.map((n) => caches.delete(n)));
+        await caches.open(KILL_DONE);
+        await self.clients.claim();
+        try { await self.registration.unregister(); } catch (_e) {}
+        return;
+      }
       await self.clients.claim();
     })(),
   );

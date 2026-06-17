@@ -59,6 +59,6 @@ activate(bootTab);
 // PWA: register the shared service worker (offline shell + push).
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {/* non-fatal */});
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {/* non-fatal */});
   });
 }

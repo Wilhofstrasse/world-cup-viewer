@@ -21,7 +21,7 @@
 "use strict";
 
 (function () {
-  var APP_BUILT = "1.0.1"; // version of THIS shipped asset
+  var APP_BUILT = "1.0.2"; // version of THIS shipped asset
 
   // ── 1. Version stamp ─────────────────────────────────────────────────────
   function showVersion() {
@@ -176,6 +176,21 @@
       } catch (_e) {/* storage may be unavailable; non-fatal */}
       location.reload();
     });
+
+    // Fallback: if a controller is present but the running build != live build
+    // and no controllerchange fired (e.g. a same-bytes deploy), force one reload
+    // to pull the fresh nav doc + module graph. One-shot via sessionStorage.
+    fetch("/api/version", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var live = d && d.version;
+        if (!live || live === APP_BUILT) return;
+        if (!navigator.serviceWorker.controller) return;
+        if (sessionStorage.getItem("wm.recovered") === live) return;
+        sessionStorage.setItem("wm.recovered", live);
+        location.reload();
+      })
+      .catch(function () {});
   }
 
   function init() {

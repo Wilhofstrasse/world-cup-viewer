@@ -299,11 +299,11 @@ html, body {
   50% { box-shadow: 0 0 0 7px rgba(230, 51, 41, 0); }
 }
 
-/* ── iPad / large screens: keep a phone-width column so video + cards stay
-   readable instead of stretching across the whole display ── */
+/* ── iPad / large screens / landscape ── */
 @media (min-width: 760px) {
-  .wm-feed { max-width: 520px; margin: 0 auto; }
-  #view-spiele { max-width: 560px; }
+  /* The feed/video fills the screen (object-fit:contain letterboxes it) so a
+     landscape phone or a desktop shows a big video, not a narrow centred strip. */
+  #view-spiele { max-width: 560px; } /* match cards stay a readable column */
 }
 
 /* Drawer footer link (feedback) */
