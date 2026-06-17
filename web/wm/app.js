@@ -54,6 +54,16 @@ try {
   if (restored === "highlights" || restored === "spiele") bootTab = restored;
   sessionStorage.removeItem("wm.tab");
 } catch (_e) {/* storage may be unavailable; non-fatal */}
+
+// The ☰ drawer lives in the header and is a GLOBAL control backed by the
+// Highlights clip list, so initialise the feed at boot REGARDLESS of the active
+// tab. This wires ☰ (and gives the drawer its clips) even when we boot straight
+// into Spiele — e.g. after a SW-recovery reload restored wm.tab=spiele. Without
+// it, ☰ is dead on Spiele because wireDrawer() only runs inside initFeed().
+if (!inited.highlights) {
+  inited.highlights = true;
+  initFeed();
+}
 activate(bootTab);
 
 // PWA: register the shared service worker (offline shell + push).
