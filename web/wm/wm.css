@@ -74,8 +74,14 @@ html, body {
 
 /* ── Views ── */
 .wm-view { min-height: 100%; }
+/* Explicit show/hide pair driven by body[data-tab]. ID specificity beats the
+   UA `hidden` rule (display:none), so the active view is visible from CSS alone
+   even if app.js never clears the `hidden` attribute — this is what fixes the
+   blank Spiele panel. The inactive view is force-hidden the same way. */
+.wm-body[data-tab="highlights"] #view-highlights,
+.wm-body[data-tab="spiele"]     #view-spiele { display: block; }
 .wm-body[data-tab="highlights"] #view-spiele,
-.wm-body[data-tab="spiele"] #view-highlights { display: none; }
+.wm-body[data-tab="spiele"]     #view-highlights { display: none; }
 
 /* ── Sidebar: pick a match → jump to its clip ── */
 .wm-menu-btn {

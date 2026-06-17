@@ -21,7 +21,7 @@
 "use strict";
 
 (function () {
-  var APP_BUILT = "1.0.0"; // version of THIS shipped asset
+  var APP_BUILT = "1.0.1"; // version of THIS shipped asset
 
   // ── 1. Version stamp ─────────────────────────────────────────────────────
   function showVersion() {
@@ -167,6 +167,13 @@
     navigator.serviceWorker.addEventListener("controllerchange", function () {
       if (reloaded) return;
       reloaded = true;
+      // Persist the active WM sub-tab across the recovery reload so the user
+      // isn't bounced back to Highlights mid-load. app.js reads + clears this
+      // key on boot. sessionStorage so it never leaks past this tab/session.
+      try {
+        var tab = document.body && document.body.dataset ? document.body.dataset.tab : null;
+        if (tab) sessionStorage.setItem("wm.tab", tab);
+      } catch (_e) {/* storage may be unavailable; non-fatal */}
       location.reload();
     });
   }

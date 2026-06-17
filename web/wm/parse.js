@@ -131,7 +131,7 @@ export function normalizeTeam(name) {
   if (typeof name !== "string") return "";
   return name
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "") // strip combining marks (ö→o, é→e)
+    .replace(/[\u0300-\u036f]/g, "") // strip combining marks (ö→o, é→e)
     .toLowerCase()
     .replace(/&/g, " und ")
     .replace(/[^a-z0-9]+/g, " ")

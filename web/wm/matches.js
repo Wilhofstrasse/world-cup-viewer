@@ -86,6 +86,7 @@ function fixtureRow(fx, api) {
 
 function render(fixtures, matches) {
   const root = document.getElementById("wmMatches");
+  if (!root) return;
   if (!fixtures.length) {
     root.innerHTML = `<p class="wm-state">Spielplan momentan nicht verfügbar.</p>`;
     return;
@@ -107,12 +108,12 @@ function render(fixtures, matches) {
     if (groups.length) {
       for (const g of groups) {
         html += `<h3 class="wm-group-head">Gruppe ${esc(g)}</h3>`;
-        for (const fx of list.filter((f) => f.group === g).sort((a, b) => a.dateISO.localeCompare(b.dateISO))) {
+        for (const fx of list.filter((f) => f.group === g).sort((a, b) => (a.dateISO || "").localeCompare(b.dateISO || ""))) {
           html += fixtureRow(fx, alignApi(fx, matches));
         }
       }
     } else {
-      for (const fx of list.sort((a, b) => a.dateISO.localeCompare(b.dateISO))) {
+      for (const fx of list.sort((a, b) => (a.dateISO || "").localeCompare(b.dateISO || ""))) {
         html += fixtureRow(fx, alignApi(fx, matches));
       }
     }
@@ -127,13 +128,34 @@ function render(fixtures, matches) {
 /** Public entry point — called by app.js when the Spiele tab opens. */
 export async function initMatches() {
   const root = document.getElementById("wmMatches");
-  const [fixtures, matches] = await Promise.all([
-    fetchFixtures().catch(() => []),
-    fetch(`${API_BASE}/api/wm/matches`).then((r) => (r.ok ? r.json() : { matches: [] })).then((d) => (Array.isArray(d.matches) ? d.matches : [])).catch(() => []),
-  ]);
-  if (!fixtures.length && !matches.length) {
+  if (!root) return;
+
+  // Paint a visible loading state synchronously, BEFORE any await. If the SRF
+  // livecenter fetch stalls (geofence / network), the panel shows this rather
+  // than a blank screen.
+  root.innerHTML = `<p class="wm-state">Spielplan wird geladen…</p>`;
+
+  // Abort a stalled fetch after 8s so we always resolve to a visible state.
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+
+  try {
+    const [fixtures, matches] = await Promise.all([
+      fetchFixtures({ signal: ctrl.signal }).catch(() => []),
+      fetch(`${API_BASE}/api/wm/matches`, { signal: ctrl.signal })
+        .then((r) => (r.ok ? r.json() : { matches: [] }))
+        .then((d) => (Array.isArray(d.matches) ? d.matches : []))
+        .catch(() => []),
+    ]);
+    if (!fixtures.length && !matches.length) {
+      root.innerHTML = `<p class="wm-state">Spielplan konnte nicht geladen werden.</p>`;
+      return;
+    }
+    render(fixtures, matches);
+  } catch (_e) {
+    // Any unexpected throw (incl. the abort) → a visible error, never blank.
     root.innerHTML = `<p class="wm-state">Spielplan konnte nicht geladen werden.</p>`;
-    return;
+  } finally {
+    clearTimeout(timer);
   }
-  render(fixtures, matches);
 }

@@ -109,6 +109,34 @@ function render() {
 // Playback
 // ---------------------------------------------------------------------------
 
+// Landscape-driven fullscreen. Portrait stays inline (playsInline); rotating to
+// landscape promotes the playing clip to fullscreen, rotating back exits.
+// iOS Safari only honours the video-specific webkitEnterFullscreen(), and only
+// once metadata has loaded — the generic Element.requestFullscreen() is a no-op
+// on iPhone. Android/desktop use the standard path as a fallback.
+const landscapeMq = window.matchMedia("(orientation: landscape)");
+
+function enterFullscreen(video) {
+  try {
+    if (typeof video.webkitEnterFullscreen === "function") {
+      // iOS: only valid once metadata is ready (readyState ≥ HAVE_METADATA).
+      if (video.readyState >= 1) video.webkitEnterFullscreen();
+    } else if (typeof video.requestFullscreen === "function") {
+      video.requestFullscreen().catch(() => {/* user-gesture/permission — ignore */});
+    }
+  } catch (_e) {/* fullscreen rejected — stay inline */}
+}
+
+function exitFullscreen(video) {
+  try {
+    if (typeof video.webkitExitFullscreen === "function" && video.webkitDisplayingFullscreen) {
+      video.webkitExitFullscreen();
+    } else if (document.fullscreenElement && typeof document.exitFullscreen === "function") {
+      document.exitFullscreen().catch(() => {});
+    }
+  } catch (_e) {/* ignore */}
+}
+
 /** Load the vendored hls.js once, on demand. Resolves to window.Hls or null. */
 function loadHls() {
   if (window.Hls) return Promise.resolve(window.Hls);
@@ -166,11 +194,43 @@ async function playSlide(slideEl) {
   slideEl.classList.add("playing");
   slideEl.appendChild(video);
   video.play().catch(() => {/* gesture already happened; ignore */});
+
+  // Landscape → fullscreen, portrait → inline. The orientation-change attempt is
+  // best-effort (iOS may reject fullscreen outside a user gesture); a TAP on the
+  // video in landscape is the reliable path. Every handler is stored on the video
+  // and removed in stopSlide, and guarded by ready() so nothing fires on a
+  // torn-down/scrolled-away clip (Codex P2).
+  const ready = () => video.isConnected && slideEl.classList.contains("playing") && landscapeMq.matches;
+  const tryEnter = () => {
+    if (!ready()) return;
+    if (video.readyState >= 1) {
+      enterFullscreen(video);
+    } else if (!video._metaHandler) {
+      video._metaHandler = () => { video._metaHandler = null; if (ready()) enterFullscreen(video); };
+      video.addEventListener("loadedmetadata", video._metaHandler, { once: true });
+    }
+  };
+  const onOrientation = () => { if (landscapeMq.matches) tryEnter(); else exitFullscreen(video); };
+  const onTap = () => { if (landscapeMq.matches) enterFullscreen(video); }; // user gesture → reliable on iOS
+  video._onOrientation = onOrientation;
+  video._onTap = onTap;
+  video.addEventListener("click", onTap);
+  if (typeof landscapeMq.addEventListener === "function") landscapeMq.addEventListener("change", onOrientation);
+  else if (typeof landscapeMq.addListener === "function") landscapeMq.addListener(onOrientation);
+  if (landscapeMq.matches) onOrientation(); // best-effort promote if already landscape
 }
 
 function stopSlide(slideEl) {
   const video = slideEl.querySelector(".wm-video");
   if (video) {
+    if (video._onOrientation) {
+      if (typeof landscapeMq.removeEventListener === "function") landscapeMq.removeEventListener("change", video._onOrientation);
+      else if (typeof landscapeMq.removeListener === "function") landscapeMq.removeListener(video._onOrientation);
+      video._onOrientation = null;
+    }
+    if (video._metaHandler) { video.removeEventListener("loadedmetadata", video._metaHandler); video._metaHandler = null; }
+    if (video._onTap) { video.removeEventListener("click", video._onTap); video._onTap = null; }
+    exitFullscreen(video);
     try { video.pause(); } catch (_e) {}
     if (video._hls) { try { video._hls.destroy(); } catch (_e) {} }
     video.remove();
