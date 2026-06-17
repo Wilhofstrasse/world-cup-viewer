@@ -17,9 +17,18 @@ Kid-friendly FIFA WM 2026 PWA — swipe SRF highlight summaries + a structured S
 
 See `README.md`. Secret: `APIFOOTBALL_KEY`. Bucket: `world-cup-data`. Deploy: `npm run deploy` (deploy-gate). Version surfaced live at `/api/version`; PWA footer shows it (appshell.js) + pull-to-refresh pill (ported from spesen).
 
+## Resolved — "Spiele" tab blank on real iOS (v1.0.2, 17.06.2026)
+
+Two compounding causes, found via workflow + Codex:
+
+1. **CSS visibility:** `#view-spiele` shipped with the `[hidden]` attribute and `wm.css` only ever *hid* the inactive view, never *showed* the active one. JS clearing `[hidden]` was defeated by a stale cached stylesheet. → Fix: inline critical view-visibility CSS in `<head>` with `!important` show-rules (beats UA `[hidden]` + any stale cached `wm.css`), dropped `[hidden]` from markup, dual `body:not([data-tab])` fallback guards.
+2. **Frozen service worker (the real masker):** `sw.js` was byte-identical across 1.0.0→1.0.1, so iOS never re-installed it and kept serving pre-fix assets — the fix physically never reached the device. `/api/version` masked it (reads the Worker var, not cached bytes).
+
+**Fix mechanism — one-shot kill-switch** (`sw.js`): on first activate of a byte-changed worker, wipe ALL caches + `self.registration.unregister()` ONCE, drop a `KILL_DONE` sentinel cache, return. Re-registered worker sees the sentinel → just claims → persists (no thrash, push/offline return). Plus `register(sw.js,{updateViaCache:'none'})` so the SW script is never HTTP-cached again, and an appshell.js `/api/version`-mismatch one-shot `location.reload()` (sessionStorage-guarded) for same-bytes deploys. **Lesson: bumping app version without changing `sw.js` bytes does NOT update an installed iOS PWA — always touch the SHELL_CACHE name when shipping an asset fix.** Codex confirmed SHIP. Guaranteed device cure if the 24h SW check hasn't elapsed: delete + re-add the home-screen icon.
+
 ## Open decisions
 
-- **Custom domain** (nice URL) — pending (e.g. `wm.filipeandrade.com` → the Worker, no CF Access; public highlights).
+- **Custom domain** — ✅ done: `wm.filipeandrade.com` (custom_domain route, no CF Access; public).
 - **Canvas-sync design pass** — `design/highlights-v1.md`; connect claude.ai/design to the public repo.
 - **API-Football key** — needed for scores/scorers; schedule shows keyless without it.
 - **Calendar write-back** (`src/wm/calendar.ts`, tested core) — needs iCloud app-pw; optional for this kid-facing app (was a Filipe-facing feature).

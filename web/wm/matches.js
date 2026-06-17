@@ -63,10 +63,14 @@ function fixtureRow(fx, api) {
   const finished = api && api.status === "finished";
   const showScore = live || finished;
 
+  // Middle column: the score when played, else a slim "–" placeholder — keeps
+  // long team names (Elfenbeinküste, Saudi-Arabien) from colliding with the
+  // kickoff string, which now sits on its own line below the teams.
   const mid = showScore
     ? `<span class="wm-match-score">${api.scoreA}–${api.scoreB}</span>`
-    : `<span class="wm-match-when">${esc(kickoff(fx.dateISO))}</span>`;
+    : `<span class="wm-match-score wm-match-vs">–</span>`;
 
+  const when = showScore ? "" : `<div class="wm-match-when">${esc(kickoff(fx.dateISO))}</div>`;
   const liveBadge = live ? `<span class="wm-live-badge">● LIVE ${api.minute ? api.minute + "'" : ""}</span>` : "";
   const goals = showScore && api.goals && api.goals.length
     ? `<div class="wm-goals">⚽ ${api.goals.map(goalLine).join(" · ")}</div>`
@@ -79,10 +83,13 @@ function fixtureRow(fx, api) {
         ${mid}
         <span class="wm-match-team end"><span class="f">${flagFor(fx.teamB)}</span>${esc(fx.teamB)}</span>
       </div>
+      ${when}
       ${liveBadge}
       ${goals}
     </article>`;
 }
+
+const byKickoff = (a, b) => (a.dateISO || "").localeCompare(b.dateISO || "");
 
 function render(fixtures, matches) {
   const root = document.getElementById("wmMatches");
@@ -92,37 +99,50 @@ function render(fixtures, matches) {
     return;
   }
 
-  // Group: round → (group letter for Vorrunde) → fixtures by kickoff.
+  // round → fixtures
   const byRound = new Map();
   for (const fx of fixtures) {
     if (!byRound.has(fx.round)) byRound.set(fx.round, []);
     byRound.get(fx.round).push(fx);
   }
-  const rounds = [...byRound.keys()].sort((a, b) => roundRank(a) - roundRank(b));
+  const vorrunde = byRound.get("Vorrunde") || [];
+  const koRounds = [...byRound.keys()].filter((r) => r !== "Vorrunde").sort((a, b) => roundRank(a) - roundRank(b));
 
-  let html = "";
-  for (const round of rounds) {
-    html += `<h2 class="wm-round-head">${esc(round)}</h2>`;
-    const list = byRound.get(round);
-    const groups = [...new Set(list.map((f) => f.group).filter(Boolean))].sort();
-    if (groups.length) {
-      for (const g of groups) {
-        html += `<h3 class="wm-group-head">Gruppe ${esc(g)}</h3>`;
-        for (const fx of list.filter((f) => f.group === g).sort((a, b) => (a.dateISO || "").localeCompare(b.dateISO || ""))) {
-          html += fixtureRow(fx, alignApi(fx, matches));
-        }
-      }
-    } else {
-      for (const fx of list.sort((a, b) => (a.dateISO || "").localeCompare(b.dateISO || ""))) {
-        html += fixtureRow(fx, alignApi(fx, matches));
-      }
-    }
-  }
+  // Only the first accordion opens by default; the rest start collapsed.
+  let openLeft = 1;
+  const acc = (label, rows) => {
+    const open = openLeft > 0;
+    if (open) openLeft--;
+    return `<details class="wm-acc"${open ? " open" : ""}>
+        <summary class="wm-acc-head"><span>${esc(label)}</span><span class="wm-acc-chev" aria-hidden="true">▸</span></summary>
+        <div class="wm-acc-body">${rows}</div>
+      </details>`;
+  };
+  const rowsFor = (list) => list.slice().sort(byKickoff).map((fx) => fixtureRow(fx, alignApi(fx, matches))).join("");
 
   const note = matches.length
     ? ""
     : `<p class="wm-state">Resultate &amp; Torschützen erscheinen, sobald die Spieldaten verbunden sind.</p>`;
-  root.innerHTML = note + html;
+  let html = note;
+
+  // ── VORRUNDE: one accordion per group ──
+  if (vorrunde.length) {
+    html += `<div class="wm-sec">Vorrunde</div>`;
+    const groups = [...new Set(vorrunde.map((f) => f.group).filter(Boolean))].sort();
+    if (groups.length) {
+      for (const g of groups) html += acc(`Gruppe ${g}`, rowsFor(vorrunde.filter((f) => f.group === g)));
+    } else {
+      html += acc("Alle Spiele", rowsFor(vorrunde));
+    }
+  }
+
+  // ── K.-O.-RUNDE: one accordion per round ──
+  if (koRounds.length) {
+    html += `<div class="wm-sec">K.-o.-Runde</div>`;
+    for (const round of koRounds) html += acc(round, rowsFor(byRound.get(round)));
+  }
+
+  root.innerHTML = html;
 }
 
 /** Public entry point — called by app.js when the Spiele tab opens. */

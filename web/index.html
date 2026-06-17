@@ -28,47 +28,57 @@
     .wm-body[data-tab="spiele"]     #view-highlights { display: none !important; }
     body:not([data-tab]) #view-highlights { display: block !important; }
     body:not([data-tab]) #view-spiele { display: none !important; }
-    #view-spiele { padding: 100px 14px 24px; max-width: 620px; margin: 0 auto; }
-    .wm-state { font-size: 13px; text-align: center; padding: 24px 0; color: #b9c6da; }
+    #view-spiele { padding: 76px 16px 24px; max-width: 640px; margin: 0 auto; }
+    .wm-state { font-size: 13px; text-align: center; padding: 24px 0; color: #8c8c8c; }
   </style>
-  <link rel="stylesheet" href="wm/wm.css?v=1.0.2">
+  <link rel="stylesheet" href="wm/wm.css?v=1.1.0">
 </head>
 <body class="wm-body" data-tab="highlights">
 
-  <!-- ── Top bar: app switch + WM sub-tabs ── -->
+  <!-- ── Top bar: ☰ + brand on the left, Highlights/Spiele segmented pill on the right ── -->
   <header class="wm-bar">
-    <nav class="wm-appnav" aria-label="WM 2026">
-      <span class="wm-appnav-link is-active" aria-current="page">⚽ WM 2026</span>
+    <div class="wm-brand">
+      <button class="wm-menu-btn" id="wmMenuBtn" type="button" aria-label="Zu einem Spiel springen" aria-expanded="false" aria-controls="wmDrawer">☰</button>
+      <span class="wm-appnav-link" aria-current="page">WM 2026</span>
       <span id="appVer" class="wm-ver"></span>
-    </nav>
+    </div>
     <div class="wm-tabs" role="tablist" aria-label="WM Ansicht">
-      <button class="wm-tab" role="tab" data-tab="highlights" aria-selected="true">🎬 Highlights</button>
-      <button class="wm-tab" role="tab" data-tab="spiele" aria-selected="false">📅 Spiele</button>
+      <button class="wm-tab" role="tab" data-tab="highlights" aria-selected="true">Highlights</button>
+      <button class="wm-tab" role="tab" data-tab="spiele" aria-selected="false">Spiele</button>
     </div>
   </header>
 
   <!-- ── Highlights: full-screen swipe feed ── -->
   <main id="view-highlights" class="wm-view" role="tabpanel" aria-label="Highlights">
-    <button class="wm-menu-btn" id="wmMenuBtn" type="button" aria-label="Spiele auswählen" aria-expanded="false">☰</button>
-    <aside class="wm-drawer" id="wmDrawer" aria-hidden="true" aria-label="Spiele auswählen">
-      <div class="wm-drawer-head">Spiele</div>
-      <div class="wm-drawer-list" id="wmDrawerList"></div>
-      <a class="wm-drawer-foot" href="feedback.html">✉ Feedback senden</a>
-    </aside>
-    <div class="wm-drawer-scrim" id="wmDrawerScrim" hidden></div>
     <div class="wm-feed" id="wmFeed" aria-live="polite">
       <section class="wm-slide wm-empty"><p>Highlights werden geladen…</p></section>
     </div>
   </main>
 
-  <!-- ── Spiele: schedule + scores + scorers ── -->
+  <!-- ── Spiele: schedule by round/group, scores + scorers ── -->
   <section id="view-spiele" class="wm-view" role="tabpanel" aria-label="Spiele">
     <div class="wm-matches" id="wmMatches" aria-live="polite">
       <p class="wm-state">Spielplan wird geladen…</p>
     </div>
   </section>
 
-  <script type="module" src="wm/app.js?v=1.0.2"></script>
-  <script src="appshell.js?v=1.0.2" defer></script>
+  <!-- ── Drawer overlay: body-level so ☰ works on both tabs ── -->
+  <div class="wm-drawer-scrim" id="wmDrawerScrim" hidden></div>
+  <aside class="wm-drawer" id="wmDrawer" aria-hidden="true" aria-label="Zu einem Spiel springen">
+    <div class="wm-drawer-head">
+      <button class="wm-drawer-close" id="wmDrawerClose" type="button" aria-label="Schliessen">✕</button>
+      <span>Zu einem Spiel springen</span>
+    </div>
+    <div class="wm-search">
+      <input type="search" id="wmSearch" class="wm-search-input" placeholder="Team oder Gruppe…"
+             autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search"
+             aria-label="Team oder Gruppe suchen">
+    </div>
+    <div class="wm-drawer-list" id="wmDrawerList"></div>
+    <a class="wm-drawer-foot" href="feedback.html">✉ Feedback senden</a>
+  </aside>
+
+  <script type="module" src="wm/app.js?v=1.1.0"></script>
+  <script src="appshell.js?v=1.1.0" defer></script>
 </body>
 </html>

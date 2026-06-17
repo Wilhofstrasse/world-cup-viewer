@@ -1,76 +1,91 @@
 /* ════════════════════════════════════════════════════════════════════════
-   wm.css — WM 2026 section. Dark, feed-first theme (own DNA, not base.css —
-   the video feed reads better dark, and it keeps the chess cockpit untouched).
-   Two views: a full-screen Reels-style highlight feed, and a match list.
+   wm.css — WM 2026. Light "paper" kid-friendly theme: rounded font, warm
+   cream surfaces, bold black outlines, tomato-red accent. The CHROME (header,
+   drawer, Spiele schedule) is light; the Highlights VIDEO FEED stays dark
+   (video reads best on black). Keeps the chess cockpit untouched.
+   Two views: a full-screen Reels-style highlight feed, and a match schedule
+   structured as round/group accordions.
    ════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --wm-bg:      #0a1d3b;   /* deep football navy */
-  --wm-bg-2:    #0f2748;
-  --wm-card:    #14315a;
-  --wm-ink:     #ffffff;
-  --wm-ink-dim: #b9c6da;
-  --wm-faint:   #7e8ca3;
-  --wm-line:    rgba(255,255,255,.12);
-  --wm-accent:  #e63329;   /* SRF red */
-  --wm-win:     #45c08a;
-  --wm-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --wm-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --wm-bar-h: 92px;
+  /* Light "paper" palette (header, drawer, Spiele) */
+  --wm-paper:       #f4f1ea;  /* warm cream — page + header */
+  --wm-surface:     #ffffff;  /* cards, pills, inputs */
+  --wm-ink:         #1c1c1c;  /* near-black text + bold outlines */
+  --wm-ink-dim:     #8c8c8c;  /* muted text */
+  --wm-faint:       #b3aea3;  /* very muted */
+  --wm-line:        #1c1c1c;  /* bold outline (mockup aesthetic) */
+  --wm-line-soft:   #d8d2c6;  /* soft border (inactive card) */
+  --wm-accent:      #e6492f;  /* tomato red — active pill, labels, live */
+  --wm-accent-soft: #fbe3dd;  /* pink highlight (current row / live card) */
+  --wm-win:         #2faa6a;
 
-  /* Pull-to-refresh pill colour (dark page → accent pill, pops on navy) */
-  --ptr-bg: #e63329;
+  /* Dark palette (Highlights video reels only) */
+  --wm-feed-bg:  #0c1c33;
+  --wm-feed-bg2: #0f2748;
+  --wm-feed-line: rgba(255,255,255,.12);
+
+  --wm-rounded: "SF Pro Rounded", ui-rounded, "Varela Round", "Hiragino Maru Gothic ProN", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --wm-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --wm-bar-h: 58px;
+
+  /* Pull-to-refresh pill colour (light page → accent pill) */
+  --ptr-bg: #e6492f;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
   height: 100%;
-  background: var(--wm-bg);
+  background: var(--wm-paper);
   color: var(--wm-ink);
-  font-family: var(--wm-sans);
+  font-family: var(--wm-rounded);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
 
-/* ── Top bar (floats over the feed) ── */
+/* ── Top bar: single row, light, bold divider ── */
 .wm-bar {
   position: fixed;
   inset: 0 0 auto 0;
   z-index: 30;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: max(10px, env(safe-area-inset-top)) 14px 10px;
-  background: linear-gradient(180deg, rgba(5,14,30,.92) 0%, rgba(5,14,30,.55) 70%, rgba(5,14,30,0) 100%);
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: max(8px, env(safe-area-inset-top)) 16px 8px;
+  background: var(--wm-paper);
+  border-bottom: 2.5px solid var(--wm-ink);
 }
-.wm-appnav { display: flex; align-items: center; gap: 8px; }
+.wm-brand { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
+.wm-menu-btn {
+  width: 34px; height: 34px; flex: none;
+  border: none; background: transparent; color: var(--wm-ink);
+  font-size: 21px; line-height: 1; cursor: pointer; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.wm-menu-btn:active { opacity: .5; }
 .wm-appnav-link {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--wm-ink-dim);
-  text-decoration: none;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid var(--wm-line);
+  font-size: 19px; font-weight: 800; letter-spacing: -.01em;
+  color: var(--wm-ink); white-space: nowrap;
 }
-.wm-appnav-link.is-active { color: #fff; background: rgba(255,255,255,.16); }
+.wm-ver { font-family: var(--wm-mono); font-size: 9.5px; color: var(--wm-ink-dim); margin-left: 1px; }
 
-.wm-tabs { display: inline-flex; gap: 4px; background: rgba(255,255,255,.08); border-radius: 999px; padding: 3px; align-self: flex-start; }
-.wm-tab {
-  font-size: 13px;
-  font-weight: 600;
-  border: none;
-  background: transparent;
-  color: var(--wm-ink-dim);
-  padding: 7px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background .12s, color .12s;
+.wm-tabs {
+  display: inline-flex; flex: none; gap: 0;
+  background: var(--wm-surface);
+  border: 2.5px solid var(--wm-ink);
+  border-radius: 999px; padding: 3px;
 }
-.wm-tab[aria-selected="true"] { background: #fff; color: var(--wm-bg); }
+.wm-tab {
+  font-family: var(--wm-rounded);
+  font-size: 14px; font-weight: 700;
+  border: none; background: transparent; color: var(--wm-ink);
+  padding: 6px 15px; border-radius: 999px; cursor: pointer;
+  transition: background .14s, color .14s;
+}
+.wm-tab[aria-selected="true"] { background: var(--wm-accent); color: #fff; }
 
 /* ── Views ── */
 .wm-view { min-height: 100%; }
@@ -83,71 +98,86 @@ html, body {
 .wm-body[data-tab="highlights"] #view-spiele,
 .wm-body[data-tab="spiele"]     #view-highlights { display: none; }
 
-/* ── Sidebar: pick a match → jump to its clip ── */
-.wm-menu-btn {
-  position: fixed;
-  z-index: 31;
-  /* below the bar (appnav + tabs) so it never overlaps the Highlights/Spiele tabs */
-  top: calc(env(safe-area-inset-top) + 100px);
-  left: 14px;
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  border: 1px solid var(--wm-line);
-  background: rgba(0,0,0,.45);
-  color: #fff;
-  font-size: 16px; line-height: 1;
-  cursor: pointer;
-  backdrop-filter: blur(6px);
-}
-.wm-drawer-scrim {
-  position: fixed; inset: 0;
-  z-index: 39;
-  background: rgba(0,0,0,.5);
-}
+/* ════════════════════════════════════════════════════════════════════════
+   Drawer — "Zu einem Spiel springen": search + jump to a clip (body-level)
+   ════════════════════════════════════════════════════════════════════════ */
+.wm-drawer-scrim { position: fixed; inset: 0; z-index: 39; background: rgba(20,20,20,.32); }
 .wm-drawer {
   position: fixed;
   inset: 0 auto 0 0;
   z-index: 40;
-  width: 80%; max-width: 330px;
-  background: var(--wm-bg-2);
-  border-right: 1px solid var(--wm-line);
+  width: 86%; max-width: 360px;
+  background: var(--wm-surface);
+  border-right: 2.5px solid var(--wm-ink);
   transform: translateX(-100%);
   transition: transform .22s ease;
   overflow-y: auto;
-  padding: max(14px, env(safe-area-inset-top)) 0 calc(20px + env(safe-area-inset-bottom));
-  box-shadow: 2px 0 24px rgba(0,0,0,.5);
+  padding: max(16px, env(safe-area-inset-top)) 0 calc(20px + env(safe-area-inset-bottom));
+  box-shadow: 6px 0 28px rgba(0,0,0,.18);
 }
 .wm-drawer.open { transform: translateX(0); }
 .wm-drawer-head {
-  font-family: var(--wm-mono);
-  font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
-  color: var(--wm-faint);
-  padding: 6px 18px 10px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 19px; font-weight: 800; color: var(--wm-ink);
+  padding: 4px 18px 14px;
 }
-.wm-drawer-item {
-  display: flex; align-items: center; gap: 10px;
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  border-top: 1px solid var(--wm-line);
-  color: var(--wm-ink);
-  padding: 13px 18px;
-  cursor: pointer;
-  font-size: 15px;
+.wm-drawer-close {
+  width: 30px; height: 30px; flex: none;
+  border: none; background: transparent; color: var(--wm-ink);
+  font-size: 21px; line-height: 1; cursor: pointer; padding: 0;
 }
-.wm-drawer-item:active { background: rgba(255,255,255,.06); }
-.wm-drawer-item { font-size: 14px; }
-.wm-drawer-item .f { font-size: 18px; flex: none; }
-.wm-drawer-item .t { font-weight: 700; flex: 1; min-width: 0; }
-.wm-drawer-item .d { font-family: var(--wm-mono); font-size: 11px; color: var(--wm-faint); flex: none; }
+.wm-drawer-close:active { opacity: .5; }
 
-/* ── Reels-style feed ── */
+.wm-search { padding: 0 18px 6px; }
+.wm-search-input {
+  width: 100%;
+  font-family: var(--wm-rounded); font-size: 15px; color: var(--wm-ink);
+  background-color: var(--wm-surface);
+  border: 2px solid var(--wm-line-soft); border-radius: 14px;
+  padding: 11px 14px 11px 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='20.5' y1='20.5' x2='16.5' y2='16.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 13px center; background-size: 17px;
+  -webkit-appearance: none; appearance: none;
+}
+.wm-search-input::placeholder { color: var(--wm-ink-dim); }
+.wm-search-input:focus { outline: none; border-color: var(--wm-ink); }
+
+.wm-drawer-group {
+  font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--wm-accent); padding: 16px 18px 6px;
+}
+.wm-drawer-list { padding-bottom: 4px; }
+.wm-drawer-item {
+  display: flex; align-items: center; gap: 11px;
+  width: calc(100% - 20px); margin: 2px 10px;
+  text-align: left;
+  background: transparent; border: none; border-radius: 12px;
+  color: var(--wm-ink); padding: 12px 14px;
+  cursor: pointer; font-size: 15px;
+}
+.wm-drawer-item:active { background: #f0ece3; }
+.wm-drawer-item.is-current { background: var(--wm-accent-soft); }
+.wm-drawer-item .f { font-size: 19px; flex: none; }
+.wm-drawer-item .t { font-weight: 700; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wm-drawer-item .d { font-family: var(--wm-mono); font-size: 11px; color: var(--wm-ink-dim); flex: none; }
+.wm-drawer-empty { padding: 16px 18px; color: var(--wm-ink-dim); font-size: 14px; }
+.wm-drawer-foot {
+  display: block; margin: 12px 18px 0; padding: 14px 4px 2px;
+  border-top: 1.5px dashed var(--wm-line-soft);
+  color: var(--wm-ink-dim); text-decoration: none; font-size: 14px; font-weight: 700;
+}
+.wm-drawer-foot:active { color: var(--wm-ink); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   Highlights — Reels-style feed (DARK: video reads best on black)
+   ════════════════════════════════════════════════════════════════════════ */
 .wm-feed {
   height: 100dvh;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
+  background: var(--wm-feed-bg);
+  color: #fff;
 }
 .wm-feed::-webkit-scrollbar { display: none; }
 
@@ -157,7 +187,8 @@ html, body {
   scroll-snap-align: start;
   scroll-snap-stop: always;
   overflow: hidden;
-  background: var(--wm-bg-2);
+  background: var(--wm-feed-bg2);
+  color: #fff;
   display: flex;
   align-items: flex-end;
 }
@@ -181,8 +212,8 @@ html, body {
   width: 84px; height: 84px;
   border-radius: 50%;
   border: none;
-  background: rgba(255,255,255,.92);
-  color: var(--wm-bg);
+  background: rgba(255,255,255,.94);
+  color: var(--wm-feed-bg);
   font-size: 30px;
   padding-left: 6px;
   cursor: pointer;
@@ -221,91 +252,83 @@ html, body {
   pointer-events: none;
 }
 .wm-flags { font-size: 30px; line-height: 1; display: block; margin-bottom: 7px; }
-.wm-teams { font-size: 17px; font-weight: 800; display: block; margin-bottom: 4px; }
+.wm-teams { font-size: 17px; font-weight: 800; display: block; margin-bottom: 4px; color: #fff; }
 .wm-vs { color: var(--wm-faint); font-weight: 600; }
-.wm-title { font-size: 13px; font-weight: 600; line-height: 1.3; margin-bottom: 8px; max-width: 34ch; }
-.wm-sub { font-size: 12px; color: var(--wm-ink-dim); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.wm-title { font-size: 13px; font-weight: 600; line-height: 1.3; margin-bottom: 8px; max-width: 34ch; color: #f2f4f8; }
+.wm-sub { font-size: 12px; color: #c7d2e0; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .wm-kind { font-family: var(--wm-mono); text-transform: uppercase; letter-spacing: .04em; color: var(--wm-faint); }
 .wm-dot { color: var(--wm-faint); }
 
-.wm-slide.wm-empty { align-items: center; justify-content: center; text-align: center; color: var(--wm-ink-dim); }
+.wm-slide.wm-empty { align-items: center; justify-content: center; text-align: center; color: #c7d2e0; }
 .wm-slide.wm-empty p { font-size: 15px; line-height: 1.5; }
-.wm-slide.wm-error .wm-meta::after { content: "Konnte nicht geladen werden."; display: block; color: var(--wm-accent); font-size: 12px; margin-top: 6px; }
+.wm-slide.wm-error .wm-meta::after { content: "Konnte nicht geladen werden."; display: block; color: #ff8a7a; font-size: 12px; margin-top: 6px; }
 
-/* ── Match list (Spiele) ── */
+/* ════════════════════════════════════════════════════════════════════════
+   Spiele — schedule as round/group accordions (LIGHT)
+   ════════════════════════════════════════════════════════════════════════ */
 #view-spiele {
-  padding: calc(var(--wm-bar-h) + 8px) 14px calc(24px + env(safe-area-inset-bottom));
-  max-width: 620px;
+  padding: calc(var(--wm-bar-h) + 18px) 16px calc(28px + env(safe-area-inset-bottom));
+  max-width: 640px;
   margin: 0 auto;
 }
-.wm-state { font-family: var(--wm-mono); font-size: 13px; color: var(--wm-ink-dim); text-align: center; padding: 24px 0; }
-.wm-daygroup { margin-bottom: 18px; }
-.wm-dayhead { font-family: var(--wm-mono); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--wm-faint); margin: 14px 2px 8px; }
-.wm-match {
-  background: var(--wm-card);
-  border: 1px solid var(--wm-line);
-  border-radius: 14px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-}
-.wm-match-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.wm-match-team { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; flex: 1; min-width: 0; }
-.wm-match-team.end { justify-content: flex-end; text-align: right; }
-.wm-match-team .f { font-size: 22px; }
-.wm-match-score { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 20px; white-space: nowrap; }
-.wm-match-when { font-family: var(--wm-mono); font-size: 12px; color: var(--wm-faint); }
-.wm-match.live { border-color: var(--wm-accent); }
-.wm-live-badge { color: var(--wm-accent); font-weight: 800; font-size: 11px; font-family: var(--wm-mono); }
-.wm-goals { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--wm-line); font-size: 12.5px; color: var(--wm-ink-dim); line-height: 1.7; }
-.wm-g { white-space: nowrap; }
-.wm-g .m { font-variant-numeric: tabular-nums; color: var(--wm-faint); }
-/* round + group structure */
-.wm-round-head { font-size: 18px; font-weight: 800; margin: 20px 2px 8px; }
-.wm-round-head:first-child { margin-top: 4px; }
-.wm-group-head { font-family: var(--wm-mono); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--wm-faint); margin: 14px 2px 7px; }
-.wm-watch {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 10px;
-  font-size: 13px; font-weight: 700;
-  color: #fff; background: var(--wm-accent);
-  border: none; border-radius: 999px; padding: 8px 14px; cursor: pointer;
-}
+.wm-state { font-family: var(--wm-rounded); font-size: 14px; color: var(--wm-ink-dim); text-align: center; padding: 28px 0; }
 
-/* ── Version stamp + floating refresh (PWA orientation) ── */
-.wm-ver { font-family: var(--wm-mono); font-size: 11px; color: var(--wm-faint); }
-.app-refresh {
-  position: fixed;
-  top: max(10px, env(safe-area-inset-top));
-  right: max(10px, env(safe-area-inset-right));
-  z-index: 50;
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  border: 1px solid var(--wm-line);
-  background: rgba(0, 0, 0, 0.45);
-  color: #fff;
-  font-size: 18px; line-height: 1;
-  cursor: pointer;
-  backdrop-filter: blur(6px);
-  -webkit-user-select: none; user-select: none;
+/* macro-section label: VORRUNDE / K.-O.-RUNDE */
+.wm-sec {
+  font-size: 14px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--wm-accent); margin: 22px 4px 12px;
 }
-.app-refresh:active { background: rgba(0, 0, 0, 0.65); }
-.app-refresh.update {
-  background: var(--wm-accent);
-  border-color: var(--wm-accent);
-  animation: app-refresh-pulse 1.4s ease-in-out infinite;
+.wm-sec:first-child { margin-top: 2px; }
+
+/* accordion (native details/summary — zero JS, keyboard-accessible) */
+.wm-acc {
+  background: var(--wm-surface);
+  border: 2px solid var(--wm-line-soft);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
 }
-@keyframes app-refresh-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(230, 51, 41, 0.5); }
-  50% { box-shadow: 0 0 0 7px rgba(230, 51, 41, 0); }
+.wm-acc[open] { border-color: var(--wm-ink); }
+.wm-acc.is-empty { opacity: .55; }
+.wm-acc-head {
+  display: flex; align-items: center; justify-content: space-between;
+  list-style: none; cursor: pointer;
+  font-size: 19px; font-weight: 800; color: var(--wm-ink);
+  padding: 17px 18px;
 }
+.wm-acc-head::-webkit-details-marker { display: none; }
+.wm-acc.is-empty .wm-acc-head { color: var(--wm-ink-dim); cursor: default; }
+.wm-acc-chev { font-size: 13px; color: var(--wm-ink-dim); transition: transform .18s; flex: none; }
+.wm-acc[open] .wm-acc-chev { transform: rotate(90deg); }
+.wm-acc-body { padding: 0 13px 10px; }
+
+.wm-match {
+  background: var(--wm-paper);
+  border: 1.5px solid var(--wm-line-soft);
+  border-radius: 13px;
+  padding: 13px 15px;
+  margin-bottom: 9px;
+}
+.wm-match:last-child { margin-bottom: 5px; }
+.wm-match-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.wm-match-team { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; flex: 1; min-width: 0; color: var(--wm-ink); }
+.wm-match-team.end { justify-content: flex-end; text-align: right; }
+.wm-match-team .f { font-size: 21px; flex: none; }
+.wm-match-score { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 19px; white-space: nowrap; color: var(--wm-ink); flex: none; }
+.wm-match-vs { color: var(--wm-faint); font-weight: 700; }
+.wm-match-when { display: block; text-align: center; margin-top: 8px; font-family: var(--wm-mono); font-size: 11.5px; color: var(--wm-ink-dim); }
+.wm-match.live { border-color: var(--wm-accent); background: var(--wm-accent-soft); }
+.wm-live-badge { display: inline-block; margin-top: 7px; color: var(--wm-accent); font-weight: 800; font-size: 11px; font-family: var(--wm-mono); }
+.wm-goals { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--wm-line-soft); font-size: 12.5px; color: #555; line-height: 1.7; }
+.wm-g { white-space: nowrap; }
+.wm-g .m { font-variant-numeric: tabular-nums; color: var(--wm-ink-dim); }
+
+/* ── Version stamp ── */
+.wm-ver { /* (header version, defined above) */ }
 
 /* ── iPad / large screens / landscape ── */
 @media (min-width: 760px) {
   /* The feed/video fills the screen (object-fit:contain letterboxes it) so a
      landscape phone or a desktop shows a big video, not a narrow centred strip. */
-  #view-spiele { max-width: 560px; } /* match cards stay a readable column */
+  #view-spiele { max-width: 600px; } /* schedule stays a readable column */
 }
-
-/* Drawer footer link (feedback) */
-.wm-drawer-foot { display:block; padding:15px 18px; border-top:1px solid var(--wm-line); color:var(--wm-ink-dim); text-decoration:none; font-size:14px; font-weight:700; }
-.wm-drawer-foot:active { background:rgba(255,255,255,.06); }

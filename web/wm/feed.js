@@ -254,39 +254,101 @@ function observePauses(feed) {
 }
 
 // ---------------------------------------------------------------------------
-// Filter chips + boot
+// Drawer — "Zu einem Spiel springen": search + jump to a clip
 // ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// Sidebar (pick a match → jump to its clip)
-// ---------------------------------------------------------------------------
+let drawerClips = [];
 
+function isToday(iso) {
+  if (!iso) return false;
+  const d = new Date(iso);
+  return !isNaN(+d) && d.toDateString() === new Date().toDateString();
+}
+
+/** Text a clip is matched against by the search box (team names, else title). */
+function clipSearchText(c) {
+  return (c.match ? `${c.match.teamA} ${c.match.teamB}` : c.title || "").toLowerCase();
+}
+
+/** Index of the clip currently snapped in the feed (full-height scroll-snap). */
+function currentSlideIndex() {
+  const feed = document.getElementById("wmFeed");
+  if (!feed || !feed.clientHeight) return -1;
+  return Math.round(feed.scrollTop / feed.clientHeight);
+}
+
+/** Store the clip list (called when the feed (re)renders) and paint the drawer. */
 function buildDrawer(visible) {
+  drawerClips = visible;
+  const search = document.getElementById("wmSearch");
+  renderDrawerList(search ? search.value : "");
+}
+
+/** (Re)render the drawer list for a query — grouped HEUTE/FRÜHER, flat while searching. */
+function renderDrawerList(q) {
   const list = document.getElementById("wmDrawerList");
   if (!list) return;
-  list.innerHTML = visible
-    .map((c, i) => {
-      const flags = c.match ? `${flagFor(c.match.teamA)} ${flagFor(c.match.teamB)}` : "🎬";
-      const teams = c.match ? `${esc(c.match.teamA)} – ${esc(c.match.teamB)}` : esc(c.title);
-      return `<button class="wm-drawer-item" data-i="${i}" type="button"><span class="f">${flags}</span><span class="t">${teams}</span><span class="d">${fmtWhen(c.dateISO)}</span></button>`;
-    })
-    .join("");
-  list.querySelectorAll(".wm-drawer-item").forEach((b) => {
-    b.addEventListener("click", () => {
-      const i = parseInt(b.dataset.i, 10);
+  const ql = q.trim().toLowerCase();
+  const cur = currentSlideIndex();
+
+  // Keep each clip's ORIGINAL feed index so a tap scrolls to the right slide.
+  const items = drawerClips
+    .map((c, i) => ({ c, i }))
+    .filter(({ c }) => !ql || clipSearchText(c).includes(ql));
+
+  if (!items.length) {
+    list.innerHTML = `<p class="wm-drawer-empty">${ql ? "Kein Spiel gefunden." : "Noch keine Spiele."}</p>`;
+    return;
+  }
+
+  function itemMarkup({ c, i }) {
+    const flags = c.match ? `${flagFor(c.match.teamA)} ${flagFor(c.match.teamB)}` : "🎬";
+    const teams = c.match ? `${esc(c.match.teamA)} – ${esc(c.match.teamB)}` : esc(c.title);
+    const cls = i === cur ? "wm-drawer-item is-current" : "wm-drawer-item";
+    return `<button class="${cls}" data-i="${i}" type="button"><span class="f">${flags}</span><span class="t">${teams}</span><span class="d">${fmtWhen(c.dateISO)}</span></button>`;
+  }
+  function section(label, arr) {
+    return arr.length ? `<div class="wm-drawer-group">${label}</div>` + arr.map(itemMarkup).join("") : "";
+  }
+
+  if (ql) {
+    list.innerHTML = items.map(itemMarkup).join("");
+  } else {
+    const today = items.filter(({ c }) => isToday(c.dateISO));
+    const older = items.filter(({ c }) => !isToday(c.dateISO));
+    list.innerHTML = section("Heute", today) + section("Früher", older);
+  }
+
+  list.querySelectorAll(".wm-drawer-item").forEach((b) =>
+    b.addEventListener("click", () => jumpToClip(parseInt(b.dataset.i, 10))),
+  );
+}
+
+/** Jump to a clip — switch to Highlights first (drawer can open from Spiele). */
+function jumpToClip(i) {
+  if (document.body.dataset.tab !== "highlights") {
+    document.querySelector('.wm-tab[data-tab="highlights"]')?.click();
+  }
+  // Give a just-shown feed a couple of frames to lay out before scrolling.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
       const slide = document.querySelectorAll("#wmFeed .wm-slide")[i];
       if (slide) slide.scrollIntoView({ behavior: "smooth" });
-      closeDrawer();
-    });
-  });
+    }),
+  );
+  closeDrawer();
 }
 
 function openDrawer() {
-  document.getElementById("wmDrawer")?.classList.add("open");
-  document.getElementById("wmDrawer")?.setAttribute("aria-hidden", "false");
+  const d = document.getElementById("wmDrawer");
+  d?.classList.add("open");
+  d?.setAttribute("aria-hidden", "false");
   const scrim = document.getElementById("wmDrawerScrim");
   if (scrim) scrim.hidden = false;
   document.getElementById("wmMenuBtn")?.setAttribute("aria-expanded", "true");
+  // Refresh so the "current" highlight tracks wherever the feed is now.
+  const search = document.getElementById("wmSearch");
+  renderDrawerList(search ? search.value : "");
 }
 function closeDrawer() {
   document.getElementById("wmDrawer")?.classList.remove("open");
@@ -302,6 +364,9 @@ function wireDrawer() {
     else openDrawer();
   });
   document.getElementById("wmDrawerScrim")?.addEventListener("click", closeDrawer);
+  document.getElementById("wmDrawerClose")?.addEventListener("click", closeDrawer);
+  const search = document.getElementById("wmSearch");
+  if (search) search.addEventListener("input", () => renderDrawerList(search.value));
 }
 
 /** Public entry point — called by wm/app.js when the Highlights tab opens. */

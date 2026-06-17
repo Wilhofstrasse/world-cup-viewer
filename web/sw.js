@@ -18,12 +18,14 @@
 
 "use strict";
 
-const SHELL_CACHE = "wm-shell-v10";
+const SHELL_CACHE = "wm-shell-v11";
 const DATA_CACHE = "wm-data-v2";
 const THUMB_CACHE = "wm-thumbs-v2";
 const THUMB_MAX = 120; // cap stored thumbnails
 // One-shot marker so the kill-switch (below) evicts the frozen v1.0.0 worker
-// exactly once, then lets the re-registered worker persist (Codex P1).
+// exactly once, then lets the re-registered worker persist (Codex P1). This name
+// is VERSION-INDEPENDENT on purpose — it must NOT track SHELL_CACHE, or a normal
+// version bump would re-trigger the eviction on already-healthy devices.
 const KILL_DONE = "wm-killswitch-v10-done";
 
 // Sub-resources only — NOT the page documents. Navigations are never served by
@@ -71,6 +73,12 @@ self.addEventListener("activate", (event) => {
         try { await self.registration.unregister(); } catch (_e) {}
         return;
       }
+      // Already de-frozen: normal version-bump cleanup — drop superseded wm-
+      // caches (e.g. an old wm-shell-vN) but keep the current set + the sentinel.
+      const keep = new Set([SHELL_CACHE, DATA_CACHE, THUMB_CACHE, KILL_DONE]);
+      await Promise.all(
+        names.filter((n) => n.startsWith("wm-") && !keep.has(n)).map((n) => caches.delete(n)),
+      );
       await self.clients.claim();
     })(),
   );
