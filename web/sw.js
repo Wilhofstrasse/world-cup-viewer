@@ -18,7 +18,7 @@
 
 "use strict";
 
-const SHELL_CACHE = "wm-shell-v15";
+const SHELL_CACHE = "wm-shell-v16";
 const DATA_CACHE = "wm-data-v2";
 const THUMB_CACHE = "wm-thumbs-v2";
 const THUMB_MAX = 120; // cap stored thumbnails
@@ -40,6 +40,7 @@ const WM_SHELL = [
   "/wm/mehr.js",
   "/wm/topscorers.js",
   "/wm/tabellen.js",
+  "/wm/bracket.js",
   "/wm/linkstore.js",
   "/wm/il.js",
   "/wm/parse.js",
