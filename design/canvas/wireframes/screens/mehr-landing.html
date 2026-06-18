@@ -1,0 +1,42 @@
+<!-- @dsCard group="Wireframes — Screens" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mehr — Landing</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--faint:#b3aea3;--soft:#d8d2c6;--accent:#e6492f;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.frame{max-width:380px;margin:0 auto;padding:0 0 24px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink);margin-bottom:14px}
+.brand{display:inline-flex;align-items:center;gap:9px}
+.menu{width:34px;height:34px;border:none;background:transparent;color:var(--ink);font-size:21px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.name{font-size:19px;font-weight:800}.ver{font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+.tabs{display:inline-flex;background:var(--surface);border:2.5px solid var(--ink);border-radius:999px;padding:3px}
+.tab{font-size:13px;font-weight:700;color:var(--ink);padding:6px 12px;border-radius:999px}
+.tab.on{background:var(--accent);color:#fff}
+.sec{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:10px 16px 10px}
+.list{padding:0 13px}
+.item{display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px solid var(--soft);border-radius:14px;padding:14px 15px;margin-bottom:9px}
+.ico{width:38px;height:38px;border-radius:11px;background:var(--paper);border:1.5px solid var(--soft);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+.txt{flex:1;min-width:0}
+.t{font-size:17px;font-weight:800;line-height:1.15}
+.s{font-size:12px;color:var(--dim);margin-top:2px}
+.chev{color:var(--dim);font-size:18px;flex:none}
+</style></head><body>
+<div class="frame">
+  <div class="bar"><div class="brand"><span class="menu">☰</span><span class="name">WM 2026</span><span class="ver">v1.4.0</span></div><div class="tabs"><span class="tab">Highlights</span><span class="tab">Spiele</span><span class="tab on">Mehr</span></div></div>
+  <div class="sec">Statistiken</div>
+  <div class="list">
+    <div class="item"><div class="ico">⚽</div><div class="txt"><div class="t">Torjägerliste</div><div class="s">Goldener Schuh · Tore, Vorlagen, Spiele</div></div><div class="chev">▸</div></div>
+    <div class="item"><div class="ico">📊</div><div class="txt"><div class="t">Tabellen</div><div class="s">Offizielle Gruppen mit Qualifikationsstatus</div></div><div class="chev">▸</div></div>
+  </div>
+  <div class="sec">Spiele &amp; Spielplan</div>
+  <div class="list">
+    <div class="item"><div class="ico">🏆</div><div class="txt"><div class="t">K.-o.-Baum</div><div class="s">Achtelfinal bis Finale</div></div><div class="chev">▸</div></div>
+    <div class="item"><div class="ico">🎽</div><div class="txt"><div class="t">Aufstellungen</div><div class="s">Formationen, Startelf, Auswechslungen</div></div><div class="chev">▸</div></div>
+  </div>
+  <div class="sec">Spieler &amp; Mannschaften</div>
+  <div class="list">
+    <div class="item"><div class="ico">👤</div><div class="txt"><div class="t">Spielerkarten</div><div class="s">Geburtstag, Grösse, Länderspiele</div></div><div class="chev">▸</div></div>
+    <div class="item"><div class="ico">👥</div><div class="txt"><div class="t">Kader</div><div class="s">Alle 48 Teams · Trikotnummern</div></div><div class="chev">▸</div></div>
+  </div>
+</div>
+</body></html>

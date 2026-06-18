@@ -1,0 +1,95 @@
+<!-- @dsCard group="Wireframes — Screens" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kader — Wireframe</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--faint:#b3aea3;--soft:#d8d2c6;--accent:#e6492f;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;padding:18px 0}
+.frame{max-width:380px;margin:0 auto 30px;padding:0}
+.cap{font-size:11px;font-weight:800;color:var(--dim);margin:0 18px 6px;letter-spacing:.06em;text-transform:uppercase}
+.bar{display:flex;align-items:center;gap:6px;padding:10px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink);margin-bottom:12px}
+.back{width:34px;height:34px;border:none;background:transparent;color:var(--ink);font-size:24px;line-height:1}
+.title{font-size:17px;font-weight:800}
+.search{margin:0 14px 12px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--soft);border-radius:13px;padding:9px 12px;color:var(--dim);font-size:14px}
+.sec{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:6px 18px 10px}
+.wrap{padding:0 13px}
+.acc{background:var(--surface);border:2px solid var(--soft);border-radius:16px;margin-bottom:10px;overflow:hidden}
+.acc.open{border-color:var(--ink)}
+.head{display:flex;align-items:center;justify-content:space-between;font-size:18px;font-weight:800;padding:13px 16px}
+.chev{font-size:13px;color:var(--dim)}
+.acc.open .chev{transform:rotate(90deg);display:inline-block}
+.body{padding:0 8px 8px}
+.t-row{display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-radius:10px}
+.t-row + .t-row{border-top:1px solid var(--soft)}
+.t-row .nm{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700}
+.t-row .nm .f{font-size:20px}
+.t-row .more{color:var(--dim);font-size:16px}
+
+/* Team detail — Roster */
+.hero{display:flex;align-items:center;gap:12px;padding:14px 18px 12px}
+.hero .flag{font-size:38px}
+.hero .who{flex:1;min-width:0}
+.hero .tn{font-size:22px;font-weight:800;line-height:1.05}
+.hero .coach{font-size:12px;color:var(--dim);margin-top:3px}
+.pos-lbl{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:14px 18px 6px}
+.roster{margin:0 14px}
+.r-row{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:10px;background:var(--surface);border:1.5px solid var(--soft);border-radius:11px;padding:10px 12px;margin-bottom:7px;min-height:48px}
+.r-row .n{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:800;font-size:15px;color:var(--accent);text-align:right}
+.r-row .nm{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-row .bd{font-family:var(--mono);font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+</style></head><body>
+
+<div class="cap">Übersicht — alle 48 Teams</div>
+<div class="frame">
+  <div class="bar"><span class="back">‹</span><span class="title">Kader</span></div>
+  <div class="search">🔎 Spieler oder Team suchen…</div>
+  <div class="sec">Vorrunde</div>
+  <div class="wrap">
+    <div class="acc open">
+      <div class="head"><span>Gruppe A</span><span class="chev">▸</span></div>
+      <div class="body">
+        <div class="t-row"><span class="nm"><span class="f">🇲🇽</span>Mexiko</span><span class="more">▸</span></div>
+        <div class="t-row"><span class="nm"><span class="f">🇨🇿</span>Tschechien</span><span class="more">▸</span></div>
+        <div class="t-row"><span class="nm"><span class="f">🇿🇦</span>Südafrika</span><span class="more">▸</span></div>
+        <div class="t-row"><span class="nm"><span class="f">🇰🇷</span>Südkorea</span><span class="more">▸</span></div>
+      </div>
+    </div>
+    <div class="acc"><div class="head"><span>Gruppe B</span><span class="chev">▸</span></div></div>
+    <div class="acc"><div class="head"><span>Gruppe C</span><span class="chev">▸</span></div></div>
+    <div class="acc"><div class="head"><span>… A–L</span><span class="chev">▸</span></div></div>
+  </div>
+</div>
+
+<div class="cap">Team-Detail — Kader nach Position</div>
+<div class="frame">
+  <div class="bar"><span class="back">‹</span><span class="title">Argentinien — Kader</span></div>
+  <div class="hero"><span class="flag">🇦🇷</span><div class="who"><div class="tn">Argentinien</div><div class="coach">Trainer: Lionel Scaloni</div></div></div>
+  <div class="search">🔎 Spieler suchen…</div>
+
+  <div class="pos-lbl">Tor</div>
+  <div class="roster">
+    <div class="r-row"><span class="n">1</span><span class="nm">Emiliano Martínez</span><span class="bd">02.09.1992</span></div>
+    <div class="r-row"><span class="n">12</span><span class="nm">Gerónimo Rulli</span><span class="bd">20.05.1992</span></div>
+  </div>
+
+  <div class="pos-lbl">Abwehr</div>
+  <div class="roster">
+    <div class="r-row"><span class="n">3</span><span class="nm">Nicolás Tagliafico</span><span class="bd">31.08.1992</span></div>
+    <div class="r-row"><span class="n">13</span><span class="nm">Cristian Romero</span><span class="bd">27.04.1998</span></div>
+    <div class="r-row"><span class="n">25</span><span class="nm">Nicolás Otamendi</span><span class="bd">12.02.1988</span></div>
+  </div>
+
+  <div class="pos-lbl">Mittelfeld</div>
+  <div class="roster">
+    <div class="r-row"><span class="n">5</span><span class="nm">Leandro Paredes</span><span class="bd">29.06.1994</span></div>
+    <div class="r-row"><span class="n">7</span><span class="nm">Rodrigo de Paul</span><span class="bd">24.05.1994</span></div>
+    <div class="r-row"><span class="n">20</span><span class="nm">Alexis Mac Allister</span><span class="bd">24.12.1998</span></div>
+  </div>
+
+  <div class="pos-lbl">Angriff</div>
+  <div class="roster">
+    <div class="r-row"><span class="n">9</span><span class="nm">Lautaro Martínez</span><span class="bd">22.08.1997</span></div>
+    <div class="r-row"><span class="n">10</span><span class="nm">Lionel Messi</span><span class="bd">24.06.1987</span></div>
+    <div class="r-row"><span class="n">22</span><span class="nm">Julián Álvarez</span><span class="bd">31.01.2000</span></div>
+  </div>
+</div>
+</body></html>

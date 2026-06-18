@@ -1,0 +1,44 @@
+<!-- @dsCard group="Wireframes — Screens" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Torjägerliste — Wireframe</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--faint:#b3aea3;--soft:#d8d2c6;--accent:#e6492f;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.frame{max-width:380px;margin:0 auto;padding:0 0 24px}
+.bar{display:flex;align-items:center;gap:6px;padding:10px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink);margin-bottom:14px}
+.back{width:34px;height:34px;border:none;background:transparent;color:var(--ink);font-size:24px;line-height:1}
+.title{font-size:17px;font-weight:800}
+.scope{display:flex;justify-content:center;margin:6px 0 14px}
+.scope-pill{display:inline-flex;background:var(--surface);border:2px solid var(--ink);border-radius:999px;padding:3px}
+.scope-tab{font-size:12px;font-weight:700;color:var(--ink);padding:5px 13px;border-radius:999px}
+.scope-tab.on{background:var(--accent);color:#fff}
+.list{padding:0 13px}
+.row{display:grid;grid-template-columns:34px 36px 1fr auto;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--soft);border-radius:13px;padding:10px 13px;margin-bottom:8px}
+.rank{font-family:var(--mono);font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;text-align:center}
+.top3 .rank{color:var(--accent)}
+.tie{font-size:13px;color:var(--dim);margin-right:1px}
+.photo{width:36px;height:36px;border-radius:50%;background:var(--paper);border:1.5px solid var(--soft);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--dim)}
+.who{min-width:0}
+.name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team{font-size:12px;color:var(--dim);margin-top:1px;display:flex;align-items:center;gap:6px}
+.team .flag{font-size:14px}
+.stat{text-align:right;min-width:62px}
+.goals{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.goals .ic{margin-right:4px}
+.sub-stat{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:3px;font-variant-numeric:tabular-nums}
+.empty{padding:24px 16px;text-align:center;color:var(--dim);font-size:13px}
+</style></head><body>
+<div class="frame">
+  <div class="bar"><span class="back">‹</span><span class="title">Torjägerliste</span></div>
+  <div class="scope"><div class="scope-pill"><span class="scope-tab on">Vorrunde</span><span class="scope-tab">Gesamt</span></div></div>
+  <div class="list">
+    <div class="row top3"><div class="rank">1</div><div class="photo">M.</div><div class="who"><div class="name">Lionel Messi</div><div class="team"><span class="flag">🇦🇷</span>Argentinien</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>5</div><div class="sub-stat">2 V · 3 Sp</div></div></div>
+    <div class="row top3"><div class="rank">2</div><div class="photo">K.</div><div class="who"><div class="name">Kylian Mbappé</div><div class="team"><span class="flag">🇫🇷</span>Frankreich</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>4</div><div class="sub-stat">1 V · 3 Sp</div></div></div>
+    <div class="row top3"><div class="rank">3</div><div class="photo">V.</div><div class="who"><div class="name">Vinícius Júnior</div><div class="team"><span class="flag">🇧🇷</span>Brasilien</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>3</div><div class="sub-stat">2 V · 3 Sp</div></div></div>
+    <div class="row"><div class="rank"><span class="tie">=</span>4</div><div class="photo">H.</div><div class="who"><div class="name">Harry Kane</div><div class="team"><span class="flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>England</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>2</div><div class="sub-stat">0 V · 3 Sp</div></div></div>
+    <div class="row"><div class="rank"><span class="tie">=</span>4</div><div class="photo">A.</div><div class="who"><div class="name">Julián Álvarez</div><div class="team"><span class="flag">🇦🇷</span>Argentinien</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>2</div><div class="sub-stat">1 V · 3 Sp</div></div></div>
+    <div class="row"><div class="rank"><span class="tie">=</span>4</div><div class="photo">R.</div><div class="who"><div class="name">Cristiano Ronaldo</div><div class="team"><span class="flag">🇵🇹</span>Portugal</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>2</div><div class="sub-stat">0 V · 2 Sp</div></div></div>
+    <div class="row"><div class="rank">7</div><div class="photo">G.</div><div class="who"><div class="name">Erling Haaland</div><div class="team"><span class="flag">🇳🇴</span>Norwegen</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>1</div><div class="sub-stat">1 V · 2 Sp</div></div></div>
+  </div>
+</div>
+</body></html>

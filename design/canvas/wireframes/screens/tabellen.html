@@ -1,0 +1,62 @@
+<!-- @dsCard group="Wireframes — Screens" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tabellen — Wireframe</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--faint:#b3aea3;--soft:#d8d2c6;--accent:#e6492f;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.frame{max-width:380px;margin:0 auto;padding:0 0 24px}
+.bar{display:flex;align-items:center;gap:6px;padding:10px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink);margin-bottom:14px}
+.back{width:34px;height:34px;border:none;background:transparent;color:var(--ink);font-size:24px;line-height:1}
+.title{font-size:17px;font-weight:800}
+.sec{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:6px 18px 10px}
+.wrap{padding:0 13px}
+.acc{background:var(--surface);border:2px solid var(--soft);border-radius:16px;margin-bottom:10px;overflow:hidden}
+.acc.open{border-color:var(--ink)}
+.head{display:flex;align-items:center;justify-content:space-between;font-size:18px;font-weight:800;padding:14px 16px}
+.chev{font-size:13px;color:var(--dim)}
+.acc.open .chev{transform:rotate(90deg);display:inline-block}
+.body{padding:0 12px 12px}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl thead th{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);text-align:left;padding:6px 4px;border-bottom:1px solid var(--soft)}
+.tbl thead th.num{text-align:right}
+.tbl td{padding:9px 4px;border-bottom:1px solid var(--soft);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.pos{font-family:var(--mono);font-weight:800;font-variant-numeric:tabular-nums;width:18px}
+.tn{display:flex;align-items:center;gap:8px;font-weight:700}
+.tn .f{font-size:18px}
+.badge{margin-left:6px;font-size:13px;line-height:1}
+.badge.qual{color:var(--accent)}
+.badge.elim{color:var(--faint)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.num.pts{font-weight:800;color:var(--ink)}
+.foot{display:flex;justify-content:space-between;align-items:center;padding:8px 4px 2px;font-size:11px;color:var(--dim)}
+.foot .det{font-weight:700;text-decoration:underline;text-decoration-color:var(--soft)}
+.tie-note{font-size:10.5px;color:var(--dim);font-style:italic;padding:6px 4px 0}
+</style></head><body>
+<div class="frame">
+  <div class="bar"><span class="back">‹</span><span class="title">Tabellen</span></div>
+  <div class="sec">Vorrunde</div>
+  <div class="wrap">
+    <div class="acc open">
+      <div class="head"><span>Gruppe A</span><span class="chev">▸</span></div>
+      <div class="body">
+        <table class="tbl">
+          <thead><tr><th class="num">#</th><th>Team</th><th class="num">Sp</th><th class="num">Pkt</th></tr></thead>
+          <tbody>
+            <tr><td class="pos">1</td><td><span class="tn"><span class="f">🇲🇽</span>Mexiko<span class="badge qual">●</span></span></td><td class="num">3</td><td class="num pts">7</td></tr>
+            <tr><td class="pos">2</td><td><span class="tn"><span class="f">🇨🇿</span>Tschechien<span class="badge qual">●</span></span></td><td class="num">3</td><td class="num pts">5</td></tr>
+            <tr><td class="pos">3</td><td><span class="tn"><span class="f">🇿🇦</span>Südafrika<span class="badge elim">○</span></span></td><td class="num">3</td><td class="num pts">3</td></tr>
+            <tr><td class="pos">4</td><td><span class="tn"><span class="f">🇰🇷</span>Südkorea<span class="badge elim">○</span></span></td><td class="num">3</td><td class="num pts">1</td></tr>
+          </tbody>
+        </table>
+        <div class="foot"><span>Legende: ● qualifiziert · ○ ausgeschieden</span><span class="det">Details ▾</span></div>
+        <div class="tie-note">Tiebreaker: direkter Vergleich (FIFA).</div>
+      </div>
+    </div>
+    <div class="acc"><div class="head"><span>Gruppe B</span><span class="chev">▸</span></div></div>
+    <div class="acc"><div class="head"><span>Gruppe C</span><span class="chev">▸</span></div></div>
+    <div class="acc"><div class="head"><span>Gruppe D</span><span class="chev">▸</span></div></div>
+    <div class="acc"><div class="head"><span>… A–L</span><span class="chev">▸</span></div></div>
+  </div>
+</div>
+</body></html>

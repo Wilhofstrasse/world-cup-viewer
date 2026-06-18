@@ -1,0 +1,34 @@
+<!-- @dsCard group="Wireframes — Components" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Header — 3 Tabs + Sub-view</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--soft:#d8d2c6;--accent:#e6492f;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);padding:18px;-webkit-font-smoothing:antialiased}
+.cap{font-size:11px;font-weight:700;color:var(--dim);margin:0 16px 8px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink);margin-bottom:22px}
+.brand{display:inline-flex;align-items:center;gap:9px;min-width:0}
+.menu{width:34px;height:34px;border:none;background:transparent;color:var(--ink);font-size:21px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.back{width:34px;height:34px;border:none;background:transparent;color:var(--ink);font-size:24px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.name{font-size:19px;font-weight:800;letter-spacing:-.01em}
+.subtitle{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.ver{font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+.tabs{display:inline-flex;background:var(--surface);border:2.5px solid var(--ink);border-radius:999px;padding:3px}
+.tab{font-family:var(--round);font-size:13px;font-weight:700;border:none;background:transparent;color:var(--ink);padding:6px 12px;border-radius:999px}
+.tab.on{background:var(--accent);color:#fff}
+.spacer{width:34px}
+</style></head><body>
+<div class="cap">Hauptansicht — drei Tabs (Highlights aktiv)</div>
+<div class="bar"><div class="brand"><button class="menu">☰</button><span class="name">WM 2026</span><span class="ver">v1.4.0</span></div><div class="tabs"><span class="tab on">Highlights</span><span class="tab">Spiele</span><span class="tab">Mehr</span></div></div>
+
+<div class="cap">Hauptansicht — Spiele aktiv</div>
+<div class="bar"><div class="brand"><button class="menu">☰</button><span class="name">WM 2026</span><span class="ver">v1.4.0</span></div><div class="tabs"><span class="tab">Highlights</span><span class="tab on">Spiele</span><span class="tab">Mehr</span></div></div>
+
+<div class="cap">Hauptansicht — Mehr aktiv</div>
+<div class="bar"><div class="brand"><button class="menu">☰</button><span class="name">WM 2026</span><span class="ver">v1.4.0</span></div><div class="tabs"><span class="tab">Highlights</span><span class="tab">Spiele</span><span class="tab on">Mehr</span></div></div>
+
+<div class="cap">Unteransicht — Zurück + Titel (Tabs ausgeblendet)</div>
+<div class="bar"><div class="brand"><button class="back">‹</button><span class="subtitle">Torjägerliste</span></div><div class="spacer"></div></div>
+
+<div class="cap">Unteransicht — Spielerkarten (nur Zurück, kein Titel — Hero trägt den Namen)</div>
+<div class="bar"><div class="brand"><button class="back">‹</button></div><div class="spacer"></div></div>
+</body></html>

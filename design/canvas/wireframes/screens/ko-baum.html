@@ -1,0 +1,114 @@
+<!-- @dsCard group="Wireframes — Screens" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>K.-o.-Baum — Wireframe</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--faint:#b3aea3;--soft:#d8d2c6;--accent:#e6492f;--accent-soft:#fbe3dd;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.frame{max-width:380px;margin:0 auto;padding:0 0 28px}
+.bar{display:flex;align-items:center;gap:6px;padding:10px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink);margin-bottom:8px}
+.back{width:34px;height:34px;border:none;background:transparent;color:var(--ink);font-size:24px;line-height:1}
+.title{font-size:17px;font-weight:800}
+.hint{padding:0 18px 4px;font-size:11.5px;color:var(--dim);line-height:1.5}
+.hint b{color:var(--ink);font-weight:800}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:10px 16px 18px}
+
+.tree{position:relative;width:548px;height:600px}
+
+/* round headers */
+.stage{position:absolute;top:0;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);white-space:nowrap}
+.stage .c{font-size:11px;color:var(--dim);font-weight:700;letter-spacing:0;text-transform:none}
+
+/* match cards */
+.card{position:absolute;width:156px;background:var(--surface);border:1.5px solid var(--soft);border-radius:12px;padding:6px 11px;z-index:2}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:700;padding:4px 0}
+.row+.row{border-top:1px solid var(--soft)}
+.nm{display:flex;align-items:center;gap:7px;min-width:0}
+.nm .f{font-size:15px;flex:none}
+.nm .lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:800;flex:none}
+.row.win .lab{font-weight:800}
+.row.lose{color:var(--dim)}
+.row.lose .sc{color:var(--faint)}
+.ph .lab{color:var(--faint);font-style:italic;font-weight:600}
+.card.live{border-color:var(--accent);background:var(--accent-soft)}
+.live-mark{font-family:var(--mono);font-size:10px;color:var(--accent);font-weight:800;text-align:center;padding-top:5px;border-top:1px solid var(--accent-soft);margin-top:2px}
+.when{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center;padding-top:5px;border-top:1px solid var(--soft);margin-top:2px}
+
+/* final + third place */
+.card.final{border:2px solid var(--ink)}
+.crown{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.card.third{border-style:dashed}
+.third-lbl{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);text-align:center;padding-bottom:3px}
+
+.lines{position:absolute;inset:0;z-index:1;pointer-events:none}
+</style></head><body>
+<div class="frame">
+  <div class="bar"><span class="back">‹</span><span class="title">K.-o.-Baum</span></div>
+  <div class="hint">Finalrunde — <b>Viertelfinale bis Finale</b>. Sieger fett, dunkle Linie folgt dem Weg ins Finale.<br>Sechzehntel- &amp; Achtelfinale unter Tab «Spiele».</div>
+  <div class="scroll"><div class="tree">
+
+    <div class="stage" style="left:0">Viertelfinale</div>
+    <div class="stage" style="left:196px">Halbfinale</div>
+    <div class="stage" style="left:392px">🏆 Finale</div>
+
+    <svg class="lines" viewBox="0 0 548 600" width="548" height="600" fill="none" stroke-linecap="round">
+      <!-- VF → HF (soft) -->
+      <path d="M156 250 H176 V180 M176 180 H196" stroke="#d8d2c6" stroke-width="2"/>
+      <path d="M156 390 H176 V460 M156 530 H176 V460 M176 460 H196" stroke="#d8d2c6" stroke-width="2"/>
+      <!-- HF → Finale (soft) -->
+      <path d="M352 180 H372 V320 M352 460 H372 V320 M372 320 H392" stroke="#d8d2c6" stroke-width="2"/>
+      <!-- winner path: Argentinien VF1 → HF1 (ink) -->
+      <path d="M156 110 H176 V180 H196" stroke="#1c1c1c" stroke-width="2.5"/>
+    </svg>
+
+    <!-- Viertelfinale -->
+    <div class="card" style="top:80px;left:0">
+      <div class="row win"><span class="nm"><span class="f">🇦🇷</span><span class="lab">Argentinien</span></span><span class="sc">2</span></div>
+      <div class="row lose"><span class="nm"><span class="f">🇫🇷</span><span class="lab">Frankreich</span></span><span class="sc">1</span></div>
+    </div>
+    <div class="card live" style="top:220px;left:0">
+      <div class="row"><span class="nm"><span class="f">🇧🇷</span><span class="lab">Brasilien</span></span><span class="sc">1</span></div>
+      <div class="row"><span class="nm"><span class="f">🇳🇱</span><span class="lab">Niederlande</span></span><span class="sc">1</span></div>
+      <div class="live-mark">● LIVE 72'</div>
+    </div>
+    <div class="card" style="top:360px;left:0">
+      <div class="row win"><span class="nm"><span class="f">🇭🇷</span><span class="lab">Kroatien</span></span><span class="sc">2</span></div>
+      <div class="row lose"><span class="nm"><span class="f">🇪🇸</span><span class="lab">Spanien</span></span><span class="sc">0</span></div>
+    </div>
+    <div class="card" style="top:500px;left:0">
+      <div class="row"><span class="nm"><span class="f">🇩🇪</span><span class="lab">Deutschland</span></span><span class="sc">–</span></div>
+      <div class="row"><span class="nm"><span class="f">🇵🇹</span><span class="lab">Portugal</span></span><span class="sc">–</span></div>
+      <div class="when">Sa. 11.07., 21:00</div>
+    </div>
+
+    <!-- Halbfinale -->
+    <div class="card" style="top:150px;left:196px">
+      <div class="row win"><span class="nm"><span class="f">🇦🇷</span><span class="lab">Argentinien</span></span><span class="sc">–</span></div>
+      <div class="row ph"><span class="nm"><span class="lab">Sieger VF 2</span></span><span class="sc">–</span></div>
+      <div class="when">Di. 14.07., 21:00</div>
+    </div>
+    <div class="card" style="top:430px;left:196px">
+      <div class="row"><span class="nm"><span class="f">🇭🇷</span><span class="lab">Kroatien</span></span><span class="sc">–</span></div>
+      <div class="row ph"><span class="nm"><span class="lab">Sieger VF 4</span></span><span class="sc">–</span></div>
+      <div class="when">Mi. 15.07., 21:00</div>
+    </div>
+
+    <!-- Finale -->
+    <div class="card final" style="top:285px;left:392px">
+      <span class="crown">Weltmeister</span>
+      <div class="row ph"><span class="nm"><span class="lab">Sieger HF 1</span></span><span class="sc">–</span></div>
+      <div class="row ph"><span class="nm"><span class="lab">Sieger HF 2</span></span><span class="sc">–</span></div>
+      <div class="when">So. 19.07., 21:00</div>
+    </div>
+
+    <!-- Spiel um Platz 3 -->
+    <div class="card third" style="top:475px;left:392px">
+      <div class="third-lbl">Spiel um Platz 3</div>
+      <div class="row ph"><span class="nm"><span class="lab">Verlierer HF 1</span></span><span class="sc">–</span></div>
+      <div class="row ph"><span class="nm"><span class="lab">Verlierer HF 2</span></span><span class="sc">–</span></div>
+      <div class="when">Sa. 18.07., 17:00</div>
+    </div>
+
+  </div></div>
+</div>
+</body></html>
