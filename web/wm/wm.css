@@ -305,6 +305,18 @@ html, body {
 .wm-acc[open] .wm-acc-chev { transform: rotate(90deg); }
 .wm-acc-body { padding: 0 13px 10px; }
 
+/* Group standings table at the top of each Vorrunde accordion. */
+.wm-standings { width: 100%; border-collapse: collapse; margin: 4px 0 12px; font-size: 13px; color: var(--wm-ink); }
+.wm-standings th { font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--wm-ink-dim); padding: 4px 5px; text-align: center; }
+.wm-standings th:nth-child(2) { text-align: left; }
+.wm-standings td { padding: 6px 5px; text-align: center; border-top: 1px solid var(--wm-line-soft); font-variant-numeric: tabular-nums; }
+.wm-standings td.r { width: 1.4em; color: var(--wm-ink-dim); }
+.wm-standings td.tm { text-align: left; }
+.wm-standings .tmw { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.wm-standings .tmw .f { font-size: 18px; flex: none; }
+.wm-standings .tmw .n { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wm-standings td.pts { font-weight: 800; }
+
 .wm-match {
   background: var(--wm-paper);
   border: 1.5px solid var(--wm-line-soft);

@@ -14,6 +14,7 @@
 "use strict";
 
 import { flagFor } from "./parse.js";
+import { computeStandings } from "./standings.js";
 
 const API_BASE = window.WM_API_BASE || "";
 
@@ -86,6 +87,19 @@ function groupFlags(matches) {
   return out.join(" ");
 }
 
+/** Compact group table: rank · flag+team · Spiele · Tordifferenz · Punkte. */
+function standingsTable(rows) {
+  if (rows.length < 2) return "";
+  const tr = (s, i) =>
+    `<tr><td class="r">${i + 1}</td>` +
+    `<td class="tm"><span class="tmw"><span class="f">${flagFor(s.team)}</span><span class="n">${esc(s.team)}</span></span></td>` +
+    `<td>${s.played}</td><td>${s.gd > 0 ? "+" + s.gd : s.gd}</td><td class="pts">${s.points}</td></tr>`;
+  return (
+    `<table class="wm-standings"><thead><tr><th class="r">#</th><th>Team</th><th>Sp</th><th>TD</th><th>Pkt</th></tr></thead>` +
+    `<tbody>${rows.map(tr).join("")}</tbody></table>`
+  );
+}
+
 function render(matches) {
   const root = document.getElementById("wmMatches");
   if (!root) return;
@@ -126,7 +140,7 @@ function render(matches) {
     if (groups.length) {
       for (const g of groups) {
         const gm = vorrunde.filter((m) => m.group === g);
-        html += acc(`Gruppe ${g}`, rowsFor(gm), groupFlags(gm));
+        html += acc(`Gruppe ${g}`, standingsTable(computeStandings(gm)) + rowsFor(gm), groupFlags(gm));
       }
     } else {
       html += acc("Alle Spiele", rowsFor(vorrunde));

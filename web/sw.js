@@ -36,6 +36,7 @@ const WM_SHELL = [
   "/wm/app.js",
   "/wm/feed.js",
   "/wm/matches.js",
+  "/wm/standings.js",
   "/wm/il.js",
   "/wm/parse.js",
   "/wm/wm.css",
