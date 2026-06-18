@@ -34,6 +34,20 @@ Two compounding causes, found via workflow + Codex:
 - **Goals follow-up (minor, Codex-flagged):** 0-0 finished matches re-fetch goals every tick (completion inferred from `goals.length>0`). Harden with an explicit `goalsFetched` flag if cap pressure shows. Also a `parseInt(IdMatch)` NaN guard would be tidy.
 - **Calendar write-back** (`src/wm/calendar.ts`, tested core) — needs iCloud app-pw; optional for this kid-facing app (was a Filipe-facing feature).
 
+## Next — new FIFA features (design-first, requested 18.06.2026)
+
+Build these (one Codex-aligned workflow each: plan→code→test→debug→validate). Endpoints all verified in `docs/fifa-api.md`:
+1. **Top scorers** (Golden Boot): `/topseasonplayerstatistics/season/285023/topscorers` — goals/assists/games.
+2. **Lineups + formations + player photos**: `/live/football/17/285023/{stage}/{match}` — Tactics + Players[] (ShirtNumber, PlayerPicture).
+3. **Player cards**: `/players/{id}` — height/birthplace/caps/career goals.
+4. **Squads** (48 teams): `/teams/squads/all/17/285023`.
+5. **Knockout bracket**: stage IDs in `docs/fifa-api.md`.
+6. **Official tables** (upgrade computed standings): `/calendar/17/285023/289273/Standing` — adds `QualificationStatus` (qualified/eliminated badges) + official head-to-head tiebreakers.
+
+**Design-first:** user wants a wireframe + hi-fi from **Claude Design** (claude.ai/design) BEFORE coding each feature, then build to match. NOTE: a Claude Code session cannot drive the Claude Design *generative agent* via tools (DesignSync only reads/writes the project's files). So either (a) hand the user a component-aware prompt to run in claude.ai/design himself, or (b) author wireframe+hifi mockups + push to his "Gabriel · WM 2026 Viewer" design project (projectId `80d66392-…`). User leans (a) — "ask Claude Design … I design myself." Confirm the path + which feature first.
+
+**Inventory note:** this project has an anchor (`.claude/project.json`, uid `world-cup-viewer`) but is NOT in `inventory.json` — run `/park` from inside `~/Developer/world-cup-viewer` to heal it (this session's cwd was gabriel-chess-cockpit, so park mis-targeted).
+
 ## Links
 
 - **FIFA API capability map:** `docs/fifa-api.md` — what api.fifa.com offers (standings endpoint `/calendar/17/285023/289273/Standing`, top scorers, lineups+photos, player bios, squads, bracket; NOT available: aggregate match stats, stadium capacity). Reference before building any new WM data feature.
