@@ -51,6 +51,10 @@ export interface Match {
   round?: string;
   /** Group letter ("A"…"L") for Vorrunde matches; null otherwise. */
   group?: string | null;
+  /** FIFA IdTeam for Home — server-side enrichment for cross-feed lookups (topscorers). */
+  idTeamA?: string;
+  /** FIFA IdTeam for Away — server-side enrichment for cross-feed lookups (topscorers). */
+  idTeamB?: string;
 }
 
 /** The blob stored in R2 at wm/matches.json and served by /api/wm/matches. */
@@ -59,6 +63,26 @@ export interface WmData {
   updatedAt: number;
   season: string;
   matches: Match[];
+}
+
+/** One row in the Golden Boot list (Torjägerliste). */
+export interface TopScorer {
+  rank: number;
+  player: string;
+  team: string;
+  idTeam: string | null;
+  goals: number;
+  assists: number;
+  matches: number;
+  photoUrl: string | null;
+}
+
+/** The blob stored in R2 at wm/topscorers.json and served by /api/wm/topscorers. */
+export interface WmTopScorers {
+  /** Unix seconds of the last successful ingest write. */
+  updatedAt: number;
+  season: string;
+  scorers: TopScorer[];
 }
 
 // ---------------------------------------------------------------------------
@@ -147,4 +171,29 @@ export interface FifaTimelineEvent {
 
 export interface FifaTimelineResponse {
   Event?: FifaTimelineEvent[];
+}
+
+/** A FIFA player picture: take PictureUrl, or null. */
+export interface FifaPlayerPicture {
+  PictureUrl?: string | null;
+}
+
+export interface FifaTopScorerPlayerInfo {
+  PlayerName?: FifaLoc[];
+  IdTeam?: string;
+  IdPlayer?: string;
+  PlayerPicture?: FifaPlayerPicture | null;
+  TeamName?: FifaLoc[];
+}
+
+export interface FifaTopScorerRow {
+  Rank: number;
+  GoalsScored: number | null;
+  Assists?: number | null;
+  MatchesPlayed?: number | null;
+  PlayerInfo?: FifaTopScorerPlayerInfo;
+}
+
+export interface FifaTopScorersResponse {
+  PlayerStatsList?: FifaTopScorerRow[];
 }

@@ -16,9 +16,10 @@
  */
 
 import type { Env } from "../types.js";
-import type { Match, WmData } from "./types.js";
+import type { Match, WmData, WmTopScorers } from "./types.js";
 import { getProvider } from "./football.js";
-import { loadWmData, saveWmData } from "./store.js";
+import { loadWmData, saveWmData, saveWmTopScorers } from "./store.js";
+import { fetchTopScorers, enrichScorerTeams } from "./fifa.js";
 
 // Tournament window (Europe/Zurich offsets). Outside this, ingest no-ops.
 const WM_START_MS = Date.parse("2026-06-11T00:00:00+02:00");
@@ -108,4 +109,27 @@ export async function runWmIngest(env: Env): Promise<void> {
     matches: fresh,
   };
   await saveWmData(env, data);
+
+  // Top scorers — keyless, one call per tick. Enrich with team names from the
+  // matches we just persisted (FIFA's topscorers row often ships only IdTeam).
+  // Provider-gated: only the FIFA path provides this feed today.
+  if ((env.WM_API_PROVIDER || "fifa") === "fifa") {
+    try {
+      const raw = await fetchTopScorers(env);
+      const idToTeam = new Map<string, string>();
+      for (const m of fresh) {
+        if (m.idTeamA) idToTeam.set(m.idTeamA, m.teamA);
+        if (m.idTeamB) idToTeam.set(m.idTeamB, m.teamB);
+      }
+      const scorers = enrichScorerTeams(raw, idToTeam);
+      const ts: WmTopScorers = {
+        updatedAt: Math.floor(nowMs / 1000),
+        season: env.WM_SEASON || "2026",
+        scorers,
+      };
+      await saveWmTopScorers(env, ts);
+    } catch {
+      // upstream hiccup — keep last good topscorers blob, retry next tick
+    }
+  }
 }

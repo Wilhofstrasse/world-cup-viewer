@@ -1,6 +1,7 @@
 /**
  * app.js — WM 2026 page bootstrap.
- * Owns sub-tab switching (Highlights / Spiele), lazy-inits each view on first
+ * Owns top-tab switching (Highlights / Spiele / Mehr) and Mehr's sub-view router
+ * (landing → Torjäger / Tabellen / K.-o.-Baum / …). Lazy-inits each view on first
  * open, and registers the shared service worker so the page installs + works
  * offline (shell only — never video).
  */
@@ -9,8 +10,9 @@
 
 import { initFeed } from "./feed.js";
 import { initMatches } from "./matches.js";
+import { initMehr, openMehrSubview, closeMehrSubview } from "./mehr.js";
 
-const inited = { highlights: false, spiele: false };
+const inited = { highlights: false, spiele: false, mehr: false };
 
 function activate(tab) {
   document.body.dataset.tab = tab;
@@ -19,16 +21,18 @@ function activate(tab) {
   );
 
   // Visibility is driven by the `hidden` attribute on each <main>/<section>
-  // view, NOT by CSS alone. #view-spiele ships with `hidden` in the static
-  // HTML (so the Spiele panel never flashes on load); the CSS data-tab rule
-  // only ever *hides* a view, it never clears that attribute. If we don't
-  // toggle `hidden` here, switching to Spiele leaves #view-spiele at
-  // display:none — the panel renders 0×0 (blank) even though #wmMatches is
-  // fully populated. Keep the attribute in lockstep with the active tab.
-  const spiele = document.getElementById("view-spiele");
+  // view, NOT by CSS alone. Keeping `hidden` in lockstep with the active tab
+  // — same fix that unbroke Spiele back in v1.0.2 — for the new Mehr panel too.
   const highlights = document.getElementById("view-highlights");
+  const spiele = document.getElementById("view-spiele");
+  const mehr = document.getElementById("view-mehr");
   if (highlights) highlights.hidden = tab !== "highlights";
   if (spiele) spiele.hidden = tab !== "spiele";
+  if (mehr) mehr.hidden = tab !== "mehr";
+
+  // Leaving Mehr exits any open sub-view so re-entering Mehr always starts at
+  // the landing list (matches Highlights/Spiele's "back to top" instinct).
+  if (tab !== "mehr") closeMehrSubview();
 
   if (tab === "highlights" && !inited.highlights) {
     inited.highlights = true;
@@ -38,11 +42,20 @@ function activate(tab) {
     inited.spiele = true;
     initMatches();
   }
+  if (tab === "mehr" && !inited.mehr) {
+    inited.mehr = true;
+    initMehr();
+  }
 }
 
 document.querySelectorAll(".wm-tab").forEach((btn) =>
   btn.addEventListener("click", () => activate(btn.dataset.tab)),
 );
+
+// Sub-view back button (top-left when a Mehr sub-view is active). Visibility is
+// CSS-driven via body[data-subview]; mehr.js owns that attribute.
+const backBtn = document.getElementById("wmBackBtn");
+if (backBtn) backBtn.addEventListener("click", () => closeMehrSubview());
 
 // Default tab (highlights) — init now. If the appshell SW-recovery reload
 // stashed a tab (so the user isn't bounced back to Highlights mid-load),
@@ -51,7 +64,7 @@ document.querySelectorAll(".wm-tab").forEach((btn) =>
 let bootTab = document.body.dataset.tab || "highlights";
 try {
   const restored = sessionStorage.getItem("wm.tab");
-  if (restored === "highlights" || restored === "spiele") bootTab = restored;
+  if (restored === "highlights" || restored === "spiele" || restored === "mehr") bootTab = restored;
   sessionStorage.removeItem("wm.tab");
 } catch (_e) {/* storage may be unavailable; non-fatal */}
 
@@ -72,3 +85,7 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {/* non-fatal */});
   });
 }
+
+// Expose sub-view navigation for inline handlers / other modules.
+window.openMehrSubview = openMehrSubview;
+window.closeMehrSubview = closeMehrSubview;

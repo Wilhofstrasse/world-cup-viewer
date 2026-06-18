@@ -23,28 +23,39 @@
        rule from a cached wm.css. JS no longer needs to clear [hidden]. */
     .wm-view { min-height: 100%; }
     .wm-body[data-tab="highlights"] #view-highlights,
-    .wm-body[data-tab="spiele"]     #view-spiele { display: block !important; }
+    .wm-body[data-tab="spiele"]     #view-spiele,
+    .wm-body[data-tab="mehr"]       #view-mehr { display: block !important; }
     .wm-body[data-tab="highlights"] #view-spiele,
-    .wm-body[data-tab="spiele"]     #view-highlights { display: none !important; }
+    .wm-body[data-tab="highlights"] #view-mehr,
+    .wm-body[data-tab="spiele"]     #view-highlights,
+    .wm-body[data-tab="spiele"]     #view-mehr,
+    .wm-body[data-tab="mehr"]       #view-highlights,
+    .wm-body[data-tab="mehr"]       #view-spiele { display: none !important; }
     body:not([data-tab]) #view-highlights { display: block !important; }
-    body:not([data-tab]) #view-spiele { display: none !important; }
-    #view-spiele { padding: 76px 16px 24px; max-width: 640px; margin: 0 auto; }
+    body:not([data-tab]) #view-spiele,
+    body:not([data-tab]) #view-mehr { display: none !important; }
+    #view-spiele, #view-mehr { padding: 76px 16px 24px; max-width: 640px; margin: 0 auto; }
     .wm-state { font-size: 13px; text-align: center; padding: 24px 0; color: #8c8c8c; }
   </style>
-  <link rel="stylesheet" href="wm/wm.css?v=1.3.3">
+  <link rel="stylesheet" href="wm/wm.css?v=1.4.0">
 </head>
 <body class="wm-body" data-tab="highlights">
 
-  <!-- ── Top bar: ☰ + brand on the left, Highlights/Spiele segmented pill on the right ── -->
+  <!-- ── Top bar: ☰ + brand on the left, segmented pill on the right.
+       When a Mehr sub-view is active, the bar swaps to ‹ + sub-view title via
+       the body[data-subview] selector — same chrome, less moving parts. ── -->
   <header class="wm-bar">
     <div class="wm-brand">
       <button class="wm-menu-btn" id="wmMenuBtn" type="button" aria-label="Zu einem Spiel springen" aria-expanded="false" aria-controls="wmDrawer">☰</button>
+      <button class="wm-back-btn" id="wmBackBtn" type="button" aria-label="Zurück">‹</button>
       <span class="wm-appnav-link" aria-current="page">WM 2026</span>
+      <span class="wm-subtitle" id="wmSubtitle"></span>
       <span id="appVer" class="wm-ver"></span>
     </div>
     <div class="wm-tabs" role="tablist" aria-label="WM Ansicht">
       <button class="wm-tab" role="tab" data-tab="highlights" aria-selected="true">Highlights</button>
       <button class="wm-tab" role="tab" data-tab="spiele" aria-selected="false">Spiele</button>
+      <button class="wm-tab" role="tab" data-tab="mehr" aria-selected="false">Mehr</button>
     </div>
   </header>
 
@@ -60,6 +71,11 @@
     <div class="wm-matches" id="wmMatches" aria-live="polite">
       <p class="wm-state">Spielplan wird geladen…</p>
     </div>
+  </section>
+
+  <!-- ── Mehr: sub-view router (landing + Torjäger/Tabellen/K.-o.-Baum/…) ── -->
+  <section id="view-mehr" class="wm-view" role="tabpanel" aria-label="Mehr">
+    <div class="wm-mehr" id="wmMehr" aria-live="polite"></div>
   </section>
 
   <!-- ── Drawer overlay: body-level so ☰ works on both tabs ── -->
@@ -78,7 +94,7 @@
     <a class="wm-drawer-foot" href="feedback.html">✉ Feedback senden</a>
   </aside>
 
-  <script type="module" src="wm/app.js?v=1.3.3"></script>
-  <script src="appshell.js?v=1.3.3" defer></script>
+  <script type="module" src="wm/app.js?v=1.4.0"></script>
+  <script src="appshell.js?v=1.4.0" defer></script>
 </body>
 </html>

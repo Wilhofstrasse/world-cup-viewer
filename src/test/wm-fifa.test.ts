@@ -17,6 +17,9 @@ import {
   mapTimelineToGoals,
   groupLetter,
   roundLabel,
+  mapFifaTopScorer,
+  enrichScorerTeams,
+  teamNameMap,
 } from "../wm/fifa.js";
 import { getProvider } from "../wm/football.js";
 import type { FifaMatch, FifaTimelineEvent } from "../wm/types.js";
@@ -149,5 +152,93 @@ describe("getProvider", () => {
     const p = getProvider({} as never);
     expect(typeof p.getMatches).toBe("function");
     expect(typeof p.getGoals).toBe("function");
+  });
+});
+
+describe("mapFifaTopScorer", () => {
+  it("normalizes a complete row", () => {
+    const s = mapFifaTopScorer({
+      Rank: 1,
+      GoalsScored: 5,
+      Assists: 2,
+      MatchesPlayed: 3,
+      PlayerInfo: {
+        PlayerName: [{ Description: "L. Messi" }],
+        IdTeam: "43946",
+        TeamName: [{ Description: "Argentinien" }],
+        PlayerPicture: { PictureUrl: "https://img.fifa.com/m.png" },
+      },
+    });
+    expect(s).toEqual({
+      rank: 1,
+      player: "L. Messi",
+      team: "Argentinien",
+      idTeam: "43946",
+      goals: 5,
+      assists: 2,
+      matches: 3,
+      photoUrl: "https://img.fifa.com/m.png",
+    });
+  });
+
+  it("zero-fills assists/matches when FIFA omits them", () => {
+    const s = mapFifaTopScorer({
+      Rank: 7,
+      GoalsScored: 1,
+      PlayerInfo: {
+        PlayerName: [{ Description: "Haaland" }],
+        IdTeam: "x",
+      },
+    });
+    expect(s?.assists).toBe(0);
+    expect(s?.matches).toBe(0);
+    expect(s?.photoUrl).toBeNull();
+    expect(s?.team).toBe("");
+  });
+
+  it("returns null when PlayerName is empty", () => {
+    expect(mapFifaTopScorer({ Rank: 1, GoalsScored: 1, PlayerInfo: { IdTeam: "x" } })).toBeNull();
+  });
+});
+
+describe("enrichScorerTeams", () => {
+  it("fills the team display name from idTeam → name map", () => {
+    const out = enrichScorerTeams(
+      [
+        { rank: 1, player: "Messi", team: "", idTeam: "43946", goals: 5, assists: 2, matches: 3, photoUrl: null },
+        { rank: 2, player: "Mbappé", team: "Frankreich", idTeam: "43948", goals: 4, assists: 1, matches: 3, photoUrl: null },
+      ],
+      new Map([["43946", "Argentinien"]]),
+    );
+    expect(out[0]?.team).toBe("Argentinien");
+    expect(out[1]?.team).toBe("Frankreich"); // already set → untouched
+  });
+
+  it("leaves team blank when the id is unknown", () => {
+    const out = enrichScorerTeams(
+      [{ rank: 1, player: "X", team: "", idTeam: "999", goals: 1, assists: 0, matches: 1, photoUrl: null }],
+      new Map(),
+    );
+    expect(out[0]?.team).toBe("");
+  });
+});
+
+describe("teamNameMap", () => {
+  it("collects IdTeam → display name pairs from a raw matches list", () => {
+    const m = teamNameMap([
+      {
+        IdMatch: "1", IdStage: "289273", MatchStatus: 1, Date: "",
+        Home: { IdTeam: "1", Score: null, TeamName: [{ Description: "Argentinien" }] },
+        Away: { IdTeam: "2", Score: null, TeamName: [{ Description: "Brasilien" }] },
+      },
+      {
+        IdMatch: "2", IdStage: "289273", MatchStatus: 1, Date: "",
+        Home: { IdTeam: "1", Score: null, TeamName: [{ Description: "Argentinien" }] }, // duplicate id
+        Away: null,
+      },
+    ]);
+    expect(m.size).toBe(2);
+    expect(m.get("1")).toBe("Argentinien");
+    expect(m.get("2")).toBe("Brasilien");
   });
 });

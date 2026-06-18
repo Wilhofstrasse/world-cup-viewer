@@ -18,7 +18,7 @@
 
 "use strict";
 
-const SHELL_CACHE = "wm-shell-v11";
+const SHELL_CACHE = "wm-shell-v12";
 const DATA_CACHE = "wm-data-v2";
 const THUMB_CACHE = "wm-thumbs-v2";
 const THUMB_MAX = 120; // cap stored thumbnails
@@ -37,6 +37,8 @@ const WM_SHELL = [
   "/wm/feed.js",
   "/wm/matches.js",
   "/wm/standings.js",
+  "/wm/mehr.js",
+  "/wm/topscorers.js",
   "/wm/il.js",
   "/wm/parse.js",
   "/wm/wm.css",
@@ -151,6 +153,7 @@ function isWmShell(url, sameOrigin) {
 /** Clip/match indexes (network-first, fall back to cache when offline). */
 function isWmData(url, sameOrigin) {
   if (sameOrigin && url.pathname === "/api/wm/matches") return true;
+  if (sameOrigin && url.pathname === "/api/wm/topscorers") return true;
   return url.hostname === "il.srgssr.ch" && url.pathname.includes("/episodeComposition/");
 }
 

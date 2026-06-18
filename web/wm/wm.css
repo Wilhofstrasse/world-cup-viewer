@@ -80,12 +80,33 @@ html, body {
 }
 .wm-tab {
   font-family: var(--wm-rounded);
-  font-size: 14px; font-weight: 700;
+  font-size: 13px; font-weight: 700;
   border: none; background: transparent; color: var(--wm-ink);
-  padding: 6px 15px; border-radius: 999px; cursor: pointer;
+  padding: 6px 12px; border-radius: 999px; cursor: pointer;
   transition: background .14s, color .14s;
 }
 .wm-tab[aria-selected="true"] { background: var(--wm-accent); color: #fff; }
+
+/* Sub-view back-arrow + title — visible only when body[data-subview] is set. */
+.wm-back-btn {
+  width: 34px; height: 34px; flex: none;
+  border: none; background: transparent; color: var(--wm-ink);
+  font-size: 24px; line-height: 1; cursor: pointer; padding: 0;
+  display: none; align-items: center; justify-content: center;
+  border-radius: 10px;
+}
+.wm-back-btn:active { opacity: .5; }
+.wm-subtitle {
+  font-size: 17px; font-weight: 800; color: var(--wm-ink);
+  letter-spacing: -.01em; white-space: nowrap;
+  display: none;
+}
+.wm-body[data-subview] .wm-menu-btn,
+.wm-body[data-subview] .wm-appnav-link,
+.wm-body[data-subview] .wm-tabs,
+.wm-body[data-subview] #appVer { display: none; }
+.wm-body[data-subview] .wm-back-btn,
+.wm-body[data-subview] .wm-subtitle { display: inline-flex; }
 
 /* ── Views ── */
 .wm-view { min-height: 100%; }
@@ -347,5 +368,135 @@ html, body {
 @media (min-width: 760px) {
   /* The feed/video fills the screen (object-fit:contain letterboxes it) so a
      landscape phone or a desktop shows a big video, not a narrow centred strip. */
-  #view-spiele { max-width: 600px; } /* schedule stays a readable column */
+  #view-spiele, #view-mehr { max-width: 600px; } /* readable column */
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   Mehr — landing list of 6 sub-views + sub-view container.
+   ════════════════════════════════════════════════════════════════════════ */
+#view-mehr {
+  padding: calc(var(--wm-bar-h) + 18px) 16px calc(28px + env(safe-area-inset-bottom));
+}
+.wm-mehr-sec {
+  font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--wm-accent); margin: 14px 4px 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.wm-mehr-sec:first-child { margin-top: 4px; }
+.wm-mehr-sec::after { content: ""; flex: 1; height: 1px; background: linear-gradient(to right, var(--wm-line-soft), transparent); }
+.wm-mehr-item {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%;
+  background: var(--wm-surface);
+  border: 1.5px solid var(--wm-line-soft);
+  border-radius: 15px;
+  padding: 14px 15px;
+  margin-bottom: 10px;
+  font-family: var(--wm-rounded);
+  text-align: left; cursor: pointer;
+  box-shadow: 0 1px 0 var(--wm-line-soft), 0 6px 14px rgba(28,28,28,.04);
+  transition: transform .12s ease, border-color .12s ease;
+}
+.wm-mehr-item:active { transform: scale(.98); }
+.wm-mehr-item.is-primary { background: linear-gradient(135deg, var(--wm-surface) 0%, var(--wm-surface) 70%, var(--wm-accent-soft) 100%); }
+.wm-mehr-ico {
+  width: 42px; height: 42px; flex: none;
+  border-radius: 12px; background: var(--wm-paper);
+  border: 1.5px solid var(--wm-line-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.wm-mehr-item.is-primary .wm-mehr-ico { background: var(--wm-accent); color: #fff; border-color: var(--wm-accent); }
+.wm-mehr-text { flex: 1; min-width: 0; }
+.wm-mehr-t { font-size: 17px; font-weight: 800; line-height: 1.15; letter-spacing: -.01em; }
+.wm-mehr-s { font-size: 12px; color: var(--wm-ink-dim); margin-top: 3px; line-height: 1.3; }
+.wm-mehr-chev { color: var(--wm-ink-dim); font-size: 18px; flex: none; font-weight: 700; }
+.wm-mehr-item.is-primary .wm-mehr-chev { color: var(--wm-accent); }
+.wm-mehr-soon { font-family: var(--wm-mono); font-size: 10px; color: var(--wm-ink-dim); text-transform: uppercase; letter-spacing: .08em; padding: 3px 8px; border: 1px solid var(--wm-line-soft); border-radius: 999px; flex: none; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   Torjägerliste — Golden Boot ranked list.
+   ════════════════════════════════════════════════════════════════════════ */
+.wm-ts-scope {
+  display: flex; justify-content: center; margin: 4px 0 16px;
+}
+.wm-ts-scope-pill {
+  display: inline-flex;
+  background: var(--wm-surface);
+  border: 2px solid var(--wm-ink);
+  border-radius: 999px; padding: 3px;
+}
+.wm-ts-scope-tab {
+  font-family: var(--wm-rounded);
+  font-size: 12px; font-weight: 700; color: var(--wm-ink);
+  background: transparent; border: none; cursor: pointer;
+  padding: 5px 14px; border-radius: 999px;
+  transition: background .14s, color .14s;
+}
+.wm-ts-scope-tab[aria-selected="true"] { background: var(--wm-accent); color: #fff; }
+
+.wm-ts-list { padding: 0; }
+.wm-ts-row {
+  display: grid; grid-template-columns: 38px 40px 1fr auto;
+  align-items: center; gap: 12px;
+  background: var(--wm-surface);
+  border: 1.5px solid var(--wm-line-soft);
+  border-radius: 14px;
+  padding: 11px 14px; margin-bottom: 8px;
+  box-shadow: 0 1px 0 var(--wm-line-soft), 0 6px 14px rgba(28,28,28,.04);
+}
+.wm-ts-row.rk-1 { background: linear-gradient(135deg, var(--wm-surface) 0%, var(--wm-surface) 65%, #fef6e0 100%); border-color: #d4a017; }
+.wm-ts-row.rk-2 { background: linear-gradient(135deg, var(--wm-surface) 0%, var(--wm-surface) 70%, #f0f0f0 100%); border-color: #bfbfbf; }
+.wm-ts-row.rk-3 { background: linear-gradient(135deg, var(--wm-surface) 0%, var(--wm-surface) 70%, #f5e6d3 100%); border-color: #c08a4d; }
+.wm-ts-rank {
+  font-family: var(--wm-mono);
+  font-size: 24px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center; letter-spacing: -.04em;
+}
+.wm-ts-row.rk-1 .wm-ts-rank { color: #d4a017; }
+.wm-ts-row.rk-2 .wm-ts-rank { color: #8a8a8a; }
+.wm-ts-row.rk-3 .wm-ts-rank { color: #a06f3d; }
+.wm-ts-tie { font-size: 13px; color: var(--wm-ink-dim); margin-right: 1px; font-weight: 600; }
+.wm-ts-photo {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--wm-paper);
+  border: 1.5px solid var(--wm-line-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800; color: var(--wm-ink-dim);
+  background-size: cover; background-position: center;
+  overflow: hidden;
+}
+.wm-ts-row.rk-1 .wm-ts-photo { border-color: #d4a017; border-width: 2px; }
+.wm-ts-who { min-width: 0; }
+.wm-ts-name { font-size: 15px; font-weight: 800; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.005em; }
+.wm-ts-team { font-size: 12px; color: var(--wm-ink-dim); margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+.wm-ts-team .f { font-size: 14px; line-height: 1; }
+.wm-ts-stat { text-align: right; min-width: 60px; }
+.wm-ts-goals {
+  font-size: 22px; font-weight: 800;
+  font-variant-numeric: tabular-nums; line-height: 1;
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.wm-ts-row.rk-1 .wm-ts-goals { color: var(--wm-accent); }
+.wm-ts-goals .ic { font-size: 14px; }
+.wm-ts-sub { font-family: var(--wm-mono); font-size: 10.5px; color: var(--wm-ink-dim); margin-top: 4px; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.wm-ts-skel {
+  display: grid; grid-template-columns: 38px 40px 1fr auto;
+  align-items: center; gap: 12px;
+  background: var(--wm-surface);
+  border: 1.5px solid var(--wm-line-soft);
+  border-radius: 14px; padding: 11px 14px; margin-bottom: 8px;
+}
+.wm-ts-skel .bx { height: 14px; background: var(--wm-line-soft); border-radius: 6px; animation: wm-shimmer 1.4s infinite; }
+.wm-ts-skel .ci { width: 40px; height: 40px; border-radius: 50%; background: var(--wm-line-soft); animation: wm-shimmer 1.4s infinite; }
+.wm-ts-skel .w1 { width: 60%; }
+.wm-ts-skel .w2 { width: 40%; height: 9px; margin-top: 6px; }
+@keyframes wm-shimmer { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+.wm-ts-empty {
+  text-align: center; padding: 36px 22px;
+}
+.wm-ts-empty .ic { font-size: 36px; opacity: .35; margin-bottom: 10px; }
+.wm-ts-empty .t { font-size: 14px; font-weight: 700; color: var(--wm-ink); margin-bottom: 4px; }
+.wm-ts-empty .s { font-size: 12px; color: var(--wm-ink-dim); }

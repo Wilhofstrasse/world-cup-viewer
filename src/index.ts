@@ -13,7 +13,7 @@
 
 import type { Env } from "./types.js";
 import { runWmIngest } from "./wm/ingest.js";
-import { loadWmData } from "./wm/store.js";
+import { loadWmData, loadWmTopScorers } from "./wm/store.js";
 
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -33,6 +33,11 @@ async function handleMatches(env: Env): Promise<Response> {
   return json({ matches: data.matches, updatedAt: data.updatedAt, season: data.season });
 }
 
+async function handleTopScorers(env: Env): Promise<Response> {
+  const data = await loadWmTopScorers(env);
+  return json({ scorers: data.scorers, updatedAt: data.updatedAt, season: data.season });
+}
+
 /** Cron that drives the football ingest (self-gated to the tournament window). */
 const WM_INGEST_CRON = "*/15 * * * *";
 
@@ -48,6 +53,7 @@ export default {
 
     try {
       if (pathname === "/api/wm/matches" && method === "GET") return await handleMatches(env);
+      if (pathname === "/api/wm/topscorers" && method === "GET") return await handleTopScorers(env);
       if (pathname === "/api/version" && method === "GET") return json({ version: env.APP_VERSION ?? "dev" });
     } catch {
       return json({ error: "Internal error" }, 500);

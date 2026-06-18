@@ -24,11 +24,14 @@ import type {
   MatchStatus,
   Side,
   GoalType,
+  TopScorer,
   FifaLoc,
   FifaMatch,
   FifaMatchesResponse,
   FifaTimelineEvent,
   FifaTimelineResponse,
+  FifaTopScorerRow,
+  FifaTopScorersResponse,
 } from "./types.js";
 import type { FootballProvider } from "./football.js"; // type-only → no runtime cycle
 
@@ -152,7 +155,7 @@ export function mapFifaMatchToMatch(raw: FifaMatch): Match | null {
   if (!raw.Home || !raw.Away) return null;
   const status = mapFifaStatus(raw.MatchStatus);
   const hasScore = status === "live" || status === "finished";
-  return {
+  const out: Match = {
     id: parseInt(String(raw.IdMatch), 10),
     dateISO: raw.Date || "",
     status,
@@ -166,6 +169,9 @@ export function mapFifaMatchToMatch(raw: FifaMatch): Match | null {
     round: roundLabel(loc(raw.StageName)),
     group: groupLetter(loc(raw.GroupName)),
   };
+  if (raw.Home.IdTeam) out.idTeamA = raw.Home.IdTeam;
+  if (raw.Away.IdTeam) out.idTeamB = raw.Away.IdTeam;
+  return out;
 }
 
 /**
@@ -216,6 +222,54 @@ function season(env: Env): string {
   return env.WM_FIFA_SEASON || "285023";
 }
 
+/**
+ * Maps one FIFA top-scorer row to our TopScorer shape. team may be "" when the
+ * FIFA response carries only IdTeam — the caller resolves it from a matches
+ * lookup. assists / matches default to 0 (FIFA returns null in early rounds).
+ */
+export function mapFifaTopScorer(raw: FifaTopScorerRow): TopScorer | null {
+  const info = raw.PlayerInfo;
+  if (!info) return null;
+  const player = loc(info.PlayerName);
+  if (!player) return null;
+  return {
+    rank: raw.Rank,
+    player,
+    team: loc(info.TeamName) || "",
+    idTeam: info.IdTeam || null,
+    goals: raw.GoalsScored ?? 0,
+    assists: raw.Assists ?? 0,
+    matches: raw.MatchesPlayed ?? 0,
+    photoUrl: (info.PlayerPicture && info.PlayerPicture.PictureUrl) || null,
+  };
+}
+
+/**
+ * Resolves a missing team display name from a matches-derived idTeam → name map.
+ * FIFA's top-scorers endpoint sometimes ships only IdTeam (no TeamName); the
+ * matches feed always carries IdTeam + Home/Away.TeamName, so we fill from there.
+ */
+export function enrichScorerTeams(
+  scorers: TopScorer[],
+  teamNameById: Map<string, string>,
+): TopScorer[] {
+  return scorers.map((s) => {
+    if (s.team || !s.idTeam) return s;
+    const name = teamNameById.get(s.idTeam);
+    return name ? { ...s, team: name } : s;
+  });
+}
+
+/** Build the idTeam → display-name map from raw FIFA matches (keyed by IdTeam). */
+export function teamNameMap(rawMatches: FifaMatch[]): Map<string, string> {
+  const m = new Map<string, string>();
+  for (const r of rawMatches) {
+    if (r.Home?.IdTeam) m.set(r.Home.IdTeam, loc(r.Home.TeamName));
+    if (r.Away?.IdTeam) m.set(r.Away.IdTeam, loc(r.Away.TeamName));
+  }
+  return m;
+}
+
 export const fifaProvider: FootballProvider = {
   async getMatches(env: Env): Promise<Match[]> {
     const data = await fifaGet<FifaMatchesResponse>(
@@ -237,3 +291,28 @@ export const fifaProvider: FootballProvider = {
     return mapTimelineToGoals(data.Event || [], match.teamA, match.teamB);
   },
 };
+
+/**
+ * Fetches the Golden Boot list from FIFA's keyless endpoint and returns it in
+ * our normalized shape. Team names are filled where the response carries them;
+ * the caller may enrich the rest from the matches feed (enrichScorerTeams).
+ */
+export async function fetchTopScorers(env: Env): Promise<TopScorer[]> {
+  const data = await fifaGet<FifaTopScorersResponse>(
+    `/topseasonplayerstatistics/season/${season(env)}/topscorers?language=de-DE`,
+  );
+  const out: TopScorer[] = [];
+  for (const row of data.PlayerStatsList || []) {
+    const s = mapFifaTopScorer(row);
+    if (s) out.push(s);
+  }
+  return out;
+}
+
+/** Raw FIFA matches list — exposed so the ingest can derive teamNameMap from it. */
+export async function fetchRawFifaMatches(env: Env): Promise<FifaMatch[]> {
+  const data = await fifaGet<FifaMatchesResponse>(
+    `/calendar/matches?idCompetition=${comp(env)}&idSeason=${season(env)}&count=500&language=de-DE`,
+  );
+  return data.Results || [];
+}
