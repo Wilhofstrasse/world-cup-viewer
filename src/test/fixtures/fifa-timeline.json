@@ -1,0 +1,99 @@
+{
+  "Event": [
+    {
+      "Type": 0,
+      "MatchMinute": "17'",
+      "Period": 3,
+      "IdTeam": "43922",
+      "IdPlayer": "229397",
+      "EventDescription": [
+        {
+          "Locale": "de-DE",
+          "Description": "MESSI (Argentinien) erzielt ein Tor!"
+        }
+      ],
+      "TypeLocalized": [
+        {
+          "Locale": "de-DE",
+          "Description": "Tor!"
+        }
+      ]
+    },
+    {
+      "Type": 0,
+      "MatchMinute": "60'",
+      "Period": 5,
+      "IdTeam": "43922",
+      "IdPlayer": "229397",
+      "EventDescription": [
+        {
+          "Locale": "de-DE",
+          "Description": "MESSI (Argentinien) erzielt ein Tor!"
+        }
+      ],
+      "TypeLocalized": [
+        {
+          "Locale": "de-DE",
+          "Description": "Tor!"
+        }
+      ]
+    },
+    {
+      "Type": 0,
+      "MatchMinute": "76'",
+      "Period": 5,
+      "IdTeam": "43922",
+      "IdPlayer": "229397",
+      "EventDescription": [
+        {
+          "Locale": "de-DE",
+          "Description": "MESSI (Argentinien) erzielt ein Tor!"
+        }
+      ],
+      "TypeLocalized": [
+        {
+          "Locale": "de-DE",
+          "Description": "Tor!"
+        }
+      ]
+    },
+    {
+      "Type": 1,
+      "MatchMinute": "17'",
+      "Period": 3,
+      "IdTeam": "43922",
+      "IdPlayer": "428882",
+      "EventDescription": [
+        {
+          "Locale": "de-DE",
+          "Description": "Vorlage von R. DE PAUL."
+        }
+      ],
+      "TypeLocalized": [
+        {
+          "Locale": "de-DE",
+          "Description": "Torvorlage"
+        }
+      ]
+    },
+    {
+      "Type": 1,
+      "MatchMinute": "76'",
+      "Period": 5,
+      "IdTeam": "43922",
+      "IdPlayer": "430631",
+      "EventDescription": [
+        {
+          "Locale": "de-DE",
+          "Description": "Vorlage von N. GONZALEZ."
+        }
+      ],
+      "TypeLocalized": [
+        {
+          "Locale": "de-DE",
+          "Description": "Torvorlage"
+        }
+      ]
+    }
+  ]
+}

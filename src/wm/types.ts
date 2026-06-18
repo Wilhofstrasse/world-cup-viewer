@@ -45,6 +45,8 @@ export interface Match {
   goals: Goal[];
   /** Matched SRF highlight reel URN, when found (optional enrichment). */
   clipUrn?: string;
+  /** FIFA timeline stage id — server-side enrichment for the goals fetch. */
+  stageId?: string;
 }
 
 /** The blob stored in R2 at wm/matches.json and served by /api/wm/matches. */
@@ -89,4 +91,56 @@ export interface ApiFootballEvent {
 export interface ApiFootballEventsResponse {
   errors?: unknown;
   response: ApiFootballEvent[];
+}
+
+// ---------------------------------------------------------------------------
+// FIFA public API raw shapes (api.fifa.com/api/v3 — only the fields we read)
+// ---------------------------------------------------------------------------
+
+/** A FIFA localized string: array of { Locale, Description }. Take index 0. */
+export interface FifaLoc {
+  Locale?: string;
+  Description?: string;
+}
+
+export interface FifaTeam {
+  IdTeam?: string;
+  /** Goals (regulation + extra time); null until played. */
+  Score: number | null;
+  TeamName?: FifaLoc[];
+}
+
+export interface FifaMatch {
+  IdMatch: string;
+  IdStage: string;
+  IdGroup?: string;
+  /** 0 = finished, 1 = upcoming, 3 = live. */
+  MatchStatus: number;
+  /** "97'" during/after play; null pre-match. */
+  MatchTime?: string | null;
+  Date: string; // ISO-8601 UTC
+  /** null for an unseeded knockout slot. */
+  Home: FifaTeam | null;
+  Away: FifaTeam | null;
+  GroupName?: FifaLoc[];
+  StageName?: FifaLoc[];
+}
+
+export interface FifaMatchesResponse {
+  Results?: FifaMatch[];
+}
+
+export interface FifaTimelineEvent {
+  /** 0 = goal, 41 = penalty goal, 34 = own goal (others ignored). */
+  Type: number;
+  MatchMinute?: string | null; // "17'", "45'+5'"
+  Period?: number;
+  IdTeam?: string;
+  IdPlayer?: string;
+  /** "MESSI (Argentinien) erzielt ein Tor!" — scorer + team in the text. */
+  EventDescription?: FifaLoc[];
+}
+
+export interface FifaTimelineResponse {
+  Event?: FifaTimelineEvent[];
 }

@@ -61,7 +61,7 @@ function needsGoals(fresh: Match, prev: Match | undefined): boolean {
 }
 
 export async function runWmIngest(env: Env): Promise<void> {
-  if (!env.APIFOOTBALL_KEY || !env.WM_R2) return; // not configured → no-op
+  if (!env.WM_R2) return; // no store bound → no-op (default FIFA provider is keyless)
   const nowMs = Date.now();
   if (!withinWmWindow(nowMs)) return;
 
@@ -80,13 +80,20 @@ export async function runWmIngest(env: Env): Promise<void> {
 
   const prevById = new Map(prev.matches.map((m) => [m.id, m]));
 
+  // Cap per-tick goal fetches to stay well under the Workers subrequest limit
+  // (1 matches call + N timelines). Matches not refreshed this tick keep their
+  // prior goals and are picked up later (needsGoals stays true until stored).
+  const MAX_GOAL_FETCHES = 40;
+  let fetched = 0;
+
   for (const m of fresh) {
     const prevM = prevById.get(m.id);
     if (prevM?.clipUrn) m.clipUrn = prevM.clipUrn; // carry any clip link
 
-    if (needsGoals(m, prevM)) {
+    if (needsGoals(m, prevM) && fetched < MAX_GOAL_FETCHES) {
       try {
         m.goals = await provider.getGoals(env, m);
+        fetched++;
       } catch {
         m.goals = prevM?.goals ?? []; // keep prior scorers on failure
       }

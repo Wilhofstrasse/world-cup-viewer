@@ -25,4 +25,11 @@ export interface Env {
   WM_LEAGUE_ID?: string;
   /** Season the WC is filed under. Defaults to "2026". */
   WM_SEASON?: string;
+
+  /** Data provider: "fifa" (default, keyless) or "apifootball". */
+  WM_API_PROVIDER?: string;
+  /** FIFA idCompetition (FIFA World Cup = "17"). */
+  WM_FIFA_COMPETITION?: string;
+  /** FIFA idSeason (WM 2026 = "285023"). */
+  WM_FIFA_SEASON?: string;
 }

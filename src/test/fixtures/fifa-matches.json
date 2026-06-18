@@ -1,0 +1,84 @@
+{
+  "Results": [
+    {
+      "IdMatch": "400021496",
+      "IdStage": "289273",
+      "IdGroup": "289284",
+      "MatchStatus": 0,
+      "MatchTime": "97'",
+      "Date": "2026-06-17T01:00:00Z",
+      "GroupName": [
+        {
+          "Locale": "de-DE",
+          "Description": "Gruppe J"
+        }
+      ],
+      "StageName": [
+        {
+          "Locale": "de-DE",
+          "Description": "Erste Phase"
+        }
+      ],
+      "Home": {
+        "IdTeam": "43922",
+        "Score": 3,
+        "TeamName": [
+          {
+            "Locale": "de-DE",
+            "Description": "Argentinien"
+          }
+        ]
+      },
+      "Away": {
+        "IdTeam": "43843",
+        "Score": 0,
+        "TeamName": [
+          {
+            "Locale": "de-DE",
+            "Description": "Algerien"
+          }
+        ]
+      }
+    },
+    {
+      "IdMatch": "400021440",
+      "IdStage": "289273",
+      "IdGroup": "289275",
+      "MatchStatus": 1,
+      "MatchTime": null,
+      "Date": "2026-06-18T16:00:00Z",
+      "GroupName": [
+        {
+          "Locale": "de-DE",
+          "Description": "Gruppe A"
+        }
+      ],
+      "StageName": [
+        {
+          "Locale": "de-DE",
+          "Description": "Erste Phase"
+        }
+      ],
+      "Home": {
+        "IdTeam": "43995",
+        "Score": null,
+        "TeamName": [
+          {
+            "Locale": "de-DE",
+            "Description": "Tschechien"
+          }
+        ]
+      },
+      "Away": {
+        "IdTeam": "43883",
+        "Score": null,
+        "TeamName": [
+          {
+            "Locale": "de-DE",
+            "Description": "Südafrika"
+          }
+        ]
+      }
+    }
+  ]
+}

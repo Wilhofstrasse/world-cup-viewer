@@ -27,6 +27,8 @@ import type {
 // teamsMatch is the single shared, diacritic/co-host-tolerant comparator
 // (also used by the browser feed). esbuild bundles this .js into the Worker.
 import { teamsMatch } from "../../web/wm/parse.js";
+// FIFA is the default keyless provider (fifa.ts type-only imports back → no cycle).
+import { fifaProvider } from "./fifa.js";
 
 // ---------------------------------------------------------------------------
 // Error type
@@ -182,7 +184,10 @@ export const apiFootballProvider: FootballProvider = {
 };
 
 /** Provider factory — single switch point for swapping data sources. */
-export function getProvider(_env: Env): FootballProvider {
-  // Future: branch on env.WM_API_PROVIDER for football-data.org / Sofascore.
-  return apiFootballProvider;
+export function getProvider(env: Env): FootballProvider {
+  // FIFA's own API is keyless and carries WM 2026 (API-Football's free tier is
+  // paywalled to 2022–2024), so it's the default. Set WM_API_PROVIDER to
+  // "apifootball" to use a (paid) API-Football key instead.
+  if ((env.WM_API_PROVIDER || "fifa").toLowerCase() === "apifootball") return apiFootballProvider;
+  return fifaProvider;
 }
