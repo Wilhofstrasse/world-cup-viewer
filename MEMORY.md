@@ -11,7 +11,7 @@ Kid-friendly FIFA WM 2026 PWA — swipe SRF highlight summaries + a structured S
 
 - **Clips:** SRGSSR Integration Layer, **keyless**, CORS `*`. List `episodeComposition/latestByShow/byUrn/{showUrn}` (paginate `next`); resolve `mediaComposition/byUrn/{urn}` → HLS (`srf-vod…akamaized.net`, tokenType NONE). Show `urn:srf:show:tv:c55b9fb8-e108-4994-a1d0-8c288bf8d5bc`. Client-side from the device (CH IP meets the `/ch/` geofence). Feed shows only the per-match "Die Live-Highlights bei A - B" reels.
 - **Schedule structure:** SRF **livecenter** (keyless): `mediaList/video/scheduledLivestreams/livecenter` → titles "Fussball: FIFA WM 2026, {round}, Gruppe {X}, {A} - {B}". Rolling window (recent + upcoming).
-- **Scores / scorers / minutes:** API-Football (`APIFOOTBALL_KEY` Worker secret). No keyless source carries scorer-minutes (verified: SwissTXT data path unreachable, OpenLigaDB has no 2026). The Spiele view merges API-Football onto the keyless schedule by tolerant team-match.
+- **Scores / scorers / minutes:** **FIFA public API** (`api.fifa.com/api/v3`, KEYLESS, CORS-open, Akamai s-maxage=15) — default provider since v1.2.0 (18.06.2026). API-Football's FREE tier is paywalled to 2022–2024 (`"Free plans do not have access to this season"`), so it can't see WM 2026 at all. FIFA carries the full tournament. Recipe: `idCompetition=17`, `idSeason=285023`, `language=de-DE` (German team names align with the SRF schedule via `teamsMatch`). `calendar/matches?...&count=500` → fixtures+score+status (MatchStatus 0=fin/1=sched/3=live); `timelines/17/285023/{IdStage}/{IdMatch}` → goal events, `Type ∈ {0 goal, 41 penalty, 34 own-goal}`, minute from `MatchMinute`, scorer+team parsed from `EventDescription` (caps surname → `tidyName`; own goals prefixed "Eigentor durch "). Provider in `src/wm/fifa.ts`; `getProvider` switch (`WM_API_PROVIDER`, default "fifa"; "apifootball" needs a paid key). The Spiele view still merges this onto the keyless SRF schedule by tolerant team-match. Verified live: Argentinien 3-0 Algerien → Messi 17'/60'/76'.
 
 ## Setup / ops
 
@@ -29,8 +29,9 @@ Two compounding causes, found via workflow + Codex:
 ## Open decisions
 
 - **Custom domain** — ✅ done: `wm.filipeandrade.com` (custom_domain route, no CF Access; public).
-- **Canvas-sync design pass** — `design/highlights-v1.md`; connect claude.ai/design to the public repo.
-- **API-Football key** — needed for scores/scorers; schedule shows keyless without it.
+- **Canvas-sync design pass** — ✅ done (18.06.2026): component-library bundle in `design/canvas/` pushed via DesignSync to the claude.ai/design project **"Gabriel · WM 2026 Viewer"** (projectId `80d66392-…`). Filipe iterates there; re-push with `/design-sync`.
+- **Scores/scorers** — ✅ done: keyless FIFA API (see Data sources). No paid key needed.
+- **Goals follow-up (minor, Codex-flagged):** 0-0 finished matches re-fetch goals every tick (completion inferred from `goals.length>0`). Harden with an explicit `goalsFetched` flag if cap pressure shows. Also a `parseInt(IdMatch)` NaN guard would be tidy.
 - **Calendar write-back** (`src/wm/calendar.ts`, tested core) — needs iCloud app-pw; optional for this kid-facing app (was a Filipe-facing feature).
 
 ## Links
