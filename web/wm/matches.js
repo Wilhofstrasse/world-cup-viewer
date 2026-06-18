@@ -38,38 +38,33 @@ function goalLine(g) {
   return `<span class="wm-g"><span class="m">${esc(min)}</span> ${esc(g.scorer)}${tag}</span>`;
 }
 
-/** Two columns of scorers, each stacked under its own team — A left, B right. */
-function goalsBlock(goals) {
-  const col = (side) => goals.filter((g) => g.team === side).map(goalLine).join("");
-  return `<div class="wm-goals"><div class="wm-goals-col">${col("A")}</div><div class="wm-goals-col end">${col("B")}</div></div>`;
-}
-
+/**
+ * One match card, vertical scoreboard: each team on its own line
+ * (flag · name · score) so long names get the full width and never collide with
+ * the score, with that team's scorers indented beneath it. Kickoff sits below
+ * when the match hasn't been played; a live badge shows when in play.
+ */
 function fixtureRow(m) {
   const live = m.status === "live";
   const finished = m.status === "finished";
   const showScore = live || finished;
 
-  // Middle column: the score when played, else a slim "–" placeholder — keeps
-  // long names (Elfenbeinküste, Saudi-Arabien) from colliding with the kickoff
-  // string, which sits on its own line below the teams.
-  const mid = showScore
-    ? `<span class="wm-match-score">${m.scoreA}–${m.scoreB}</span>`
-    : `<span class="wm-match-score wm-match-vs">–</span>`;
+  const teamBlock = (name, score, side) => {
+    const gs = showScore ? (m.goals || []).filter((g) => g.team === side) : [];
+    const scoreHtml = showScore ? `<span class="wm-tscore">${score}</span>` : "";
+    const goalsHtml = gs.length ? `<div class="wm-tgoals">${gs.map(goalLine).join(" · ")}</div>` : "";
+    return `<div class="wm-tblock"><div class="wm-tline"><span class="f">${flagFor(name)}</span><span class="n">${esc(name)}</span>${scoreHtml}</div>${goalsHtml}</div>`;
+  };
 
   const when = showScore ? "" : `<div class="wm-match-when">${esc(kickoff(m.dateISO))}</div>`;
   const liveBadge = live ? `<span class="wm-live-badge">● LIVE ${m.minute ? m.minute + "'" : ""}</span>` : "";
-  const goals = showScore && m.goals && m.goals.length ? goalsBlock(m.goals) : "";
 
   return `
     <article class="wm-match ${live ? "live" : ""}">
-      <div class="wm-match-row">
-        <span class="wm-match-team"><span class="f">${flagFor(m.teamA)}</span>${esc(m.teamA)}</span>
-        ${mid}
-        <span class="wm-match-team end"><span class="f">${flagFor(m.teamB)}</span>${esc(m.teamB)}</span>
-      </div>
+      ${teamBlock(m.teamA, m.scoreA, "A")}
+      ${teamBlock(m.teamB, m.scoreB, "B")}
       ${when}
       ${liveBadge}
-      ${goals}
     </article>`;
 }
 

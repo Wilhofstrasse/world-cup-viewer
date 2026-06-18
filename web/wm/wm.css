@@ -312,21 +312,20 @@ html, body {
   margin-bottom: 9px;
 }
 .wm-match:last-child { margin-bottom: 5px; }
-.wm-match-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.wm-match-team { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; flex: 1; min-width: 0; color: var(--wm-ink); }
-.wm-match-team.end { justify-content: flex-end; text-align: right; }
-.wm-match-team .f { font-size: 21px; flex: none; }
-.wm-match-score { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 19px; white-space: nowrap; color: var(--wm-ink); flex: none; }
-.wm-match-vs { color: var(--wm-faint); font-weight: 700; }
+/* Vertical scoreboard: each team on its own line (flag · name · score) so long
+   names (Bosnien und Herzegowina) get the FULL width — never truncated, wrapped
+   mid-word, or colliding with the score. Each team's scorers indent beneath it. */
+.wm-tblock + .wm-tblock { margin-top: 5px; }
+.wm-tline { display: flex; align-items: center; gap: 8px; }
+.wm-tline .f { font-size: 21px; flex: none; }
+.wm-tline .n { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; color: var(--wm-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wm-tscore { flex: none; min-width: 1.1em; text-align: right; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 18px; color: var(--wm-ink); }
+.wm-tgoals { margin: 2px 0 0 29px; font-size: 12px; color: #555; line-height: 1.5; }
+.wm-tgoals .wm-g { white-space: nowrap; }
+.wm-tgoals .wm-g .m { font-variant-numeric: tabular-nums; color: var(--wm-ink-dim); }
 .wm-match-when { display: block; text-align: center; margin-top: 8px; font-family: var(--wm-mono); font-size: 11.5px; color: var(--wm-ink-dim); }
 .wm-match.live { border-color: var(--wm-accent); background: var(--wm-accent-soft); }
 .wm-live-badge { display: inline-block; margin-top: 7px; color: var(--wm-accent); font-weight: 800; font-size: 11px; font-family: var(--wm-mono); }
-/* Scorers in two columns, each stacked under its team (A left, B right). */
-.wm-goals { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--wm-line-soft); display: flex; gap: 12px; font-size: 12.5px; color: #555; line-height: 1.55; }
-.wm-goals-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.wm-goals-col.end { text-align: right; align-items: flex-end; }
-.wm-g { display: block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.wm-g .m { font-variant-numeric: tabular-nums; color: var(--wm-ink-dim); }
 
 /* ── Version stamp ── */
 .wm-ver { /* (header version, defined above) */ }
