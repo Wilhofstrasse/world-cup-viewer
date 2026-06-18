@@ -1,0 +1,29 @@
+<!-- @dsCard group="Components" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Drawer + Suche</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--soft:#d8d2c6;--accent:#e6492f;--accent-soft:#fbe3dd;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:#cfcabf;color:var(--ink);padding:20px;-webkit-font-smoothing:antialiased}
+.drawer{width:340px;background:var(--surface);border-right:2.5px solid var(--ink);padding:16px 0;box-shadow:6px 0 28px rgba(0,0,0,.18);border-radius:4px}
+.dh{display:flex;align-items:center;gap:12px;font-size:19px;font-weight:800;padding:4px 18px 14px}
+.close{width:30px;height:30px;border:none;background:transparent;font-size:21px}
+.search{padding:0 18px 6px}
+.sin{width:100%;font-family:var(--round);font-size:15px;color:var(--ink);background-color:var(--surface);border:2px solid var(--soft);border-radius:14px;padding:11px 14px 11px 40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c8c8c' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='20.5' y1='20.5' x2='16.5' y2='16.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:13px center;background-size:17px}
+.grp{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);padding:16px 18px 6px}
+.item{display:flex;align-items:center;gap:11px;margin:2px 10px;padding:12px 14px;border-radius:12px;font-size:15px}
+.item.cur{background:var(--accent-soft)}
+.item .f{font-size:19px}.item .t{font-weight:700;flex:1}.item .d{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.foot{margin:12px 18px 0;padding:14px 4px 2px;border-top:1.5px dashed var(--soft);color:var(--dim);font-size:14px;font-weight:700}
+</style></head><body>
+<div class="drawer">
+  <div class="dh"><button class="close">✕</button><span>Zu einem Spiel springen</span></div>
+  <div class="search"><input class="sin" placeholder="Team oder Gruppe…"></div>
+  <div class="grp">Heute</div>
+  <div class="item cur"><span class="f">🇧🇷</span><span class="t">Brasilien – Marokko</span><span class="d">Heute</span></div>
+  <div class="item"><span class="f">🇨🇭</span><span class="t">Schweiz – Kamerun</span><span class="d">Heute</span></div>
+  <div class="grp">Früher</div>
+  <div class="item"><span class="f">🇫🇷</span><span class="t">Frankreich – Senegal</span><span class="d">Gestern</span></div>
+  <div class="item"><span class="f">🇪🇸</span><span class="t">Spanien – Argentinien</span><span class="d">15.06.</span></div>
+  <a class="foot">✉ Feedback senden</a>
+</div>
+</body></html>

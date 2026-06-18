@@ -1,0 +1,40 @@
+<!-- @dsCard group="Screens" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Screen · Spiele</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--faint:#b3aea3;--soft:#d8d2c6;--accent:#e6492f;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.phone{width:390px;margin:0 auto;min-height:760px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-bottom:2.5px solid var(--ink)}
+.brand{display:inline-flex;align-items:center;gap:9px}.menu{border:none;background:transparent;font-size:21px}.name{font-size:19px;font-weight:800}.ver{font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+.tabs{display:inline-flex;background:var(--surface);border:2.5px solid var(--ink);border-radius:999px;padding:3px}
+.tab{font-size:14px;font-weight:700;padding:6px 15px;border-radius:999px}.tab.on{background:var(--accent);color:#fff}
+.body{padding:16px}
+.sec{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:18px 4px 12px}.sec:first-child{margin-top:2px}
+.acc{background:var(--surface);border:2px solid var(--soft);border-radius:16px;margin-bottom:12px;overflow:hidden}.acc.open{border-color:var(--ink)}
+.head{display:flex;align-items:center;justify-content:space-between;font-size:19px;font-weight:800;padding:17px 18px}.chev{font-size:13px;color:var(--dim)}.acc.open .chev{transform:rotate(90deg);display:inline-block}
+.accbody{padding:0 13px 10px}
+.card{background:var(--paper);border:1.5px solid var(--soft);border-radius:13px;padding:13px 15px;margin-bottom:9px}.card:last-child{margin-bottom:5px}
+.crow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.team{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;flex:1;min-width:0}.team.end{justify-content:flex-end;text-align:right}.team .f{font-size:21px}
+.score{font-weight:800;font-size:19px}.vs{color:var(--faint)}
+.when{text-align:center;margin-top:8px;font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+.goals{margin-top:9px;padding-top:9px;border-top:1px solid var(--soft);font-size:12.5px;color:#555;line-height:1.7}.goals .m{color:var(--dim)}
+</style></head><body>
+<div class="phone">
+  <div class="bar"><div class="brand"><button class="menu">☰</button><span class="name">WM 2026</span><span class="ver">v1.1.1</span></div><div class="tabs"><span class="tab">Highlights</span><span class="tab on">Spiele</span></div></div>
+  <div class="body">
+    <div class="sec">Vorrunde</div>
+    <div class="acc open"><div class="head"><span>Gruppe A</span><span class="chev">▸</span></div>
+      <div class="accbody">
+        <div class="card"><div class="crow"><span class="team"><span class="f">🇦🇷</span>Argentinien</span><span class="score">3–2</span><span class="team end"><span class="f">🇪🇸</span>Spanien</span></div><div class="goals">⚽ <span class="m">12'</span> Messi · <span class="m">34'</span> Messi (FE) · <span class="m">78'</span> Álvarez</div></div>
+        <div class="card"><div class="crow"><span class="team"><span class="f">🇲🇽</span>Mexiko</span><span class="score vs">–</span><span class="team end"><span class="f">🇰🇷</span>Südkorea</span></div><div class="when">Fr. 19.06., 02:50</div></div>
+      </div>
+    </div>
+    <div class="acc"><div class="head"><span>Gruppe B</span><span class="chev">▸</span></div></div>
+    <div class="acc"><div class="head"><span>Gruppe C</span><span class="chev">▸</span></div></div>
+    <div class="sec">K.-o.-Runde</div>
+    <div class="acc"><div class="head"><span>Achtelfinal</span><span class="chev">▸</span></div></div>
+  </div>
+</div>
+</body></html>
