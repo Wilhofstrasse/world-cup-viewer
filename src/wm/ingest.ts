@@ -18,8 +18,10 @@
 import type { Env } from "../types.js";
 import type { Match, WmData, WmTopScorers } from "./types.js";
 import { getProvider } from "./football.js";
-import { loadWmData, saveWmData, saveWmTopScorers } from "./store.js";
+import { loadWmData, loadWmTopScorers, saveWmData, saveWmTopScorers } from "./store.js";
 import { fetchTopScorers, enrichScorerTeams } from "./fifa.js";
+
+const TOPSCORERS_MAX_AGE_MS = 30 * 60 * 1000; // refresh every 30 min in-window
 
 // Tournament window (Europe/Zurich offsets). Outside this, ingest no-ops.
 const WM_START_MS = Date.parse("2026-06-11T00:00:00+02:00");
@@ -61,12 +63,46 @@ function needsGoals(fresh: Match, prev: Match | undefined): boolean {
   return false;
 }
 
+/**
+ * Refreshes the top-scorers blob from FIFA (keyless), enriching team names from
+ * the supplied matches list. Always safe to call repeatedly: budget is one
+ * keyless request. matches[] is read-only (never mutated).
+ */
+async function refreshTopScorers(env: Env, matches: Match[], nowMs: number): Promise<void> {
+  if ((env.WM_API_PROVIDER || "fifa") !== "fifa") return; // only the FIFA path provides this feed
+  try {
+    const raw = await fetchTopScorers(env);
+    const idToTeam = new Map<string, string>();
+    for (const m of matches) {
+      if (m.idTeamA) idToTeam.set(m.idTeamA, m.teamA);
+      if (m.idTeamB) idToTeam.set(m.idTeamB, m.teamB);
+    }
+    const scorers = enrichScorerTeams(raw, idToTeam);
+    const ts: WmTopScorers = {
+      updatedAt: Math.floor(nowMs / 1000),
+      season: env.WM_SEASON || "2026",
+      scorers,
+    };
+    await saveWmTopScorers(env, ts);
+  } catch {
+    // upstream hiccup — keep last good topscorers blob, retry next tick
+  }
+}
+
 export async function runWmIngest(env: Env): Promise<void> {
   if (!env.WM_R2) return; // no store bound → no-op (default FIFA provider is keyless)
   const nowMs = Date.now();
   if (!withinWmWindow(nowMs)) return;
 
   const prev = await loadWmData(env);
+
+  // Top scorers are gated by their OWN freshness, not by the matches budget —
+  // they're one keyless request per tick. This lets the first tick after a deploy
+  // populate scorers even when shouldFetch() says "no need to re-fetch matches".
+  const prevTs = await loadWmTopScorers(env);
+  const tsStale = !prevTs.scorers.length || (nowMs - prevTs.updatedAt * 1000 > TOPSCORERS_MAX_AGE_MS);
+  if (tsStale) await refreshTopScorers(env, prev.matches, nowMs);
+
   if (!shouldFetch(prev, nowMs)) return;
 
   const provider = getProvider(env);
@@ -110,26 +146,7 @@ export async function runWmIngest(env: Env): Promise<void> {
   };
   await saveWmData(env, data);
 
-  // Top scorers — keyless, one call per tick. Enrich with team names from the
-  // matches we just persisted (FIFA's topscorers row often ships only IdTeam).
-  // Provider-gated: only the FIFA path provides this feed today.
-  if ((env.WM_API_PROVIDER || "fifa") === "fifa") {
-    try {
-      const raw = await fetchTopScorers(env);
-      const idToTeam = new Map<string, string>();
-      for (const m of fresh) {
-        if (m.idTeamA) idToTeam.set(m.idTeamA, m.teamA);
-        if (m.idTeamB) idToTeam.set(m.idTeamB, m.teamB);
-      }
-      const scorers = enrichScorerTeams(raw, idToTeam);
-      const ts: WmTopScorers = {
-        updatedAt: Math.floor(nowMs / 1000),
-        season: env.WM_SEASON || "2026",
-        scorers,
-      };
-      await saveWmTopScorers(env, ts);
-    } catch {
-      // upstream hiccup — keep last good topscorers blob, retry next tick
-    }
-  }
+  // Always re-tick top scorers off the fresh matches so the team-name map is
+  // current (one extra keyless request; cheap on the FIFA path).
+  await refreshTopScorers(env, fresh, nowMs);
 }
