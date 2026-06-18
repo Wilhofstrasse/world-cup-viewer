@@ -58,6 +58,15 @@ function goalLine(g) {
   return `<span class="wm-g"><span class="m">${esc(min)}</span> ${esc(g.scorer)}${tag}</span>`;
 }
 
+/**
+ * Two columns of scorers, each stacked under its own team — A on the left,
+ * B on the right (alignApi already flips g.team to the displayed team order).
+ */
+function goalsBlock(goals) {
+  const col = (side) => goals.filter((g) => g.team === side).map(goalLine).join("");
+  return `<div class="wm-goals"><div class="wm-goals-col">${col("A")}</div><div class="wm-goals-col end">${col("B")}</div></div>`;
+}
+
 function fixtureRow(fx, api) {
   const live = api && api.status === "live";
   const finished = api && api.status === "finished";
@@ -72,9 +81,7 @@ function fixtureRow(fx, api) {
 
   const when = showScore ? "" : `<div class="wm-match-when">${esc(kickoff(fx.dateISO))}</div>`;
   const liveBadge = live ? `<span class="wm-live-badge">● LIVE ${api.minute ? api.minute + "'" : ""}</span>` : "";
-  const goals = showScore && api.goals && api.goals.length
-    ? `<div class="wm-goals">⚽ ${api.goals.map(goalLine).join(" · ")}</div>`
-    : "";
+  const goals = showScore && api.goals && api.goals.length ? goalsBlock(api.goals) : "";
 
   return `
     <article class="wm-match ${live ? "live" : ""}">
@@ -90,6 +97,22 @@ function fixtureRow(fx, api) {
 }
 
 const byKickoff = (a, b) => (a.dateISO || "").localeCompare(b.dateISO || "");
+
+/** Unique team flags across a group's fixtures, first-seen order — for the head. */
+function groupFlags(fixtures) {
+  const seen = new Set();
+  const out = [];
+  for (const fx of fixtures) {
+    for (const t of [fx.teamA, fx.teamB]) {
+      const key = (t || "").toLowerCase();
+      if (t && !seen.has(key)) {
+        seen.add(key);
+        out.push(flagFor(t));
+      }
+    }
+  }
+  return out.join(" ");
+}
 
 function render(fixtures, matches) {
   const root = document.getElementById("wmMatches");
@@ -110,11 +133,12 @@ function render(fixtures, matches) {
 
   // Only the first accordion opens by default; the rest start collapsed.
   let openLeft = 1;
-  const acc = (label, rows) => {
+  const acc = (label, rows, flags) => {
     const open = openLeft > 0;
     if (open) openLeft--;
+    const flagsHtml = flags ? ` <span class="wm-acc-flags">${flags}</span>` : "";
     return `<details class="wm-acc"${open ? " open" : ""}>
-        <summary class="wm-acc-head"><span>${esc(label)}</span><span class="wm-acc-chev" aria-hidden="true">▸</span></summary>
+        <summary class="wm-acc-head"><span class="wm-acc-label"><span class="wm-acc-title">${esc(label)}</span>${flagsHtml}</span><span class="wm-acc-chev" aria-hidden="true">▸</span></summary>
         <div class="wm-acc-body">${rows}</div>
       </details>`;
   };
@@ -130,7 +154,10 @@ function render(fixtures, matches) {
     html += `<div class="wm-sec">Vorrunde</div>`;
     const groups = [...new Set(vorrunde.map((f) => f.group).filter(Boolean))].sort();
     if (groups.length) {
-      for (const g of groups) html += acc(`Gruppe ${g}`, rowsFor(vorrunde.filter((f) => f.group === g)));
+      for (const g of groups) {
+        const gfx = vorrunde.filter((f) => f.group === g);
+        html += acc(`Gruppe ${g}`, rowsFor(gfx), groupFlags(gfx));
+      }
     } else {
       html += acc("Alle Spiele", rowsFor(vorrunde));
     }

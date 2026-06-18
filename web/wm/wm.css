@@ -297,6 +297,8 @@ html, body {
   padding: 17px 18px;
 }
 .wm-acc-head::-webkit-details-marker { display: none; }
+.wm-acc-label { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.wm-acc-flags { font-size: 15px; font-weight: 400; letter-spacing: 1px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wm-acc.is-empty .wm-acc-head { color: var(--wm-ink-dim); cursor: default; }
 .wm-acc-chev { font-size: 13px; color: var(--wm-ink-dim); transition: transform .18s; flex: none; }
 .wm-acc[open] .wm-acc-chev { transform: rotate(90deg); }
@@ -319,8 +321,11 @@ html, body {
 .wm-match-when { display: block; text-align: center; margin-top: 8px; font-family: var(--wm-mono); font-size: 11.5px; color: var(--wm-ink-dim); }
 .wm-match.live { border-color: var(--wm-accent); background: var(--wm-accent-soft); }
 .wm-live-badge { display: inline-block; margin-top: 7px; color: var(--wm-accent); font-weight: 800; font-size: 11px; font-family: var(--wm-mono); }
-.wm-goals { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--wm-line-soft); font-size: 12.5px; color: #555; line-height: 1.7; }
-.wm-g { white-space: nowrap; }
+/* Scorers in two columns, each stacked under its team (A left, B right). */
+.wm-goals { margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--wm-line-soft); display: flex; gap: 12px; font-size: 12.5px; color: #555; line-height: 1.55; }
+.wm-goals-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.wm-goals-col.end { text-align: right; align-items: flex-end; }
+.wm-g { display: block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wm-g .m { font-variant-numeric: tabular-nums; color: var(--wm-ink-dim); }
 
 /* ── Version stamp ── */
