@@ -18,7 +18,7 @@
 
 "use strict";
 
-const SHELL_CACHE = "wm-shell-v14";
+const SHELL_CACHE = "wm-shell-v15";
 const DATA_CACHE = "wm-data-v2";
 const THUMB_CACHE = "wm-thumbs-v2";
 const THUMB_MAX = 120; // cap stored thumbnails

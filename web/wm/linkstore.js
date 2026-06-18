@@ -43,13 +43,34 @@ function notify() {
   }
 }
 
+function sameMatches(a, b) {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].id !== b[i].id || a[i].status !== b[i].status || a[i].scoreA !== b[i].scoreA || a[i].scoreB !== b[i].scoreB) return false;
+  }
+  return true;
+}
+function sameClips(a, b) {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].urn !== b[i].urn || a[i].index !== b[i].index) return false;
+  }
+  return true;
+}
+
 export function setMatches(m) {
-  store.matches = Array.isArray(m) ? m.slice() : [];
+  const next = Array.isArray(m) ? m.slice() : [];
+  if (sameMatches(store.matches, next)) return;
+  store.matches = next;
   notify();
 }
 
 export function setClips(list) {
-  store.clips = Array.isArray(list) ? list.slice() : [];
+  const next = Array.isArray(list) ? list.slice() : [];
+  if (sameClips(store.clips, next)) return;
+  store.clips = next;
   notify();
 }
 
