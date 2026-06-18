@@ -15,10 +15,11 @@
 "use strict";
 
 import { initTopScorers, destroyTopScorers } from "./topscorers.js";
+import { initTabellen, destroyTabellen } from "./tabellen.js";
 
 const SUBVIEWS = [
   { key: "topscorers", label: "Torjägerliste", title: "Torjägerliste", icon: "⚽", sub: "Goldener Schuh · Tore, Vorlagen, Spiele", section: "Statistiken", ready: true, primary: true },
-  { key: "tabellen", label: "Tabellen", title: "Tabellen", icon: "📊", sub: "Offizielle Gruppen mit Qualifikationsstatus", section: "Statistiken", ready: false },
+  { key: "tabellen", label: "Tabellen", title: "Tabellen", icon: "📊", sub: "Offizielle Gruppen mit Qualifikationsstatus", section: "Statistiken", ready: true },
   { key: "bracket", label: "K.-o.-Baum", title: "K.-o.-Baum", icon: "🏆", sub: "Viertelfinal bis Finale · der Weg zum Pokal", section: "Spielplan", ready: false },
   { key: "lineups", label: "Aufstellungen", title: "Aufstellungen", icon: "🎽", sub: "Formationen, Startelf, Auswechslungen", section: "Spielplan", ready: false },
   { key: "players", label: "Spielerkarten", title: "Spielerkarten", icon: "👤", sub: "Geburtstag, Grösse, Länderspiele, Tore", section: "Spieler & Mannschaften", ready: false },
@@ -85,12 +86,14 @@ export function openMehrSubview(key) {
 
   el.innerHTML = "";
   if (key === "topscorers") initTopScorers(el);
-  // future: tabellen / bracket / lineups / players / squads
+  else if (key === "tabellen") initTabellen(el);
+  // future: bracket / lineups / players / squads
 }
 
 export function closeMehrSubview() {
   if (!currentView) return;
   if (currentView === "topscorers") destroyTopScorers();
+  else if (currentView === "tabellen") destroyTabellen();
   currentView = null;
   delete document.body.dataset.subview;
   const subtitle = document.getElementById("wmSubtitle");

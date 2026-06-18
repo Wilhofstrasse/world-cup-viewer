@@ -551,3 +551,73 @@ html, body {
 .wm-ts-empty .ic { font-size: 36px; opacity: .35; margin-bottom: 10px; }
 .wm-ts-empty .t { font-size: 14px; font-weight: 700; color: var(--wm-ink); margin-bottom: 4px; }
 .wm-ts-empty .s { font-size: 12px; color: var(--wm-ink-dim); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   Tabellen — official group standings (Mehr ▸ Tabellen).
+   ════════════════════════════════════════════════════════════════════════ */
+.wm-tb-sec {
+  font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--wm-accent); margin: 6px 4px 12px;
+}
+.wm-tb-acc {
+  background: var(--wm-surface);
+  border: 2px solid var(--wm-line-soft);
+  border-radius: 18px; margin-bottom: 11px; overflow: hidden;
+  box-shadow: 0 1px 0 var(--wm-line-soft), 0 6px 14px rgba(28,28,28,.04);
+}
+.wm-tb-acc[open] { border-color: var(--wm-ink); }
+.wm-tb-head {
+  display: flex; align-items: center; justify-content: space-between;
+  list-style: none; cursor: pointer;
+  font-size: 19px; font-weight: 800; color: var(--wm-ink);
+  padding: 15px 18px;
+}
+.wm-tb-head::-webkit-details-marker { display: none; }
+.wm-tb-label { letter-spacing: -.01em; }
+.wm-tb-chev { font-size: 14px; color: var(--wm-ink-dim); transition: transform .2s ease; }
+.wm-tb-acc[open] .wm-tb-chev { transform: rotate(90deg); color: var(--wm-accent); }
+.wm-tb-body { padding: 0 14px 14px; }
+
+.wm-tb-table { width: 100%; border-collapse: collapse; font-size: 14px; color: var(--wm-ink); }
+.wm-tb-table thead th {
+  font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--wm-ink-dim); text-align: left; padding: 6px 4px;
+  border-bottom: 1.5px solid var(--wm-line-soft);
+}
+.wm-tb-table thead th.num { text-align: right; }
+.wm-tb-table tbody tr { transition: background .15s ease; }
+.wm-tb-table tbody tr.is-qual { background: linear-gradient(to right, rgba(230,73,47,.04), transparent 60%); }
+.wm-tb-table td { padding: 11px 4px; border-bottom: 1px solid var(--wm-line-soft); vertical-align: middle; }
+.wm-tb-table tr.details td { border-bottom: none; padding-top: 0; padding-bottom: 0; height: 0; }
+.wm-tb-table tr.details td.dt { display: none; padding-bottom: 9px; }
+.wm-tb-body.show-details tr.details td.dt {
+  display: table-cell;
+  font-family: var(--wm-mono); font-size: 11px; color: var(--wm-ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+.wm-tb-body.show-details tr.details td.dt > span { display: inline-block; margin-right: 10px; }
+.wm-tb-body.show-details tr.details td.dt b { color: var(--wm-ink); font-family: var(--wm-rounded); font-weight: 800; font-size: 10.5px; margin-right: 3px; }
+.wm-tb-table .pos { font-family: var(--wm-mono); font-weight: 800; font-variant-numeric: tabular-nums; width: 22px; }
+.wm-tb-table tr.is-qual .pos { color: var(--wm-accent); }
+.wm-tb-table .tm { padding-right: 6px; }
+.wm-tb-table .tmw { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 14px; }
+.wm-tb-table .tmw .f { font-size: 19px; line-height: 1; }
+.wm-tb-table .tmw .n { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: -.005em; }
+.wm-tb-badge { margin-left: 6px; font-size: 13px; line-height: 1; }
+.wm-tb-badge.qual { color: var(--wm-accent); }
+.wm-tb-badge.elim { color: var(--wm-faint); }
+.wm-tb-table .num { font-family: var(--wm-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.wm-tb-table .num.pts { font-weight: 800; color: var(--wm-ink); font-size: 14.5px; }
+.wm-tb-table tr.is-qual .num.pts { color: var(--wm-accent); }
+.wm-tb-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 4px 0; font-size: 10.5px; color: var(--wm-ink-dim);
+}
+.wm-tb-legend .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--wm-accent); vertical-align: middle; margin-right: 3px; }
+.wm-tb-legend .ring { display: inline-block; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--wm-faint); vertical-align: middle; margin: 0 3px 0 6px; }
+.wm-tb-toggle {
+  font-family: var(--wm-rounded); font-size: 11px; font-weight: 800;
+  color: var(--wm-ink); background: transparent; border: none; cursor: pointer;
+  text-decoration: underline; text-decoration-color: var(--wm-line-soft); text-underline-offset: 3px;
+  padding: 0;
+}

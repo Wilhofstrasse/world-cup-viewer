@@ -85,6 +85,35 @@ export interface WmTopScorers {
   scorers: TopScorer[];
 }
 
+/** One row in a group standings table. Server-derived from FIFA's Standing feed. */
+export interface TabellenRow {
+  /** Single-letter group key ("A" … "L"); null when not derivable. */
+  group: string | null;
+  position: number;
+  team: string;
+  idTeam: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalsDiff: number;
+  points: number;
+  /** "qualified" | "eliminated" | null. */
+  qualification: "qualified" | "eliminated" | null;
+  /** FIFA flag/crest URL template (with {format}/{size}); null when missing. */
+  crestUrlTemplate: string | null;
+}
+
+/** The blob stored in R2 at wm/tabellen.json and served by /api/wm/tabellen. */
+export interface WmTabellen {
+  /** Unix seconds of the last successful ingest write. */
+  updatedAt: number;
+  season: string;
+  rows: TabellenRow[];
+}
+
 // ---------------------------------------------------------------------------
 // API-Football v3 raw shapes (only the fields we read)
 // ---------------------------------------------------------------------------
@@ -196,4 +225,32 @@ export interface FifaTopScorerRow {
 
 export interface FifaTopScorersResponse {
   PlayerStatsList?: FifaTopScorerRow[];
+}
+
+export interface FifaStandingTeam {
+  IdTeam?: string;
+  Name?: FifaLoc[];
+  ShortClubName?: string;
+  PictureUrl?: string | null;
+}
+
+export interface FifaStandingRow {
+  IdGroup?: string;
+  Group?: FifaLoc[] | string;
+  Position?: number;
+  Points?: number;
+  Played?: number;
+  Won?: number;
+  Drawn?: number;
+  Lost?: number;
+  For?: number;
+  Against?: number;
+  GoalsDiference?: number;
+  /** "Qualified" | "Eliminated" | "Undefined" — pass-through string. */
+  QualificationStatus?: string;
+  Team?: FifaStandingTeam;
+}
+
+export interface FifaStandingResponse {
+  Results?: FifaStandingRow[];
 }

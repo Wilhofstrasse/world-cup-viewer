@@ -16,12 +16,13 @@
  */
 
 import type { Env } from "../types.js";
-import type { Match, WmData, WmTopScorers } from "./types.js";
+import type { Match, WmData, WmTopScorers, WmTabellen } from "./types.js";
 import { getProvider } from "./football.js";
-import { loadWmData, loadWmTopScorers, saveWmData, saveWmTopScorers } from "./store.js";
-import { fetchTopScorers, enrichScorerTeams } from "./fifa.js";
+import { loadWmData, loadWmTopScorers, loadWmTabellen, saveWmData, saveWmTopScorers, saveWmTabellen } from "./store.js";
+import { fetchTopScorers, enrichScorerTeams, fetchTabellen } from "./fifa.js";
 
 const TOPSCORERS_MAX_AGE_MS = 30 * 60 * 1000; // refresh every 30 min in-window
+const TABELLEN_MAX_AGE_MS = 30 * 60 * 1000;
 
 // Tournament window (Europe/Zurich offsets). Outside this, ingest no-ops.
 const WM_START_MS = Date.parse("2026-06-11T00:00:00+02:00");
@@ -89,6 +90,25 @@ async function refreshTopScorers(env: Env, matches: Match[], nowMs: number): Pro
   }
 }
 
+/**
+ * Refreshes the group-standings blob from FIFA (keyless, single request) — its
+ * own freshness clock, same as top scorers. No budget gate.
+ */
+async function refreshTabellen(env: Env, nowMs: number): Promise<void> {
+  if ((env.WM_API_PROVIDER || "fifa") !== "fifa") return;
+  try {
+    const rows = await fetchTabellen(env);
+    const data: WmTabellen = {
+      updatedAt: Math.floor(nowMs / 1000),
+      season: env.WM_SEASON || "2026",
+      rows,
+    };
+    await saveWmTabellen(env, data);
+  } catch {
+    // upstream hiccup — keep last good blob, retry next tick
+  }
+}
+
 export async function runWmIngest(env: Env): Promise<void> {
   if (!env.WM_R2) return; // no store bound → no-op (default FIFA provider is keyless)
   const nowMs = Date.now();
@@ -96,12 +116,17 @@ export async function runWmIngest(env: Env): Promise<void> {
 
   const prev = await loadWmData(env);
 
-  // Top scorers are gated by their OWN freshness, not by the matches budget —
-  // they're one keyless request per tick. This lets the first tick after a deploy
-  // populate scorers even when shouldFetch() says "no need to re-fetch matches".
+  // Top scorers + standings ride their OWN freshness clocks (one keyless
+  // request each, no API-Football budget concern). This lets the first tick
+  // after a deploy populate both even when shouldFetch() declines a matches
+  // refresh.
   const prevTs = await loadWmTopScorers(env);
   const tsStale = !prevTs.scorers.length || (nowMs - prevTs.updatedAt * 1000 > TOPSCORERS_MAX_AGE_MS);
   if (tsStale) await refreshTopScorers(env, prev.matches, nowMs);
+
+  const prevTab = await loadWmTabellen(env);
+  const tabStale = !prevTab.rows.length || (nowMs - prevTab.updatedAt * 1000 > TABELLEN_MAX_AGE_MS);
+  if (tabStale) await refreshTabellen(env, nowMs);
 
   if (!shouldFetch(prev, nowMs)) return;
 
@@ -146,7 +171,9 @@ export async function runWmIngest(env: Env): Promise<void> {
   };
   await saveWmData(env, data);
 
-  // Always re-tick top scorers off the fresh matches so the team-name map is
-  // current (one extra keyless request; cheap on the FIFA path).
+  // After a fresh matches refresh, re-tick top scorers (so the team-name map is
+  // current) and the standings (so a kickoff-pivot is reflected). Cheap: two
+  // keyless requests on the FIFA path.
   await refreshTopScorers(env, fresh, nowMs);
+  await refreshTabellen(env, nowMs);
 }

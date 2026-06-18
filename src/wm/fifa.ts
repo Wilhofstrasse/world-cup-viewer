@@ -25,6 +25,7 @@ import type {
   Side,
   GoalType,
   TopScorer,
+  TabellenRow,
   FifaLoc,
   FifaMatch,
   FifaMatchesResponse,
@@ -32,6 +33,8 @@ import type {
   FifaTimelineResponse,
   FifaTopScorerRow,
   FifaTopScorersResponse,
+  FifaStandingRow,
+  FifaStandingResponse,
 } from "./types.js";
 import type { FootballProvider } from "./football.js"; // type-only → no runtime cycle
 
@@ -315,4 +318,68 @@ export async function fetchRawFifaMatches(env: Env): Promise<FifaMatch[]> {
     `/calendar/matches?idCompetition=${comp(env)}&idSeason=${season(env)}&count=500&language=de-DE`,
   );
   return data.Results || [];
+}
+
+/**
+ * Maps the FIFA Group string ("Gruppe A", FIFA uses an NBSP) to a single letter.
+ * Accepts either the legacy plain-string Group field or a localized array.
+ */
+export function standingGroupLetter(raw: FifaStandingRow): string | null {
+  let g: string;
+  if (typeof raw.Group === "string") g = raw.Group;
+  else if (Array.isArray(raw.Group) && raw.Group[0]) g = raw.Group[0].Description || "";
+  else g = "";
+  return groupLetter(g);
+}
+
+/** Maps QualificationStatus pass-through string to our 3-state shape. */
+export function mapQualificationStatus(s: string | undefined): "qualified" | "eliminated" | null {
+  const t = (s || "").toLowerCase();
+  if (t === "qualified") return "qualified";
+  if (t === "eliminated") return "eliminated";
+  return null;
+}
+
+/** Normalizes one FIFA Standing row → TabellenRow. */
+export function mapFifaStanding(raw: FifaStandingRow): TabellenRow | null {
+  if (!raw.Team || !raw.Team.IdTeam) return null;
+  const team = loc(raw.Team.Name) || raw.Team.ShortClubName || "";
+  if (!team) return null;
+  return {
+    group: standingGroupLetter(raw),
+    position: raw.Position ?? 0,
+    team,
+    idTeam: raw.Team.IdTeam,
+    played: raw.Played ?? 0,
+    won: raw.Won ?? 0,
+    drawn: raw.Drawn ?? 0,
+    lost: raw.Lost ?? 0,
+    goalsFor: raw.For ?? 0,
+    goalsAgainst: raw.Against ?? 0,
+    goalsDiff: raw.GoalsDiference ?? 0,
+    points: raw.Points ?? 0,
+    qualification: mapQualificationStatus(raw.QualificationStatus),
+    crestUrlTemplate: raw.Team.PictureUrl ?? null,
+  };
+}
+
+/**
+ * Group-stage standings for all 12 groups. Sorted server-side by group letter
+ * (A → L), then Position ascending so the client can render straight through.
+ */
+export async function fetchTabellen(env: Env): Promise<TabellenRow[]> {
+  const data = await fifaGet<FifaStandingResponse>(
+    `/calendar/${comp(env)}/${season(env)}/289273/Standing?language=de-DE`,
+  );
+  const out: TabellenRow[] = [];
+  for (const r of data.Results || []) {
+    const row = mapFifaStanding(r);
+    if (row) out.push(row);
+  }
+  out.sort((a, b) => {
+    const ga = a.group || "ZZ";
+    const gb = b.group || "ZZ";
+    return ga === gb ? a.position - b.position : ga.localeCompare(gb);
+  });
+  return out;
 }

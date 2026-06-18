@@ -20,6 +20,9 @@ import {
   mapFifaTopScorer,
   enrichScorerTeams,
   teamNameMap,
+  mapQualificationStatus,
+  standingGroupLetter,
+  mapFifaStanding,
 } from "../wm/fifa.js";
 import { getProvider } from "../wm/football.js";
 import type { FifaMatch, FifaTimelineEvent } from "../wm/types.js";
@@ -220,6 +223,74 @@ describe("enrichScorerTeams", () => {
       new Map(),
     );
     expect(out[0]?.team).toBe("");
+  });
+});
+
+describe("mapQualificationStatus", () => {
+  it("maps the three FIFA pass-through values", () => {
+    expect(mapQualificationStatus("Qualified")).toBe("qualified");
+    expect(mapQualificationStatus("Eliminated")).toBe("eliminated");
+    expect(mapQualificationStatus("Undefined")).toBeNull();
+    expect(mapQualificationStatus(undefined)).toBeNull();
+  });
+});
+
+describe("standingGroupLetter", () => {
+  it("extracts the letter from a plain Group string with FIFA's NBSP", () => {
+    expect(standingGroupLetter({ Group: "Gruppe A" })).toBe("A");
+  });
+  it("falls back to the localized array when Group is FifaLoc[]", () => {
+    expect(standingGroupLetter({ Group: [{ Description: "Gruppe E" }] })).toBe("E");
+  });
+  it("returns null when there is no group info", () => {
+    expect(standingGroupLetter({})).toBeNull();
+  });
+});
+
+describe("mapFifaStanding", () => {
+  it("normalizes a complete row", () => {
+    const r = mapFifaStanding({
+      IdGroup: "289273-A",
+      Group: "Gruppe A",
+      Position: 1,
+      Points: 7,
+      Played: 3,
+      Won: 2, Drawn: 1, Lost: 0,
+      For: 5, Against: 1, GoalsDiference: 4,
+      QualificationStatus: "Qualified",
+      Team: {
+        IdTeam: "43922",
+        Name: [{ Description: "Argentinien" }],
+        ShortClubName: "Argentina",
+        PictureUrl: "https://api.fifa.com/api/v3/picture/flags-{format}-{size}/ARG",
+      },
+    });
+    expect(r).toEqual({
+      group: "A",
+      position: 1,
+      team: "Argentinien",
+      idTeam: "43922",
+      played: 3,
+      won: 2, drawn: 1, lost: 0,
+      goalsFor: 5, goalsAgainst: 1, goalsDiff: 4,
+      points: 7,
+      qualification: "qualified",
+      crestUrlTemplate: "https://api.fifa.com/api/v3/picture/flags-{format}-{size}/ARG",
+    });
+  });
+
+  it("falls back to ShortClubName when localized Name is empty", () => {
+    const r = mapFifaStanding({
+      Position: 2, Points: 5, Played: 3, Won: 1, Drawn: 2, Lost: 0,
+      For: 3, Against: 1, GoalsDiference: 2,
+      Team: { IdTeam: "x", ShortClubName: "Czechia" },
+    });
+    expect(r?.team).toBe("Czechia");
+  });
+
+  it("returns null when neither Name nor ShortClubName are present", () => {
+    const r = mapFifaStanding({ Position: 1, Team: { IdTeam: "x" } });
+    expect(r).toBeNull();
   });
 });
 
