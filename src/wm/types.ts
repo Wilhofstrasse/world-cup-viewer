@@ -47,6 +47,10 @@ export interface Match {
   clipUrn?: string;
   /** FIFA timeline stage id — server-side enrichment for the goals fetch. */
   stageId?: string;
+  /** Display round ("Vorrunde", "Achtelfinale", …) — drives the Spiele grouping. */
+  round?: string;
+  /** Group letter ("A"…"L") for Vorrunde matches; null otherwise. */
+  group?: string | null;
 }
 
 /** The blob stored in R2 at wm/matches.json and served by /api/wm/matches. */

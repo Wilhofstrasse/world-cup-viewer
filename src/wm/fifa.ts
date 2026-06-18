@@ -39,6 +39,29 @@ import { teamsMatch } from "../../web/wm/parse.js";
 const FIFA_BASE = "https://api.fifa.com/api/v3";
 const GOAL_TYPES = new Set<number>([0, 41, 34]); // open-play, penalty, own-goal
 
+// FIFA de-DE StageName → our display round label (drives ordering + the
+// Vorrunde / K.-o.-Runde split on the client). 48-team format: Round of 32.
+const STAGE_TO_ROUND: Record<string, string> = {
+  "Erste Phase": "Vorrunde",
+  Sechzehntelfinale: "Sechzehntelfinale",
+  Achtelfinale: "Achtelfinale",
+  Viertelfinale: "Viertelfinale",
+  Halbfinale: "Halbfinale",
+  "Spiel um Platz drei": "Spiel um Platz 3",
+  Finale: "Final",
+};
+
+/** "Gruppe E" → "E" (FIFA uses a non-breaking space); blank → null. */
+export function groupLetter(groupName: string): string | null {
+  const g = (groupName || "").replace(/ /g, " ").replace(/^Gruppe\s*/i, "").trim();
+  return g || null;
+}
+
+/** FIFA StageName → display round ("Erste Phase" → "Vorrunde"); unknown passes through. */
+export function roundLabel(stageName: string): string {
+  return STAGE_TO_ROUND[stageName] || stageName || "";
+}
+
 // ---------------------------------------------------------------------------
 // Pure mappers (unit-tested)
 // ---------------------------------------------------------------------------
@@ -140,6 +163,8 @@ export function mapFifaMatchToMatch(raw: FifaMatch): Match | null {
     minute: status === "live" ? parseMatchMinute(raw.MatchTime).minute : null,
     goals: [],
     stageId: String(raw.IdStage),
+    round: roundLabel(loc(raw.StageName)),
+    group: groupLetter(loc(raw.GroupName)),
   };
 }
 

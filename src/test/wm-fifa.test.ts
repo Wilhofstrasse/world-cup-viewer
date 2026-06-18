@@ -15,6 +15,8 @@ import {
   mapFifaGoalType,
   mapFifaMatchToMatch,
   mapTimelineToGoals,
+  groupLetter,
+  roundLabel,
 } from "../wm/fifa.js";
 import { getProvider } from "../wm/football.js";
 import type { FifaMatch, FifaTimelineEvent } from "../wm/types.js";
@@ -82,6 +84,8 @@ describe("mapFifaMatchToMatch", () => {
     expect(m.scoreA).toBe(3);
     expect(m.scoreB).toBe(0);
     expect(m.stageId).toBeTruthy();
+    expect(m.round).toBe("Vorrunde");
+    expect(m.group).toBe("J");
   });
 
   it("hides score for a scheduled match", () => {
@@ -124,6 +128,19 @@ describe("mapTimelineToGoals", () => {
     expect(own[0]!.type).toBe("own");
     expect(own[0]!.scorer).toBe("Aguerd");
     expect(own[0]!.team).toBe("A"); // Algerien player → counts for Argentinien (A)
+  });
+});
+
+describe("groupLetter / roundLabel", () => {
+  it("extracts the group letter (FIFA uses a non-breaking space)", () => {
+    expect(groupLetter("Gruppe E")).toBe("E");
+    expect(groupLetter("Gruppe A")).toBe("A");
+    expect(groupLetter("")).toBeNull();
+  });
+  it("maps FIFA stage names to display rounds", () => {
+    expect(roundLabel("Erste Phase")).toBe("Vorrunde");
+    expect(roundLabel("Achtelfinale")).toBe("Achtelfinale");
+    expect(roundLabel("Finale")).toBe("Final");
   });
 });
 
