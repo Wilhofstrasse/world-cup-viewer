@@ -19,6 +19,7 @@ const KIND_LABEL = { match: "Spielzusammenfassung", summary: "Zusammenfassung", 
 
 let clips = [];
 let hlsLoading = null;
+let clipsLoading = false; // true while fetchClips paginates → drawer shows a "loading more" hint
 
 /** Format seconds as "M:SS". */
 function fmtDuration(sec) {
@@ -297,7 +298,8 @@ function renderDrawerList(q) {
     .filter(({ c }) => !ql || clipSearchText(c).includes(ql));
 
   if (!items.length) {
-    list.innerHTML = `<p class="wm-drawer-empty">${ql ? "Kein Spiel gefunden." : "Noch keine Spiele."}</p>`;
+    const msg = ql ? "Kein Spiel gefunden." : clipsLoading ? "Spiele werden geladen…" : "Noch keine Spiele.";
+    list.innerHTML = `<p class="wm-drawer-empty">${msg}</p>`;
     return;
   }
 
@@ -311,12 +313,13 @@ function renderDrawerList(q) {
     return arr.length ? `<div class="wm-drawer-group">${label}</div>` + arr.map(itemMarkup).join("") : "";
   }
 
+  const loadingHint = clipsLoading && !ql ? `<p class="wm-drawer-loading">Weitere Spiele werden geladen…</p>` : "";
   if (ql) {
     list.innerHTML = items.map(itemMarkup).join("");
   } else {
     const today = items.filter(({ c }) => isToday(c.dateISO));
     const older = items.filter(({ c }) => !isToday(c.dateISO));
-    list.innerHTML = section("Heute", today) + section("Früher", older);
+    list.innerHTML = section("Heute", today) + section("Früher", older) + loadingHint;
   }
 
   list.querySelectorAll(".wm-drawer-item").forEach((b) =>
@@ -382,15 +385,25 @@ export async function initFeed() {
     }
   } catch (_e) {/* ignore */}
 
+  clipsLoading = true;
   try {
-    const fresh = await fetchClips(); // paginates through all match days
+    const fresh = await fetchClips({
+      // Paint each page as it arrives so the feed + drawer fill progressively
+      // (don't disrupt a clip the user already started playing).
+      onPage: (partial) => {
+        clips = partial.map(decorate);
+        if (!document.querySelector(".wm-slide.playing")) render();
+      },
+    });
     clips = fresh.map(decorate);
     localStorage.setItem(CACHE_KEY, JSON.stringify(fresh));
-    render();
   } catch (e) {
     if (!clips.length) {
       document.getElementById("wmFeed").innerHTML =
         `<section class="wm-slide wm-empty"><p>Keine Verbindung.<br>Highlights konnten nicht geladen werden.</p></section>`;
     }
+  } finally {
+    clipsLoading = false;
+    if (clips.length && !document.querySelector(".wm-slide.playing")) render(); // drop the loading hint
   }
 }

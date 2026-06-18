@@ -104,6 +104,12 @@ export async function fetchClips(opts = {}) {
     }
     const data = await res.json();
     all.push(...clipsFromEpisodeComposition(data));
+    // Emit the accumulated list after each page so the UI can fill progressively
+    // (the feed paginates over 2–3 pages; without this the list looks "stuck"
+    // on the smaller cached set until the last page lands).
+    if (typeof opts.onPage === "function") {
+      try { opts.onPage(all.slice()); } catch (_e) {/* non-fatal */}
+    }
     url = data.next || null; // IL returns a full, CORS-open next URL
   }
   return all;

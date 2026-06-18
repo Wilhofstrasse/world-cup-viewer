@@ -161,6 +161,7 @@ html, body {
 .wm-drawer-item .t { font-weight: 700; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wm-drawer-item .d { font-family: var(--wm-mono); font-size: 11px; color: var(--wm-ink-dim); flex: none; }
 .wm-drawer-empty { padding: 16px 18px; color: var(--wm-ink-dim); font-size: 14px; }
+.wm-drawer-loading { padding: 12px 18px; color: var(--wm-ink-dim); font-size: 13px; font-style: italic; }
 .wm-drawer-foot {
   display: block; margin: 12px 18px 0; padding: 14px 4px 2px;
   border-top: 1.5px dashed var(--wm-line-soft);
