@@ -1,0 +1,84 @@
+<!-- @dsCard group="Hi-Fi — Screens" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Torjägerliste — Hi-Fi</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--faint:#b3aea3;--soft:#d8d2c6;--accent:#e6492f;--accent-soft:#fbe3dd;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace;--card-shadow:0 1px 0 var(--soft), 0 6px 14px rgba(28,28,28,.04);--gold:#d4a017}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;padding:18px 0}
+.frame{max-width:380px;margin:0 auto 30px;padding:0}
+.cap{font-size:11px;font-weight:800;color:var(--dim);margin:0 22px 6px;letter-spacing:.08em;text-transform:uppercase}
+.bar{display:flex;align-items:center;gap:6px;padding:11px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink);margin-bottom:14px}
+.back{width:36px;height:36px;border:none;background:transparent;color:var(--ink);font-size:24px;line-height:1;border-radius:10px}
+.title{font-size:17px;font-weight:800}
+.scope{display:flex;justify-content:center;margin:4px 0 16px}
+.scope-pill{display:inline-flex;background:var(--surface);border:2px solid var(--ink);border-radius:999px;padding:3px;box-shadow:0 1px 0 var(--soft)}
+.scope-tab{font-size:12px;font-weight:700;color:var(--ink);padding:5px 14px;border-radius:999px;transition:all .15s ease}
+.scope-tab.on{background:var(--accent);color:#fff}
+.list{padding:0 14px}
+.row{display:grid;grid-template-columns:38px 40px 1fr auto;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--soft);border-radius:14px;padding:11px 14px;margin-bottom:8px;box-shadow:var(--card-shadow);position:relative;overflow:hidden}
+.row.gold{background:linear-gradient(135deg,var(--surface) 0%,var(--surface) 65%,#fef6e0 100%);border-color:var(--gold)}
+.row.silver{background:linear-gradient(135deg,var(--surface) 0%,var(--surface) 70%,#f0f0f0 100%);border-color:#bfbfbf}
+.row.bronze{background:linear-gradient(135deg,var(--surface) 0%,var(--surface) 70%,#f5e6d3 100%);border-color:#c08a4d}
+.rank{font-family:var(--mono);font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;text-align:center;letter-spacing:-.04em}
+.row.gold .rank{color:var(--gold)}
+.row.silver .rank{color:#8a8a8a}
+.row.bronze .rank{color:#a06f3d}
+.tie{font-size:13px;color:var(--dim);margin-right:1px}
+.photo{width:40px;height:40px;border-radius:50%;background:var(--paper);border:1.5px solid var(--soft);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--dim);overflow:hidden}
+.row.gold .photo{border-color:var(--gold);border-width:2px}
+.who{min-width:0}
+.name{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.005em}
+.team{font-size:12px;color:var(--dim);margin-top:2px;display:flex;align-items:center;gap:6px}
+.team .flag{font-size:14px;line-height:1}
+.stat{text-align:right;min-width:64px}
+.goals{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;display:inline-flex;align-items:center;gap:3px}
+.row.gold .goals{color:var(--accent)}
+.goals .ic{font-size:14px}
+.sub-stat{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.empty{padding:32px 22px;text-align:center}
+.empty .icon{font-size:32px;opacity:.4;margin-bottom:10px}
+.empty .t{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.empty .s{font-size:12px;color:var(--dim)}
+.skel{display:grid;grid-template-columns:38px 40px 1fr auto;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--soft);border-radius:14px;padding:11px 14px;margin-bottom:8px;box-shadow:var(--card-shadow)}
+.skel .bar-x{height:14px;background:var(--soft);border-radius:6px;animation:shimmer 1.4s infinite}
+.skel .circ{width:40px;height:40px;background:var(--soft);border-radius:50%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{0%,100%{opacity:.6}50%{opacity:1}}
+.skel .w1{width:60%}.skel .w2{width:40%;height:9px;margin-top:6px}
+</style></head><body>
+
+<div class="cap">Standard — Vorrunde Top-7</div>
+<div class="frame">
+  <div class="bar"><span class="back">‹</span><span class="title">Torjägerliste</span></div>
+  <div class="scope"><div class="scope-pill"><span class="scope-tab on">Vorrunde</span><span class="scope-tab">Gesamt</span></div></div>
+  <div class="list">
+    <div class="row gold"><div class="rank">1</div><div class="photo">M.</div><div class="who"><div class="name">Lionel Messi</div><div class="team"><span class="flag">🇦🇷</span>Argentinien</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>5</div><div class="sub-stat">2 V · 3 Sp</div></div></div>
+    <div class="row silver"><div class="rank">2</div><div class="photo">K.</div><div class="who"><div class="name">Kylian Mbappé</div><div class="team"><span class="flag">🇫🇷</span>Frankreich</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>4</div><div class="sub-stat">1 V · 3 Sp</div></div></div>
+    <div class="row bronze"><div class="rank">3</div><div class="photo">V.</div><div class="who"><div class="name">Vinícius Júnior</div><div class="team"><span class="flag">🇧🇷</span>Brasilien</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>3</div><div class="sub-stat">2 V · 3 Sp</div></div></div>
+    <div class="row"><div class="rank"><span class="tie">=</span>4</div><div class="photo">H.</div><div class="who"><div class="name">Harry Kane</div><div class="team"><span class="flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>England</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>2</div><div class="sub-stat">0 V · 3 Sp</div></div></div>
+    <div class="row"><div class="rank"><span class="tie">=</span>4</div><div class="photo">A.</div><div class="who"><div class="name">Julián Álvarez</div><div class="team"><span class="flag">🇦🇷</span>Argentinien</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>2</div><div class="sub-stat">1 V · 3 Sp</div></div></div>
+    <div class="row"><div class="rank"><span class="tie">=</span>4</div><div class="photo">R.</div><div class="who"><div class="name">Cristiano Ronaldo</div><div class="team"><span class="flag">🇵🇹</span>Portugal</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>2</div><div class="sub-stat">0 V · 2 Sp</div></div></div>
+    <div class="row"><div class="rank">7</div><div class="photo">G.</div><div class="who"><div class="name">Erling Haaland</div><div class="team"><span class="flag">🇳🇴</span>Norwegen</div></div><div class="stat"><div class="goals"><span class="ic">⚽</span>1</div><div class="sub-stat">1 V · 2 Sp</div></div></div>
+  </div>
+</div>
+
+<div class="cap">Ladend</div>
+<div class="frame">
+  <div class="bar"><span class="back">‹</span><span class="title">Torjägerliste</span></div>
+  <div class="scope"><div class="scope-pill"><span class="scope-tab on">Vorrunde</span><span class="scope-tab">Gesamt</span></div></div>
+  <div class="list">
+    <div class="skel"><div class="bar-x" style="width:24px;height:24px;border-radius:6px"></div><div class="circ"></div><div><div class="bar-x w1"></div><div class="bar-x w2"></div></div><div class="bar-x" style="width:46px"></div></div>
+    <div class="skel"><div class="bar-x" style="width:24px;height:24px;border-radius:6px"></div><div class="circ"></div><div><div class="bar-x w1"></div><div class="bar-x w2"></div></div><div class="bar-x" style="width:46px"></div></div>
+    <div class="skel"><div class="bar-x" style="width:24px;height:24px;border-radius:6px"></div><div class="circ"></div><div><div class="bar-x w1"></div><div class="bar-x w2"></div></div><div class="bar-x" style="width:46px"></div></div>
+  </div>
+</div>
+
+<div class="cap">Leer — vor Turnierstart</div>
+<div class="frame">
+  <div class="bar"><span class="back">‹</span><span class="title">Torjägerliste</span></div>
+  <div class="scope"><div class="scope-pill"><span class="scope-tab on">Vorrunde</span><span class="scope-tab">Gesamt</span></div></div>
+  <div class="empty">
+    <div class="icon">⚽</div>
+    <div class="t">Noch keine Tore</div>
+    <div class="s">Spielbeginn am 18.06.2026</div>
+  </div>
+</div>
+</body></html>

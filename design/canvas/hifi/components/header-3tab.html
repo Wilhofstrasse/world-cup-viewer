@@ -1,0 +1,39 @@
+<!-- @dsCard group="Hi-Fi — Components" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Header — Hi-Fi</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--soft:#d8d2c6;--accent:#e6492f;--accent-soft:#fbe3dd;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace;--card-shadow:0 1px 0 var(--soft), 0 6px 14px rgba(28,28,28,.04);--pressed-shadow:inset 0 2px 4px rgba(28,28,28,.12)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);padding:20px 18px;-webkit-font-smoothing:antialiased}
+.cap{font-size:11px;font-weight:700;color:var(--dim);margin:0 4px 8px;letter-spacing:.04em}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink);margin-bottom:22px;border-radius:14px 14px 0 0;box-shadow:var(--card-shadow)}
+.brand{display:inline-flex;align-items:center;gap:9px;min-width:0}
+.menu,.back{width:36px;height:36px;border:none;background:transparent;color:var(--ink);font-size:21px;line-height:1;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;transition:background .12s ease}
+.menu:hover,.back:hover{background:var(--accent-soft)}
+.back{font-size:24px}
+.name{font-size:19px;font-weight:800;letter-spacing:-.012em}
+.subtitle{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.ver{font-family:var(--mono);font-size:9.5px;color:var(--dim);background:var(--surface);border:1px solid var(--soft);border-radius:6px;padding:2px 5px}
+.tabs{display:inline-flex;background:var(--surface);border:2.5px solid var(--ink);border-radius:999px;padding:3px;box-shadow:0 1px 0 var(--soft)}
+.tab{font-family:var(--round);font-size:13px;font-weight:700;border:none;background:transparent;color:var(--ink);padding:6px 13px;border-radius:999px;transition:background .15s ease,color .15s ease}
+.tab.on{background:var(--accent);color:#fff;box-shadow:0 1px 0 rgba(28,28,28,.15)}
+.tab.pressed{box-shadow:var(--pressed-shadow);background:var(--accent-soft);color:var(--accent)}
+.spacer{width:36px}
+</style></head><body>
+<div class="cap">Hauptansicht — Highlights aktiv (Standard)</div>
+<div class="bar"><div class="brand"><button class="menu">☰</button><span class="name">WM 2026</span><span class="ver">v1.4.0</span></div><div class="tabs"><span class="tab on">Highlights</span><span class="tab">Spiele</span><span class="tab">Mehr</span></div></div>
+
+<div class="cap">Hauptansicht — Spiele aktiv</div>
+<div class="bar"><div class="brand"><button class="menu">☰</button><span class="name">WM 2026</span><span class="ver">v1.4.0</span></div><div class="tabs"><span class="tab">Highlights</span><span class="tab on">Spiele</span><span class="tab">Mehr</span></div></div>
+
+<div class="cap">Hauptansicht — Mehr aktiv</div>
+<div class="bar"><div class="brand"><button class="menu">☰</button><span class="name">WM 2026</span><span class="ver">v1.4.0</span></div><div class="tabs"><span class="tab">Highlights</span><span class="tab">Spiele</span><span class="tab on">Mehr</span></div></div>
+
+<div class="cap">Hauptansicht — Tab gedrückt (Interaktionszustand)</div>
+<div class="bar"><div class="brand"><button class="menu">☰</button><span class="name">WM 2026</span><span class="ver">v1.4.0</span></div><div class="tabs"><span class="tab">Highlights</span><span class="tab pressed">Spiele</span><span class="tab">Mehr</span></div></div>
+
+<div class="cap">Unteransicht — Zurück + Titel</div>
+<div class="bar"><div class="brand"><button class="back">‹</button><span class="subtitle">Torjägerliste</span></div><div class="spacer"></div></div>
+
+<div class="cap">Unteransicht — Spielerkarten (nur Zurück, Hero trägt Name)</div>
+<div class="bar"><div class="brand"><button class="back">‹</button></div><div class="spacer"></div></div>
+</body></html>

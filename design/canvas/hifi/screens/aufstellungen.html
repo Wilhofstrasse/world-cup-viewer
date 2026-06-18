@@ -1,0 +1,104 @@
+<!-- @dsCard group="Hi-Fi — Screens" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aufstellungen — Hi-Fi</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--faint:#b3aea3;--soft:#d8d2c6;--accent:#e6492f;--accent-soft:#fbe3dd;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace;--yellow:#e6a800;--pitch-line:rgba(28,28,28,.15);--card-shadow:0 1px 0 var(--soft), 0 6px 14px rgba(28,28,28,.04)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.frame{max-width:380px;margin:0 auto;padding:0 0 28px}
+.bar{display:flex;align-items:center;gap:6px;padding:11px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink);margin-bottom:14px}
+.back{width:36px;height:36px;border:none;background:transparent;color:var(--ink);font-size:24px;line-height:1;border-radius:10px}
+.title{font-size:17px;font-weight:800}
+.match{margin:0 14px 14px;background:var(--surface);border:1.5px solid var(--soft);border-radius:14px;padding:11px 14px;box-shadow:var(--card-shadow)}
+.match .row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:700;font-size:15px}
+.match .team{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.match .team.end{justify-content:flex-end;text-align:right}
+.match .team .f{font-size:22px;line-height:1}
+.match .score{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:800;font-size:19px}
+.match .when{text-align:center;margin-top:7px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.02em}
+.side{display:flex;justify-content:center;margin:0 0 14px}
+.side-pill{display:inline-flex;background:var(--surface);border:2px solid var(--ink);border-radius:999px;padding:3px;box-shadow:0 1px 0 var(--soft)}
+.side-tab{font-size:12px;font-weight:700;padding:6px 16px;border-radius:999px;transition:all .15s ease}
+.side-tab.on{background:var(--accent);color:#fff}
+.pitch-wrap{margin:0 14px 14px;background:linear-gradient(180deg,#f8f5ee 0%,var(--surface) 100%);border:1.5px solid var(--soft);border-radius:16px;padding:12px;overflow:hidden;box-shadow:var(--card-shadow)}
+.tactics{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--dim);padding:0 4px 8px}
+.tactics b{color:var(--ink);font-weight:800;font-family:var(--round);font-size:13px}
+svg{display:block;width:100%;height:auto}
+.role{font-size:9px;letter-spacing:.1em;text-transform:uppercase;fill:var(--dim);font-weight:800;opacity:.55}
+.shirt{font-family:"SF Pro Rounded",ui-rounded,system-ui,sans-serif;font-size:11px;font-weight:800;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.sname{font-family:"SF Pro Rounded",ui-rounded,system-ui,sans-serif;font-size:10px;font-weight:700;fill:var(--ink);text-anchor:middle}
+.book-y{fill:var(--yellow)}
+.bench{margin:0 14px}
+.bench h4{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 4px 8px;display:flex;align-items:center;gap:8px}
+.bench h4::after{content:"";flex:1;height:1px;background:linear-gradient(to right,var(--soft),transparent)}
+.bench-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;background:var(--surface);border:1.5px solid var(--soft);border-radius:13px;padding:10px 12px;box-shadow:var(--card-shadow)}
+.b-row{display:flex;align-items:center;gap:9px;font-size:12.5px;padding:4px 0}
+.b-row .n{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:800;color:var(--accent);width:22px;text-align:right;font-size:13px}
+.b-row .nm{flex:1;min-width:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.b-row .ps{font-size:10px;color:var(--dim);font-family:var(--mono);text-transform:uppercase;font-weight:700;letter-spacing:.04em}
+.legend{padding:10px 18px 0;font-size:10.5px;color:var(--dim);display:flex;gap:14px}
+.legend .sw{display:inline-block;width:10px;height:7px;border-radius:1.5px;vertical-align:middle;margin-right:4px}
+.legend .sw.y{background:var(--yellow)}
+</style></head><body>
+<div class="frame">
+  <div class="bar"><span class="back">‹</span><span class="title">Aufstellungen</span></div>
+
+  <div class="match">
+    <div class="row">
+      <span class="team"><span class="f">🇦🇷</span>Argentinien</span><span class="score">2 – 1</span><span class="team end"><span class="f">🇧🇷</span>Brasilien</span>
+    </div>
+    <div class="when">Mi. 08.07., 21:00 · Halbfinale</div>
+  </div>
+
+  <div class="side"><div class="side-pill"><span class="side-tab on">Heim</span><span class="side-tab">Auswärts</span></div></div>
+
+  <div class="pitch-wrap">
+    <div class="tactics"><span>Argentinien — <b>4-3-3</b></span><span>Trainer: Scaloni</span></div>
+    <svg viewBox="0 0 340 470" aria-label="Spielfeld 4-3-3">
+      <defs>
+        <linearGradient id="pitch" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fbf8f1"/>
+          <stop offset="1" stop-color="#f0ece2"/>
+        </linearGradient>
+      </defs>
+      <rect x="4" y="4" width="332" height="462" rx="12" fill="url(#pitch)" stroke="var(--pitch-line)" stroke-width="1.5"/>
+      <line x1="4" y1="235" x2="336" y2="235" stroke="var(--pitch-line)" stroke-width="1"/>
+      <circle cx="170" cy="235" r="40" fill="none" stroke="var(--pitch-line)" stroke-width="1"/>
+      <circle cx="170" cy="235" r="2" fill="var(--pitch-line)"/>
+      <rect x="80" y="4" width="180" height="60" fill="none" stroke="var(--pitch-line)" stroke-width="1"/>
+      <rect x="80" y="406" width="180" height="60" fill="none" stroke="var(--pitch-line)" stroke-width="1"/>
+      <rect x="118" y="4" width="104" height="22" fill="none" stroke="var(--pitch-line)" stroke-width="1"/>
+      <rect x="118" y="444" width="104" height="22" fill="none" stroke="var(--pitch-line)" stroke-width="1"/>
+
+      <g><circle cx="80" cy="80" r="19" fill="#fff" stroke="#1c1c1c" stroke-width="1.5"/><text x="80" y="80" class="shirt">22</text><text x="80" y="113" class="sname">Álvarez</text></g>
+      <g><circle cx="170" cy="80" r="19" fill="#fff" stroke="#1c1c1c" stroke-width="2"/><text x="170" y="80" class="shirt">10</text><text x="170" y="113" class="sname">Messi</text></g>
+      <g><circle cx="260" cy="80" r="19" fill="#fff" stroke="#1c1c1c" stroke-width="1.5"/><text x="260" y="80" class="shirt">11</text><text x="260" y="113" class="sname">Di María</text>
+        <rect x="271" y="63" width="7" height="9" class="book-y" rx="1"/>
+      </g>
+
+      <g><circle cx="80" cy="195" r="19" fill="#fff" stroke="#1c1c1c" stroke-width="1.5"/><text x="80" y="195" class="shirt">7</text><text x="80" y="228" class="sname">de Paul</text></g>
+      <g><circle cx="170" cy="195" r="19" fill="#fff" stroke="#1c1c1c" stroke-width="1.5"/><text x="170" y="195" class="shirt">5</text><text x="170" y="228" class="sname">Paredes</text></g>
+      <g><circle cx="260" cy="195" r="19" fill="#fff" stroke="#1c1c1c" stroke-width="1.5"/><text x="260" y="195" class="shirt">20</text><text x="260" y="228" class="sname">Mac Allister</text></g>
+
+      <g><circle cx="55" cy="335" r="19" fill="#fff" stroke="#1c1c1c" stroke-width="1.5"/><text x="55" y="335" class="shirt">3</text><text x="55" y="368" class="sname">Tagliafico</text></g>
+      <g><circle cx="135" cy="335" r="19" fill="#fff" stroke="#1c1c1c" stroke-width="1.5"/><text x="135" y="335" class="shirt">25</text><text x="135" y="368" class="sname">Otamendi</text></g>
+      <g><circle cx="215" cy="335" r="19" fill="#fff" stroke="#1c1c1c" stroke-width="1.5"/><text x="215" y="335" class="shirt">13</text><text x="215" y="368" class="sname">Romero</text></g>
+      <g><circle cx="295" cy="335" r="19" fill="#fff" stroke="#1c1c1c" stroke-width="1.5"/><text x="295" y="335" class="shirt">26</text><text x="295" y="368" class="sname">Molina</text></g>
+
+      <g><circle cx="170" cy="430" r="19" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/><text x="170" y="430" class="shirt">1</text><text x="170" y="463" class="sname">E. Martínez</text></g>
+    </svg>
+    <div class="legend"><span><span class="sw y"></span>Gelbe Karte</span><span>⇅ Auswechslung</span><span>4-3-3</span></div>
+  </div>
+
+  <div class="bench">
+    <h4>Ersatzbank</h4>
+    <div class="bench-grid">
+      <div class="b-row"><span class="n">12</span><span class="nm">Rulli</span><span class="ps">TW</span></div>
+      <div class="b-row"><span class="n">8</span><span class="nm">Lo Celso</span><span class="ps">MF</span></div>
+      <div class="b-row"><span class="n">9</span><span class="nm">L. Martínez</span><span class="ps">ST</span></div>
+      <div class="b-row"><span class="n">16</span><span class="nm">Acuña</span><span class="ps">AV</span></div>
+      <div class="b-row"><span class="n">17</span><span class="nm">Garnacho</span><span class="ps">ST</span></div>
+      <div class="b-row"><span class="n">19</span><span class="nm">Lisandro</span><span class="ps">IV</span></div>
+    </div>
+  </div>
+</div>
+</body></html>

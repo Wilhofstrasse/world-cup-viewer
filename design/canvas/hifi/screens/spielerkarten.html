@@ -1,0 +1,68 @@
+<!-- @dsCard group="Hi-Fi — Screens" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spielerkarten — Hi-Fi</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--faint:#b3aea3;--soft:#d8d2c6;--accent:#e6492f;--accent-soft:#fbe3dd;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace;--card-shadow:0 1px 0 var(--soft), 0 6px 14px rgba(28,28,28,.04)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.frame{max-width:380px;margin:0 auto;padding:0 0 28px}
+.bar{display:flex;align-items:center;padding:11px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink)}
+.back{width:36px;height:36px;border:none;background:transparent;color:var(--ink);font-size:24px;line-height:1;border-radius:10px}
+.hero{padding:22px 18px 18px;text-align:center;background:linear-gradient(180deg,var(--paper) 0%,var(--surface) 100%);border-bottom:1px solid var(--soft);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,var(--accent-soft) 0%,transparent 70%);opacity:.5}
+.photo{width:104px;height:104px;border-radius:50%;background:var(--surface);border:3px solid var(--ink);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:var(--dim);position:relative;z-index:1;box-shadow:0 4px 0 var(--soft),0 8px 16px rgba(28,28,28,.08)}
+.name{font-size:24px;font-weight:800;line-height:1.1;position:relative;z-index:1;letter-spacing:-.015em}
+.nat{font-size:13px;color:var(--dim);margin-top:4px;display:inline-flex;align-items:center;gap:6px;position:relative;z-index:1}
+.nat .f{font-size:16px}
+.shirt-pos{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:800;margin-top:8px;letter-spacing:.1em;text-transform:uppercase;background:var(--accent-soft);display:inline-block;padding:4px 10px;border-radius:999px;position:relative;z-index:1}
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:18px 14px 16px}
+.cell{background:var(--surface);border:1.5px solid var(--soft);border-radius:14px;padding:12px 6px;text-align:center;box-shadow:var(--card-shadow)}
+.cell .lbl{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.cell .val{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:6px;letter-spacing:-.02em}
+.cell .sub{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px;letter-spacing:.02em}
+.kv{padding:0 18px}
+.kv .row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--soft);font-size:14px}
+.kv .row:last-child{border-bottom:none}
+.kv .k{color:var(--dim);font-size:12px;font-weight:700;letter-spacing:.02em}
+.kv .v{font-weight:700}
+.chip{display:inline-block;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:800;padding:4px 12px;border-radius:999px;letter-spacing:.02em}
+.section-lbl{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:22px 22px 10px;display:flex;align-items:center;gap:8px}
+.section-lbl::after{content:"";flex:1;height:1px;background:linear-gradient(to right,var(--soft),transparent)}
+.wm-stats{margin:0 14px;background:linear-gradient(135deg,var(--surface) 0%,var(--accent-soft) 100%);border:1.5px solid var(--accent);border-radius:14px;padding:14px 16px;box-shadow:var(--card-shadow)}
+.wm-stats .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.wm-stats .g{text-align:center}
+.wm-stats .g .v{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink);letter-spacing:-.02em}
+.wm-stats .g .l{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:3px;font-weight:800}
+</style></head><body>
+<div class="frame">
+  <div class="bar"><span class="back">‹</span></div>
+
+  <div class="hero">
+    <div class="photo">M.</div>
+    <div class="name">Lionel Messi</div>
+    <div class="nat"><span class="f">🇦🇷</span>Argentinien</div>
+    <div class="shirt-pos">#10 · Mittelstürmer</div>
+  </div>
+
+  <div class="strip">
+    <div class="cell"><div class="lbl">Grösse</div><div class="val">170</div><div class="sub">cm</div></div>
+    <div class="cell"><div class="lbl">Alter</div><div class="val">38</div><div class="sub">24.06.1987</div></div>
+    <div class="cell"><div class="lbl">Caps</div><div class="val">191</div></div>
+    <div class="cell"><div class="lbl">Tore</div><div class="val">112</div></div>
+  </div>
+
+  <div class="kv">
+    <div class="row"><span class="k">Geburtsort</span><span class="v">Rosario, Argentinien</span></div>
+    <div class="row"><span class="k">Starker Fuss</span><span class="v"><span class="chip">Links</span></span></div>
+  </div>
+
+  <div class="section-lbl">WM 2026 — Bilanz</div>
+  <div class="wm-stats">
+    <div class="grid">
+      <div class="g"><div class="v">5</div><div class="l">Tore</div></div>
+      <div class="g"><div class="v">2</div><div class="l">Vorlagen</div></div>
+      <div class="g"><div class="v">3</div><div class="l">Spiele</div></div>
+      <div class="g"><div class="v">270'</div><div class="l">Minuten</div></div>
+    </div>
+  </div>
+</div>
+</body></html>

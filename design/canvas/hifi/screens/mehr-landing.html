@@ -1,0 +1,50 @@
+<!-- @dsCard group="Hi-Fi — Screens" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mehr — Hi-Fi</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--faint:#b3aea3;--soft:#d8d2c6;--accent:#e6492f;--accent-soft:#fbe3dd;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace;--card-shadow:0 1px 0 var(--soft), 0 6px 14px rgba(28,28,28,.04)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.frame{max-width:380px;margin:0 auto;padding:0 0 28px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink);margin-bottom:18px}
+.brand{display:inline-flex;align-items:center;gap:9px}
+.menu{width:36px;height:36px;border:none;background:transparent;color:var(--ink);font-size:21px;line-height:1;display:inline-flex;align-items:center;justify-content:center;border-radius:10px}
+.name{font-size:19px;font-weight:800;letter-spacing:-.012em}
+.ver{font-family:var(--mono);font-size:9.5px;color:var(--dim);background:var(--surface);border:1px solid var(--soft);border-radius:6px;padding:2px 5px}
+.tabs{display:inline-flex;background:var(--surface);border:2.5px solid var(--ink);border-radius:999px;padding:3px}
+.tab{font-size:13px;font-weight:700;color:var(--ink);padding:6px 13px;border-radius:999px}
+.tab.on{background:var(--accent);color:#fff}
+.sec{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:14px 22px 10px;display:flex;align-items:center;gap:8px}
+.sec::after{content:"";flex:1;height:1px;background:linear-gradient(to right,var(--soft),transparent)}
+.list{padding:0 14px}
+.item{display:flex;align-items:center;gap:14px;background:var(--surface);border:1.5px solid var(--soft);border-radius:15px;padding:14px 15px;margin-bottom:10px;box-shadow:var(--card-shadow);position:relative;overflow:hidden}
+.item:first-of-type{background:linear-gradient(135deg,var(--surface) 0%,var(--surface) 70%,var(--accent-soft) 100%)}
+.ico{width:42px;height:42px;border-radius:12px;background:var(--paper);border:1.5px solid var(--soft);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+.item:first-of-type .ico{background:var(--accent);color:#fff;border-color:var(--accent)}
+.txt{flex:1;min-width:0}
+.t{font-size:17px;font-weight:800;line-height:1.15;letter-spacing:-.01em}
+.s{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.3}
+.chev{color:var(--dim);font-size:18px;flex:none;font-weight:700}
+.item:first-of-type .chev{color:var(--accent)}
+</style></head><body>
+<div class="frame">
+  <div class="bar"><div class="brand"><span class="menu">☰</span><span class="name">WM 2026</span><span class="ver">v1.4.0</span></div><div class="tabs"><span class="tab">Highlights</span><span class="tab">Spiele</span><span class="tab on">Mehr</span></div></div>
+
+  <div class="sec">Statistiken</div>
+  <div class="list">
+    <div class="item"><div class="ico">⚽</div><div class="txt"><div class="t">Torjägerliste</div><div class="s">Goldener Schuh · Tore, Vorlagen, Spiele</div></div><div class="chev">▸</div></div>
+    <div class="item"><div class="ico">📊</div><div class="txt"><div class="t">Tabellen</div><div class="s">Offizielle Gruppen mit Qualifikationsstatus</div></div><div class="chev">▸</div></div>
+  </div>
+
+  <div class="sec">Spielplan</div>
+  <div class="list">
+    <div class="item"><div class="ico">🏆</div><div class="txt"><div class="t">K.-o.-Baum</div><div class="s">Viertelfinal bis Finale · der Weg zum Pokal</div></div><div class="chev">▸</div></div>
+    <div class="item"><div class="ico">🎽</div><div class="txt"><div class="t">Aufstellungen</div><div class="s">Formationen, Startelf, Auswechslungen</div></div><div class="chev">▸</div></div>
+  </div>
+
+  <div class="sec">Spieler &amp; Mannschaften</div>
+  <div class="list">
+    <div class="item"><div class="ico">👤</div><div class="txt"><div class="t">Spielerkarten</div><div class="s">Geburtstag, Grösse, Länderspiele, Tore</div></div><div class="chev">▸</div></div>
+    <div class="item"><div class="ico">👥</div><div class="txt"><div class="t">Kader</div><div class="s">Alle 48 Teams · Trikotnummern, Positionen</div></div><div class="chev">▸</div></div>
+  </div>
+</div>
+</body></html>

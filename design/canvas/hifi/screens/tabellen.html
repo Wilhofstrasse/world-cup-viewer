@@ -1,0 +1,77 @@
+<!-- @dsCard group="Hi-Fi — Screens" -->
+<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tabellen — Hi-Fi</title>
+<style>
+:root{--paper:#f4f1ea;--surface:#fff;--ink:#1c1c1c;--dim:#8c8c8c;--faint:#b3aea3;--soft:#d8d2c6;--accent:#e6492f;--accent-soft:#fbe3dd;--round:"SF Pro Rounded",ui-rounded,"Varela Round",-apple-system,system-ui,sans-serif;--mono:ui-monospace,Menlo,monospace;--card-shadow:0 1px 0 var(--soft), 0 6px 14px rgba(28,28,28,.04)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--round);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.frame{max-width:380px;margin:0 auto;padding:0 0 24px}
+.bar{display:flex;align-items:center;gap:6px;padding:11px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink);margin-bottom:14px}
+.back{width:36px;height:36px;border:none;background:transparent;color:var(--ink);font-size:24px;line-height:1;border-radius:10px}
+.title{font-size:17px;font-weight:800}
+.sec{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:6px 22px 10px;display:flex;align-items:center;gap:8px}
+.sec::after{content:"";flex:1;height:1px;background:linear-gradient(to right,var(--soft),transparent)}
+.wrap{padding:0 14px}
+.acc{background:var(--surface);border:2px solid var(--soft);border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:var(--card-shadow);transition:border-color .2s ease}
+.acc.open{border-color:var(--ink)}
+.head{display:flex;align-items:center;justify-content:space-between;font-size:18px;font-weight:800;padding:15px 18px;letter-spacing:-.01em}
+.chev{font-size:14px;color:var(--dim);transition:transform .25s ease;display:inline-block}
+.acc.open .chev{transform:rotate(90deg);color:var(--accent)}
+.body{padding:0 14px 14px}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl thead th{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:left;padding:6px 4px;border-bottom:1.5px solid var(--soft)}
+.tbl thead th.num{text-align:right}
+.tbl tbody tr{transition:background .15s ease}
+.tbl tbody tr.qual{background:linear-gradient(to right,rgba(230,73,47,.04),transparent 60%)}
+.tbl td{padding:11px 4px;border-bottom:1px solid var(--soft);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.pos{font-family:var(--mono);font-weight:800;font-variant-numeric:tabular-nums;width:20px;font-size:14px}
+.qual .pos{color:var(--accent)}
+.tn{display:flex;align-items:center;gap:9px;font-weight:700;font-size:14px}
+.tn .f{font-size:20px;line-height:1}
+.badge{margin-left:6px;font-size:13px;line-height:1}
+.badge.qual{color:var(--accent)}
+.badge.elim{color:var(--faint)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;font-size:13px}
+.num.pts{font-weight:800;color:var(--ink);font-size:14.5px}
+.qual .num.pts{color:var(--accent)}
+.foot{display:flex;justify-content:space-between;align-items:center;padding:10px 4px 2px;font-size:10.5px;color:var(--dim)}
+.foot .det{font-weight:800;color:var(--ink);text-decoration:underline;text-decoration-color:var(--soft);text-underline-offset:3px}
+.tie-note{font-size:10.5px;color:var(--dim);font-style:italic;padding:6px 4px 0}
+.legend-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);vertical-align:middle;margin-right:4px}
+.legend-ring{display:inline-block;width:7px;height:7px;border-radius:50%;border:1.5px solid var(--faint);vertical-align:middle;margin-right:4px}
+</style></head><body>
+<div class="frame">
+  <div class="bar"><span class="back">‹</span><span class="title">Tabellen</span></div>
+  <div class="sec">Vorrunde</div>
+  <div class="wrap">
+    <div class="acc open">
+      <div class="head"><span>Gruppe A</span><span class="chev">▸</span></div>
+      <div class="body">
+        <table class="tbl">
+          <thead><tr><th class="num">#</th><th>Team</th><th class="num">Sp</th><th class="num">Pkt</th></tr></thead>
+          <tbody>
+            <tr class="qual"><td class="pos">1</td><td><span class="tn"><span class="f">🇲🇽</span>Mexiko<span class="badge qual">●</span></span></td><td class="num">3</td><td class="num pts">7</td></tr>
+            <tr class="qual"><td class="pos">2</td><td><span class="tn"><span class="f">🇨🇿</span>Tschechien<span class="badge qual">●</span></span></td><td class="num">3</td><td class="num pts">5</td></tr>
+            <tr><td class="pos">3</td><td><span class="tn"><span class="f">🇿🇦</span>Südafrika<span class="badge elim">○</span></span></td><td class="num">3</td><td class="num pts">3</td></tr>
+            <tr><td class="pos">4</td><td><span class="tn"><span class="f">🇰🇷</span>Südkorea<span class="badge elim">○</span></span></td><td class="num">3</td><td class="num pts">1</td></tr>
+          </tbody>
+        </table>
+        <div class="foot"><span><span class="legend-dot"></span>qualifiziert · <span class="legend-ring"></span>ausgeschieden</span><span class="det">Details ▾</span></div>
+        <div class="tie-note">Tiebreaker: direkter Vergleich (FIFA).</div>
+      </div>
+    </div>
+    <div class="acc">
+      <div class="head"><span>Gruppe B</span><span class="chev">▸</span></div>
+    </div>
+    <div class="acc">
+      <div class="head"><span>Gruppe C</span><span class="chev">▸</span></div>
+    </div>
+    <div class="acc">
+      <div class="head"><span>Gruppe D</span><span class="chev">▸</span></div>
+    </div>
+    <div class="acc">
+      <div class="head"><span>… A–L</span><span class="chev">▸</span></div>
+    </div>
+  </div>
+</div>
+</body></html>
