@@ -13,6 +13,7 @@
 
 import { fetchClips, fetchHls } from "./il.js";
 import { parseMatchTitle, classifyClip, flagFor } from "./parse.js";
+import { findMatchByTeams, setClips, subscribe, prefetchMatches } from "./linkstore.js";
 
 const CACHE_KEY = "wm.clips.v1";
 const KIND_LABEL = { match: "Spielzusammenfassung", summary: "Zusammenfassung", goal: "Szene", feature: "Magazin" };
@@ -54,6 +55,20 @@ function decorate(clip) {
 // Rendering
 // ---------------------------------------------------------------------------
 
+/** Backlink chip — finds the Spiele match for this clip and shows score/status. */
+function infoChipMarkup(clip) {
+  if (!clip.match) return "";
+  const m = findMatchByTeams(clip.match.teamA, clip.match.teamB);
+  if (!m) return "";
+  let badge = "Spielinfo";
+  if (m.status === "finished" && m.scoreA != null && m.scoreB != null) {
+    badge = `${m.scoreA}:${m.scoreB}`;
+  } else if (m.status === "live") {
+    badge = `LIVE ${m.minute ? m.minute + "'" : ""}`.trim();
+  }
+  return `<button class="wm-info-chip" type="button" data-mid="${m.id}">→ Spielinfo <span class="b">${esc(badge)}</span></button>`;
+}
+
 function slideMarkup(clip, i) {
   const flags = clip.match
     ? `<span class="wm-flags">${flagFor(clip.match.teamA)} ${flagFor(clip.match.teamB)}</span>`
@@ -77,6 +92,7 @@ function slideMarkup(clip, i) {
           <span>${fmtWhen(clip.dateISO)}</span>
           ${clip.durationSec ? `<span class="wm-dot">·</span><span>${fmtDuration(clip.durationSec)}</span>` : ""}
         </div>
+        ${infoChipMarkup(clip)}
       </div>
     </section>`;
 }
@@ -91,6 +107,12 @@ function render() {
   // A - B") — drop goal clips, editorial recaps and magazine pieces.
   const visible = clips.filter((c) => c.kind === "match");
   buildDrawer(visible);
+  // Publish to the link store so Spiele can backlink ("▶ Highlights" on a card).
+  setClips(
+    visible
+      .map((c, i) => (c.match ? { urn: c.urn, teamA: c.match.teamA, teamB: c.match.teamB, dateISO: c.dateISO, index: i } : null))
+      .filter(Boolean),
+  );
   if (!visible.length) {
     feed.innerHTML = `<section class="wm-slide wm-empty"><p>Noch keine Clips.<br>Schau später nochmal vorbei.</p></section>`;
     return;
@@ -102,6 +124,11 @@ function render() {
     el._clip = visible[idx];
     el.querySelector(".wm-playbtn")?.addEventListener("click", () => playSlide(el));
     el.querySelector(".wm-thumb")?.addEventListener("click", () => playSlide(el));
+    el.querySelector(".wm-info-chip")?.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const mid = ev.currentTarget.dataset.mid;
+      if (mid && typeof window.jumpToSpieleMatch === "function") window.jumpToSpieleMatch(mid);
+    });
   });
   observePauses(feed);
 }
@@ -307,7 +334,11 @@ function renderDrawerList(q) {
     const flags = c.match ? `${flagFor(c.match.teamA)} ${flagFor(c.match.teamB)}` : "🎬";
     const teams = c.match ? `${esc(c.match.teamA)} – ${esc(c.match.teamB)}` : esc(c.title);
     const cls = i === cur ? "wm-drawer-item is-current" : "wm-drawer-item";
-    return `<button class="${cls}" data-i="${i}" type="button"><span class="f">${flags}</span><span class="t">${teams}</span><span class="d">${fmtWhen(c.dateISO)}</span></button>`;
+    const match = c.match ? findMatchByTeams(c.match.teamA, c.match.teamB) : null;
+    const infoBtn = match
+      ? `<button class="wm-drawer-info" data-mid="${match.id}" type="button" aria-label="Spielinfo öffnen" title="Spielinfo">ⓘ</button>`
+      : "";
+    return `<div class="wm-drawer-row"><button class="${cls}" data-i="${i}" type="button"><span class="f">${flags}</span><span class="t">${teams}</span><span class="d">${fmtWhen(c.dateISO)}</span></button>${infoBtn}</div>`;
   }
   function section(label, arr) {
     return arr.length ? `<div class="wm-drawer-group">${label}</div>` + arr.map(itemMarkup).join("") : "";
@@ -324,6 +355,14 @@ function renderDrawerList(q) {
 
   list.querySelectorAll(".wm-drawer-item").forEach((b) =>
     b.addEventListener("click", () => jumpToClip(parseInt(b.dataset.i, 10))),
+  );
+  list.querySelectorAll(".wm-drawer-info").forEach((b) =>
+    b.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const mid = b.dataset.mid;
+      closeDrawer();
+      if (mid && typeof window.jumpToSpieleMatch === "function") window.jumpToSpieleMatch(mid);
+    }),
   );
 }
 
@@ -375,6 +414,17 @@ function wireDrawer() {
 /** Public entry point — called by wm/app.js when the Highlights tab opens. */
 export async function initFeed() {
   wireDrawer();
+
+  // Eagerly fetch the schedule so the "→ Spielinfo · score" chip + drawer info
+  // button can paint before the user ever opens Spiele.
+  prefetchMatches();
+
+  // When the schedule arrives (eager fetch above OR matches.js publishing on
+  // its own init), re-render the feed so the chip + drawer info button appear
+  // without a user reload. Skip while a clip is playing so we don't tear it down.
+  subscribe(() => {
+    if (clips.length && !document.querySelector(".wm-slide.playing")) render();
+  });
 
   // Offline shell: paint cached clips immediately, then refresh from network.
   try {

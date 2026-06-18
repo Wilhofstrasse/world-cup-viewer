@@ -15,8 +15,11 @@
 
 import { flagFor } from "./parse.js";
 import { computeStandings } from "./standings.js";
+import { setMatches, findClipByTeams, subscribe, getMatch } from "./linkstore.js";
 
 const API_BASE = window.WM_API_BASE || "";
+
+let lastMatches = []; // last list passed to render — needed by jumpToSpieleMatch
 
 // Display order of rounds (FIFA 48-team format: Round of 32 = Sechzehntelfinale).
 const ROUND_ORDER = ["Vorrunde", "Sechzehntelfinale", "Achtelfinale", "Viertelfinale", "Halbfinale", "Spiel um Platz 3", "Final"];
@@ -60,12 +63,20 @@ function fixtureRow(m) {
   const when = showScore ? "" : `<div class="wm-match-when">${esc(kickoff(m.dateISO))}</div>`;
   const liveBadge = live ? `<span class="wm-live-badge">● LIVE ${m.minute ? m.minute + "'" : ""}</span>` : "";
 
+  // Backlink to the matching Highlights clip when one exists. Renders on
+  // finished/live matches with a clip; placeholder until linkstore has clips.
+  const clip = findClipByTeams(m.teamA, m.teamB);
+  const clipLink = clip
+    ? `<button class="wm-match-link" data-urn="${esc(clip.urn)}" type="button">▶ Highlights ansehen</button>`
+    : "";
+
   return `
-    <article class="wm-match ${live ? "live" : ""}">
+    <article class="wm-match ${live ? "live" : ""}" data-mid="${m.id}">
       ${teamBlock(m.teamA, m.scoreA, "A")}
       ${teamBlock(m.teamB, m.scoreB, "B")}
       ${when}
       ${liveBadge}
+      ${clipLink}
     </article>`;
 }
 
@@ -154,6 +165,58 @@ function render(matches) {
   }
 
   root.innerHTML = html;
+
+  // Wire the "▶ Highlights ansehen" backlink. urn → feed slide index via
+  // the link store; jumpToHighlightsClip lives on window (app.js exposes it).
+  root.querySelectorAll(".wm-match-link").forEach((b) =>
+    b.addEventListener("click", () => {
+      const urn = b.dataset.urn;
+      if (urn && typeof window.jumpToHighlightsClip === "function") window.jumpToHighlightsClip(urn);
+    }),
+  );
+}
+
+/**
+ * Open a match by id: switch to Spiele if needed, open its accordion, scroll
+ * the card into view, briefly flash it so the eye lands. Safe to call before
+ * the matches list has arrived — retries via a one-shot linkstore subscription.
+ */
+export function jumpToSpieleMatch(matchId) {
+  // Make sure we're on Spiele.
+  if (document.body.dataset.tab !== "spiele") {
+    document.querySelector('.wm-tab[data-tab="spiele"]')?.click();
+  }
+
+  const reveal = () => {
+    const root = document.getElementById("wmMatches");
+    if (!root) return false;
+    const article = root.querySelector(`.wm-match[data-mid="${CSS.escape(String(matchId))}"]`);
+    if (!article) return false;
+    // Open every ancestor <details> accordion so the article isn't display:none.
+    let el = article.parentElement;
+    while (el) {
+      if (el.tagName === "DETAILS" && !el.open) el.open = true;
+      el = el.parentElement;
+    }
+    // Two RAFs so the accordion has laid out before we scroll.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        article.scrollIntoView({ behavior: "smooth", block: "center" });
+        article.classList.add("wm-flash");
+        setTimeout(() => article.classList.remove("wm-flash"), 1600);
+      }),
+    );
+    return true;
+  };
+
+  if (reveal()) return;
+  // Card not yet rendered (Spiele just opened) — try once on render.
+  const tries = { left: 8 };
+  const tick = () => {
+    if (reveal() || --tries.left <= 0) return;
+    setTimeout(tick, 120);
+  };
+  setTimeout(tick, 120);
 }
 
 /** Public entry point — called by app.js when the Spiele tab opens. */
@@ -177,7 +240,14 @@ export async function initMatches() {
       root.innerHTML = `<p class="wm-state">Spielplan konnte nicht geladen werden.</p>`;
       return;
     }
+    lastMatches = matches;
+    setMatches(matches); // publish for the Highlights chip + drawer info button
     render(matches);
+    // Re-render once the Highlights clips arrive so the "Highlights ansehen"
+    // link can show on cards whose clip wasn't yet known.
+    subscribe(() => {
+      if (lastMatches.length) render(lastMatches);
+    });
   } catch (_e) {
     root.innerHTML = `<p class="wm-state">Spielplan konnte nicht geladen werden.</p>`;
   } finally {

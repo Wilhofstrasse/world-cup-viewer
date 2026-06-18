@@ -9,8 +9,9 @@
 "use strict";
 
 import { initFeed } from "./feed.js";
-import { initMatches } from "./matches.js";
+import { initMatches, jumpToSpieleMatch } from "./matches.js";
 import { initMehr, openMehrSubview, closeMehrSubview } from "./mehr.js";
+import { findClipByTeams, getMatch } from "./linkstore.js";
 
 const inited = { highlights: false, spiele: false, mehr: false };
 
@@ -89,3 +90,58 @@ if ("serviceWorker" in navigator) {
 // Expose sub-view navigation for inline handlers / other modules.
 window.openMehrSubview = openMehrSubview;
 window.closeMehrSubview = closeMehrSubview;
+
+// ── Cross-tab deep-linking ──────────────────────────────────────────────────
+//
+//   #spiele/<matchId>  → switch to Spiele + scroll to that match.
+//   #clip/<urn>        → switch to Highlights + scroll to that clip.
+//
+// Set the hash before calling activate() so a back/forward gesture reproduces
+// the deep-link. The "set hash silently" guard avoids triggering hashchange
+// when WE just wrote it (would re-enter the handler and double-scroll).
+let _quietHash = "";
+function setHash(h) {
+  _quietHash = h;
+  if (location.hash !== h) location.hash = h;
+}
+
+/** Spiele backlink — wired to feed chips, drawer info buttons, hash routing. */
+window.jumpToSpieleMatch = function (matchId) {
+  setHash("#spiele/" + matchId);
+  jumpToSpieleMatch(matchId);
+};
+
+/** Highlights backlink — wired to match-card "▶ Highlights ansehen". */
+window.jumpToHighlightsClip = function (urn) {
+  setHash("#clip/" + encodeURIComponent(urn));
+  if (document.body.dataset.tab !== "highlights") {
+    activate("highlights");
+  }
+  // Two RAFs so a just-shown feed has laid out.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      const feed = document.getElementById("wmFeed");
+      if (!feed) return;
+      const slide = [...feed.querySelectorAll(".wm-slide")].find((el) => el._clip && el._clip.urn === urn);
+      if (slide) slide.scrollIntoView({ behavior: "smooth", block: "start" });
+    }),
+  );
+};
+
+function applyHash() {
+  const h = location.hash;
+  if (!h || h === _quietHash) { _quietHash = ""; return; }
+  _quietHash = "";
+  const sp = /^#spiele\/(.+)$/.exec(h);
+  const cp = /^#clip\/(.+)$/.exec(h);
+  if (sp) {
+    activate("spiele");
+    jumpToSpieleMatch(decodeURIComponent(sp[1]));
+  } else if (cp) {
+    window.jumpToHighlightsClip(decodeURIComponent(cp[1]));
+  }
+}
+
+window.addEventListener("hashchange", applyHash);
+// Apply once at boot so a shared URL deep-links correctly.
+setTimeout(applyHash, 0);
