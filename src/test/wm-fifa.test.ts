@@ -43,13 +43,20 @@ describe("parseMatchMinute", () => {
 });
 
 describe("tidyName / scorerFromDescription", () => {
-  it("title-cases all-caps names, preserving accents", () => {
+  it("extracts a clean surname from FIFA's CAPS-surname formats", () => {
     expect(tidyName("MESSI")).toBe("Messi");
+    expect(tidyName("Julian QUINONES")).toBe("Quinones");
+    expect(tidyName("HWANG Inbeom")).toBe("Hwang");
+    expect(tidyName("M.HANY")).toBe("Hany");
     expect(tidyName("VAN DIJK")).toBe("Van Dijk");
+    expect(tidyName("RAÚL")).toBe("Raúl");
   });
-  it("extracts scorer + team from a German EventDescription", () => {
-    const p = scorerFromDescription("MESSI (Argentinien) erzielt ein Tor!");
-    expect(p).toEqual({ scorer: "Messi", team: "Argentinien" });
+  it("extracts scorer + team from a goal / penalty description", () => {
+    expect(scorerFromDescription("MESSI (Argentinien) erzielt ein Tor!")).toEqual({ scorer: "Messi", team: "Argentinien" });
+    expect(scorerFromDescription("EMBOLO (Schweiz) verwandelt den Strafstoss!")).toEqual({ scorer: "Embolo", team: "Schweiz" });
+  });
+  it("strips the own-goal prefix before extracting the player", () => {
+    expect(scorerFromDescription("Eigentor durch M.HANY (Ägypten).")).toEqual({ scorer: "Hany", team: "Ägypten" });
   });
   it("returns null when there is no (Team) marker", () => {
     expect(scorerFromDescription("Anstoss")).toBeNull();
@@ -107,15 +114,16 @@ describe("mapTimelineToGoals", () => {
     expect(goals.every((g) => g.type === "goal")).toBe(true);
   });
 
-  it("flips an own goal to the benefiting side", () => {
+  it("flips an own goal to the benefiting side, with a clean scorer", () => {
     const own = mapTimelineToGoals(
-      [{ Type: 34, MatchMinute: "40'", EventDescription: [{ Description: "AGUERD (Algerien) erzielt ein Eigentor." }] }],
+      [{ Type: 34, MatchMinute: "40'", EventDescription: [{ Description: "Eigentor durch AGUERD (Algerien)." }] }],
       "Argentinien",
       "Algerien",
     );
     expect(own).toHaveLength(1);
     expect(own[0]!.type).toBe("own");
-    expect(own[0]!.team).toBe("A"); // scored by an Algerien player → counts for Argentinien (A)
+    expect(own[0]!.scorer).toBe("Aguerd");
+    expect(own[0]!.team).toBe("A"); // Algerien player → counts for Argentinien (A)
   });
 });
 

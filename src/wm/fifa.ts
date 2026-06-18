@@ -63,18 +63,53 @@ export function parseMatchMinute(s: string | null | undefined): { minute: number
   return { minute: parseInt(m[1]!, 10), extra: m[2] ? parseInt(m[2], 10) : null };
 }
 
-/** Title-cases a possibly ALL-CAPS scorer token, preserving accents. "MESSI"→"Messi". */
-export function tidyName(raw: string): string {
-  return raw
-    .trim()
-    .split(/\s+/)
-    .map((w) => (w ? w[0]!.toUpperCase() + w.slice(1).toLowerCase() : w))
-    .join(" ");
+/** Lower-cases all but the first letter of one word, preserving accents. */
+function titleWord(w: string): string {
+  return w ? w[0]!.toUpperCase() + w.slice(1).toLowerCase() : w;
 }
 
-/** Extracts scorer + team from an EventDescription: "MESSI (Argentinien) erzielt …". */
+/** ALL-CAPS token test (FIFA caps the surname): "QUINONES", "M.HANY", "RAÚL". */
+function isUpperToken(t: string): boolean {
+  return /[A-Za-zÀ-ÿ]/.test(t) && t === t.toUpperCase() && t !== t.toLowerCase();
+}
+
+/**
+ * Reduces a FIFA scorer string to a clean TV-style surname. FIFA writes the
+ * surname in CAPS — single ("RAÚL", "EMBOLO"), given+surname ("Julian QUINONES",
+ * "Miro MUHEIM"), compound ("VAN DIJK"), or initial+surname ("M.HANY"). Take the
+ * longest consecutive caps run, drop a leading initial, title-case (accents kept).
+ */
+export function tidyName(raw: string): string {
+  const tokens = raw.trim().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return raw.trim();
+  let best: string[] = [];
+  let cur: string[] = [];
+  for (const t of tokens) {
+    if (isUpperToken(t)) {
+      cur.push(t);
+      if (cur.length > best.length) best = cur;
+    } else {
+      cur = [];
+    }
+  }
+  const parts = (best.length ? best : [tokens[tokens.length - 1]!]).map((p) =>
+    p.includes(".") ? p.split(".").pop() || p : p,
+  );
+  return parts.map(titleWord).join(" ");
+}
+
+/**
+ * Extracts scorer + team from an EventDescription. Goals/penalties read
+ * "MESSI (Argentinien) erzielt …"; own goals read "Eigentor durch X (Team).",
+ * so strip that prefix first. Returns the team in the parens (the player's side;
+ * own-goal crediting is handled by the caller).
+ */
 export function scorerFromDescription(desc: string): { scorer: string; team: string } | null {
-  const m = /^(.+?)\s*\(([^)]+)\)/.exec(desc || "");
+  const s = (desc || "")
+    .trim()
+    .replace(/^Eigentor\s+(?:durch|von)\s+/i, "")
+    .replace(/^Own goal by\s+/i, "");
+  const m = /^(.+?)\s*\(([^)]+)\)/.exec(s);
   if (!m) return null;
   return { scorer: tidyName(m[1]!), team: m[2]!.trim() };
 }
