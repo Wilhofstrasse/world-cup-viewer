@@ -36,5 +36,6 @@ Two compounding causes, found via workflow + Codex:
 
 ## Links
 
+- **FIFA API capability map:** `docs/fifa-api.md` — what api.fifa.com offers (standings endpoint `/calendar/17/285023/289273/Standing`, top scorers, lineups+photos, player bios, squads, bracket; NOT available: aggregate match stats, stadium capacity). Reference before building any new WM data feature.
 - Repo: https://github.com/Wilhofstrasse/world-cup-viewer
 - Dashboard: https://filipeandrade.com/secure/projects/
