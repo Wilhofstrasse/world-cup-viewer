@@ -70,7 +70,10 @@ html, body {
   font-size: 19px; font-weight: 800; letter-spacing: -.01em;
   color: var(--wm-ink); white-space: nowrap;
 }
-.wm-ver { font-family: var(--wm-mono); font-size: 9.5px; color: var(--wm-ink-dim); margin-left: 1px; }
+/* Version stamp — hidden everywhere by default; live version is still served by
+   /api/version for ops. Keep the element in the DOM so appshell.js can stamp it
+   without errors. */
+.wm-ver { display: none; }
 
 .wm-tabs {
   display: inline-flex; flex: none; gap: 0;
@@ -80,11 +83,16 @@ html, body {
 }
 .wm-tab {
   font-family: var(--wm-rounded);
-  font-size: 13px; font-weight: 700;
+  font-size: 12.5px; font-weight: 700;
   border: none; background: transparent; color: var(--wm-ink);
-  min-height: 38px; padding: 8px 12px; border-radius: 999px; cursor: pointer;
+  min-height: 38px; padding: 8px 10px; border-radius: 999px; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   transition: background .14s, color .14s;
+  white-space: nowrap;
+}
+@media (max-width: 380px) {
+  .wm-tab { padding: 8px 8px; font-size: 12px; }
+  .wm-appnav-link { font-size: 17px; }
 }
 .wm-tab[aria-selected="true"] { background: var(--wm-accent); color: #fff; }
 
