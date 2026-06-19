@@ -15,3 +15,10 @@ dist/
 build/
 node_modules/
 .wrangler/
+
+# Smoke / agent artifacts (kept in /tmp, never committed)
+qa-screenshots/
+qa-report.json
+test-qa.mjs
+review-tmp.js
+wm-smoke*.mjs
