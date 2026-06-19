@@ -12,11 +12,11 @@
   --wm-paper:       #f4f1ea;  /* warm cream — page + header */
   --wm-surface:     #ffffff;  /* cards, pills, inputs */
   --wm-ink:         #1c1c1c;  /* near-black text + bold outlines */
-  --wm-ink-dim:     #8c8c8c;  /* muted text */
+  --wm-ink-dim:     #6b6b6b;  /* muted text — WCAG AA on paper (~4.54:1) */
   --wm-faint:       #b3aea3;  /* very muted */
   --wm-line:        #1c1c1c;  /* bold outline (mockup aesthetic) */
   --wm-line-soft:   #d8d2c6;  /* soft border (inactive card) */
-  --wm-accent:      #e6492f;  /* tomato red — active pill, labels, live */
+  --wm-accent:      #c73b21;  /* tomato red — WCAG AA on white (~5.0:1) */
   --wm-accent-soft: #fbe3dd;  /* pink highlight (current row / live card) */
   --wm-win:         #2faa6a;
 
@@ -30,7 +30,7 @@
   --wm-bar-h: 58px;
 
   /* Pull-to-refresh pill colour (light page → accent pill) */
-  --ptr-bg: #e6492f;
+  --ptr-bg: #c73b21;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -201,8 +201,11 @@ html, body {
   border: 1.5px solid var(--wm-line-soft);
   z-index: 1;
 }
-.wm-drawer-row:has(.is-current)::before,
-.wm-drawer-row .is-current ~ * + .wm-drawer-row::before { background: var(--wm-accent); border-color: var(--wm-accent); }
+/* Rail dot on the current row + every row AFTER it gets the accent — gives a
+   real timeline-progress cue. `.is-current` is set on BOTH the row and the
+   inner item (feed.js renderDrawerList), so the sibling chain walks correctly. */
+.wm-drawer-row.is-current::before,
+.wm-drawer-row.is-current ~ .wm-drawer-row::before { background: var(--wm-accent); border-color: var(--wm-accent); }
 
 .wm-drawer-row .wm-drawer-item { flex: 1 1 0; width: auto; min-width: 0; margin: 0; }
 .wm-drawer-info {

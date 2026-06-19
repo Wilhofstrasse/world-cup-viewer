@@ -158,10 +158,25 @@ function render(matches) {
     }
   }
 
-  // ── K.-O.-RUNDE: one accordion per round ──
-  if (koRounds.length) {
+  // ── SECHZEHNTELFINALE (R32): own section ──
+  const r32 = byRound.get("Sechzehntelfinale");
+  if (r32 && r32.length) {
+    html += `<div class="wm-sec">Sechzehntelfinale</div>`;
+    html += acc("Sechzehntelfinale", rowsFor(r32), groupFlags(r32));
+  }
+
+  // ── ACHTELFINALE (R16): own section ──
+  const r16 = byRound.get("Achtelfinale");
+  if (r16 && r16.length) {
+    html += `<div class="wm-sec">Achtelfinale</div>`;
+    html += acc("Achtelfinale", rowsFor(r16), groupFlags(r16));
+  }
+
+  // ── K.-O.-RUNDE: QF and later — one accordion per round ──
+  const laterRounds = koRounds.filter((r) => r !== "Sechzehntelfinale" && r !== "Achtelfinale");
+  if (laterRounds.length) {
     html += `<div class="wm-sec">K.-o.-Runde</div>`;
-    for (const round of koRounds) html += acc(round, rowsFor(byRound.get(round)));
+    for (const round of laterRounds) html += acc(round, rowsFor(byRound.get(round)), groupFlags(byRound.get(round)));
   }
 
   root.innerHTML = html;

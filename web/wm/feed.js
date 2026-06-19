@@ -366,13 +366,15 @@ function renderDrawerList(q) {
     const flagB = c.match ? flagFor(c.match.teamB) : "";
     const nameA = c.match ? esc(c.match.teamA) : esc(c.title);
     const nameB = c.match ? esc(c.match.teamB) : "";
-    const cls = i === cur ? "wm-drawer-item is-current" : "wm-drawer-item";
+    const isCur = i === cur;
+    const cls = isCur ? "wm-drawer-item is-current" : "wm-drawer-item";
+    const rowCls = isCur ? "wm-drawer-row is-current" : "wm-drawer-row";
     const match = c.match ? findMatchByTeams(c.match.teamA, c.match.teamB) : null;
     const rightSlot = match
       ? `<button class="wm-drawer-info" data-mid="${match.id}" type="button" aria-label="Spielinfo öffnen" title="Spielinfo">ⓘ</button>`
       : `<span class="wm-drawer-info-spacer" aria-hidden="true"></span>`;
     const time = dayTime(c.dateISO);
-    return `<div class="wm-drawer-row">
+    return `<div class="${rowCls}">
         <button class="${cls}" data-i="${i}" type="button">
           <span class="wm-drawer-time">${esc(time)}</span>
           <span class="wm-drawer-teams">

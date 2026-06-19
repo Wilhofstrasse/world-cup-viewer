@@ -166,6 +166,15 @@ export async function runWmIngest(env: Env): Promise<void> {
   // request each, no API-Football budget concern). This lets the first tick
   // after a deploy populate both even when shouldFetch() declines a matches
   // refresh.
+  //
+  // Order matters: squads must run BEFORE topscorers so the photo-join inside
+  // refreshTopScorers() reads a freshly-populated squads blob. Otherwise the
+  // first cron tick after a deploy (or after an empty/stale squads blob) saves
+  // a photo-less topscorers blob that gets served for up to TOPSCORERS_MAX_AGE_MS.
+  const prevSq = await loadWmSquads(env);
+  const sqStale = !prevSq.squads.length || (nowMs - prevSq.updatedAt * 1000 > SQUADS_MAX_AGE_MS);
+  if (sqStale) await refreshSquads(env, nowMs);
+
   const prevTs = await loadWmTopScorers(env);
   const tsStale = !prevTs.scorers.length || (nowMs - prevTs.updatedAt * 1000 > TOPSCORERS_MAX_AGE_MS);
   if (tsStale) await refreshTopScorers(env, prev.matches, nowMs);
@@ -173,10 +182,6 @@ export async function runWmIngest(env: Env): Promise<void> {
   const prevTab = await loadWmTabellen(env);
   const tabStale = !prevTab.rows.length || (nowMs - prevTab.updatedAt * 1000 > TABELLEN_MAX_AGE_MS);
   if (tabStale) await refreshTabellen(env, nowMs);
-
-  const prevSq = await loadWmSquads(env);
-  const sqStale = !prevSq.squads.length || (nowMs - prevSq.updatedAt * 1000 > SQUADS_MAX_AGE_MS);
-  if (sqStale) await refreshSquads(env, nowMs);
 
   if (!shouldFetch(prev, nowMs)) return;
 

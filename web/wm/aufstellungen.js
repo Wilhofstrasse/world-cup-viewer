@@ -86,13 +86,14 @@ function sidePillHtml() {
     </div>`;
 }
 
-/** Parse a Tactics string like "4-3-3" or "4-1-2-3" → row counts FRONT→BACK. */
+/** Parse a Tactics string like "4-3-3" or "4-1-2-3" → row counts DEFENCE→FRONT. */
 function parseFormation(tactics) {
   const parts = String(tactics || "").trim().split(/[-_/]/).map((n) => parseInt(n, 10)).filter((n) => n > 0);
   if (!parts.length) return [4, 3, 3];
-  // FIFA writes formations defence-first (4-3-3 = back to front). The pitch
-  // draws forwards at the top so we read them in reverse for row placement.
-  return parts.slice().reverse();
+  // FIFA writes formations defence-first ("4-3-3" = 4 defenders, 3 mids, 3 fwd).
+  // Keep that order so row 0 = defence, row N-1 = forwards. The pitch maps low
+  // LineupY → near GK and high LineupY → far end (forwards) via `(100 - ly)`.
+  return parts.slice();
 }
 
 /** Assign approximate LineupX/Y to non-GK starters based on formation rows. */
@@ -100,19 +101,18 @@ function synthesizeCoords(starters, tactics) {
   const rows = parseFormation(tactics);
   const total = rows.reduce((a, b) => a + b, 0);
   if (starters.length < total + 1) return starters; // not enough players to fill
-  // Sort by current position bucket so GK first, then by ShirtNumber for stability.
+  // Sort by current position bucket so GK first, then DEF/MID/FWD ascending —
+  // matches the row walk below (r=0 defence → r=N-1 forwards).
   const sorted = starters.slice().sort((a, b) => {
     const pa = a.Position ?? 99, pb = b.Position ?? 99;
     if (pa !== pb) return pa - pb;
     return (a.ShirtNumber || 0) - (b.ShirtNumber || 0);
   });
   const out = [];
-  // GK
+  // GK at LineupY=8 → near own-goal end of SVG.
   if (sorted[0]) out.push({ ...sorted[0], LineupX: 50, LineupY: 8 });
   let cursor = 1;
-  // FWD row at top (LineupY high)
-  const topYs = rows.map((_, idx) => 22 + idx * (66 / Math.max(1, rows.length - 1 || 1)));
-  // We want forwards toward y=88, midfield middle, defence near GK
+  // r=0 (defence) → LineupY=22 (near GK), r=N-1 (forwards) → LineupY=88 (far end).
   for (let r = 0; r < rows.length; r++) {
     const count = rows[r];
     const y = 22 + r * (66 / Math.max(1, rows.length - 1 || 1));
