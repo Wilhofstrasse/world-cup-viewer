@@ -18,6 +18,9 @@ const inited = { highlights: false, spiele: false, mehr: false };
 
 function activate(tab) {
   document.body.dataset.tab = tab;
+  // Every tab switch wipes the Spielerkarten scroll-lock — defensive cleanup
+  // so a stuck overlay class can't trap the page in `overflow: hidden`.
+  document.body.classList.remove("wm-pk-open");
   document.querySelectorAll(".wm-tab").forEach((b) =>
     b.setAttribute("aria-selected", String(b.dataset.tab === tab)),
   );

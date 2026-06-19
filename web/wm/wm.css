@@ -516,10 +516,13 @@ html, body {
   padding: 14px 15px;
   margin-bottom: 10px;
   font-family: var(--wm-rounded);
+  color: var(--wm-ink);
   text-align: left; cursor: pointer;
   box-shadow: 0 1px 0 var(--wm-line-soft), 0 6px 14px rgba(28,28,28,.04);
   transition: transform .12s ease, border-color .12s ease;
 }
+/* iOS Safari paints <button> text in system blue by default — pin it back. */
+.wm-mehr-item, .wm-mehr-item * { color: var(--wm-ink); }
 .wm-mehr-item:active { transform: scale(.98); }
 .wm-mehr-item.is-primary { background: linear-gradient(135deg, var(--wm-surface) 0%, var(--wm-surface) 70%, var(--wm-accent-soft) 100%); }
 .wm-mehr-ico {

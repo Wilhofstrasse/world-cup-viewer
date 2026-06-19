@@ -109,5 +109,14 @@ export function closeMehrSubview() {
 }
 
 export function initMehr() {
+  // Defensive cleanup: a previously-open Spielerkarten overlay can leave the
+  // body-level scroll-lock class behind if the user tapped the system back
+  // gesture or any non-✕ dismiss path. Mehr is the safest place to reset it.
+  document.body.classList.remove("wm-pk-open");
+  const overlay = document.getElementById("wmPlayerOverlay");
+  if (overlay && !overlay.hidden) {
+    overlay.hidden = true;
+    overlay.style.display = "none";
+  }
   renderLanding();
 }
