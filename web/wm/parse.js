@@ -354,6 +354,55 @@ function isoToFlag(cc) {
     .replace(/./g, (c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65));
 }
 
+/** FIFA ISO-3 → ISO-2 + display name for the WM 48-team set + common neighbours. */
+const ISO3_LOOKUP = {
+  ARG: { iso2: "ar", name: "Argentinien" }, AUS: { iso2: "au", name: "Australien" },
+  AUT: { iso2: "at", name: "Österreich" }, BIH: { iso2: "ba", name: "Bosnien-Herzegowina" },
+  BRA: { iso2: "br", name: "Brasilien" }, CAN: { iso2: "ca", name: "Kanada" },
+  CHE: { iso2: "ch", name: "Schweiz" }, CIV: { iso2: "ci", name: "Elfenbeinküste" },
+  COL: { iso2: "co", name: "Kolumbien" }, CRC: { iso2: "cr", name: "Costa Rica" },
+  CRO: { iso2: "hr", name: "Kroatien" }, CUW: { iso2: "cw", name: "Curaçao" },
+  CZE: { iso2: "cz", name: "Tschechien" }, DEN: { iso2: "dk", name: "Dänemark" },
+  DOM: { iso2: "do", name: "Dominikanische Rep." }, ECU: { iso2: "ec", name: "Ecuador" },
+  EGY: { iso2: "eg", name: "Ägypten" }, ENG: { iso2: "gb-eng", name: "England" },
+  ESP: { iso2: "es", name: "Spanien" }, FRA: { iso2: "fr", name: "Frankreich" },
+  GER: { iso2: "de", name: "Deutschland" }, GHA: { iso2: "gh", name: "Ghana" },
+  GUI: { iso2: "gn", name: "Guinea" }, HAI: { iso2: "ht", name: "Haiti" },
+  HON: { iso2: "hn", name: "Honduras" }, IRL: { iso2: "ie", name: "Irland" },
+  IRN: { iso2: "ir", name: "Iran" }, IRQ: { iso2: "iq", name: "Irak" },
+  ITA: { iso2: "it", name: "Italien" }, JAM: { iso2: "jm", name: "Jamaika" },
+  JOR: { iso2: "jo", name: "Jordanien" }, JPN: { iso2: "jp", name: "Japan" },
+  KOR: { iso2: "kr", name: "Republik Korea" }, KSA: { iso2: "sa", name: "Saudi-Arabien" },
+  MAR: { iso2: "ma", name: "Marokko" }, MEX: { iso2: "mx", name: "Mexiko" },
+  NED: { iso2: "nl", name: "Niederlande" }, NGA: { iso2: "ng", name: "Nigeria" },
+  NOR: { iso2: "no", name: "Norwegen" }, NZL: { iso2: "nz", name: "Neuseeland" },
+  PAN: { iso2: "pa", name: "Panama" }, PAR: { iso2: "py", name: "Paraguay" },
+  PER: { iso2: "pe", name: "Peru" }, POL: { iso2: "pl", name: "Polen" },
+  POR: { iso2: "pt", name: "Portugal" }, RSA: { iso2: "za", name: "Südafrika" },
+  SCO: { iso2: "gb-sct", name: "Schottland" }, SEN: { iso2: "sn", name: "Senegal" },
+  SRB: { iso2: "rs", name: "Serbien" }, SUI: { iso2: "ch", name: "Schweiz" },
+  TUN: { iso2: "tn", name: "Tunesien" }, TUR: { iso2: "tr", name: "Türkei" },
+  UAE: { iso2: "ae", name: "Ver. Arab. Emirate" }, UKR: { iso2: "ua", name: "Ukraine" },
+  URU: { iso2: "uy", name: "Uruguay" }, USA: { iso2: "us", name: "USA" },
+  UZB: { iso2: "uz", name: "Usbekistan" }, VEN: { iso2: "ve", name: "Venezuela" },
+  ALG: { iso2: "dz", name: "Algerien" }, BEL: { iso2: "be", name: "Belgien" },
+};
+
+/** Country flag emoji from FIFA's 3-letter code (or "⚽"). */
+export function flagFromIso3(code) {
+  const e = ISO3_LOOKUP[String(code || "").toUpperCase()];
+  if (!e) return "⚽";
+  if (e.iso2 === "gb-eng") return "🏴󠁧󠁢󠁥󠁮󠁧󠁿";
+  if (e.iso2 === "gb-sct") return "🏴󠁧󠁢󠁳󠁣󠁴󠁿";
+  return isoToFlag(e.iso2);
+}
+
+/** German display name from FIFA's 3-letter code (or "" when unknown). */
+export function nameFromIso3(code) {
+  const e = ISO3_LOOKUP[String(code || "").toUpperCase()];
+  return e ? e.name : "";
+}
+
 /**
  * @param {string} teamName  team name in German or English
  * @returns {string} flag emoji, or "⚽" when genuinely unknown

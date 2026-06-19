@@ -79,6 +79,18 @@ function needsGoals(fresh: Match, prev: Match | undefined): boolean {
  * the supplied matches list. Always safe to call repeatedly: budget is one
  * keyless request. matches[] is read-only (never mutated).
  */
+/** Build an idPlayer → photoUrl map from the cached squads blob (if any). */
+async function loadSquadPhotoMap(env: Env): Promise<Map<string, string>> {
+  const sq = await loadWmSquads(env);
+  const m = new Map<string, string>();
+  for (const team of sq.squads || []) {
+    for (const p of team.players || []) {
+      if (p.idPlayer && p.photoUrl) m.set(p.idPlayer, p.photoUrl);
+    }
+  }
+  return m;
+}
+
 async function refreshTopScorers(env: Env, matches: Match[], nowMs: number): Promise<void> {
   if ((env.WM_API_PROVIDER || "fifa") !== "fifa") return; // only the FIFA path provides this feed
   try {
@@ -88,7 +100,12 @@ async function refreshTopScorers(env: Env, matches: Match[], nowMs: number): Pro
       if (m.idTeamA) idToTeam.set(m.idTeamA, m.teamA);
       if (m.idTeamB) idToTeam.set(m.idTeamB, m.teamB);
     }
-    const scorers = enrichScorerTeams(raw, idToTeam);
+    // Cross-join with the squads blob so each scorer carries a real player
+    // photo (the topscorers endpoint never ships photoUrl; the squads one does).
+    const photoMap = await loadSquadPhotoMap(env);
+    const scorers = enrichScorerTeams(raw, idToTeam).map((s) =>
+      s.photoUrl || !s.idPlayer ? s : photoMap.has(s.idPlayer) ? { ...s, photoUrl: photoMap.get(s.idPlayer) || null } : s,
+    );
     const ts: WmTopScorers = {
       updatedAt: Math.floor(nowMs / 1000),
       season: env.WM_SEASON || "2026",

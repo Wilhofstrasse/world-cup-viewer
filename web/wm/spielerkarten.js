@@ -11,12 +11,15 @@
 
 "use strict";
 
-import { flagFor } from "./parse.js";
+import { flagFor, flagFromIso3, nameFromIso3 } from "./parse.js";
 
 const FIFA_PLAYER_URL = (id) => `https://api.fifa.com/api/v3/players/${encodeURIComponent(id)}?language=de-DE`;
 const FIFA_SEASON = "285023";
 const FIFA_COMP = "17";
 const TOPSCORERS_URL = "/api/wm/topscorers";
+const SQUADS_URL = "/api/wm/squads";
+
+let squadIndex = null; // idPlayer → { photoUrl, name, jerseyNum, teamName, idCountry }
 
 let overlay = null; // singleton DOM node
 
@@ -91,6 +94,26 @@ async function fetchPlayer(idPlayer) {
   return await res.json();
 }
 
+/** Load + cache the squads blob as an idPlayer → enrichment lookup. */
+async function ensureSquadIndex() {
+  if (squadIndex) return squadIndex;
+  try {
+    const res = await fetch(SQUADS_URL, { cache: "no-store" });
+    if (!res.ok) { squadIndex = new Map(); return squadIndex; }
+    const data = await res.json();
+    const out = new Map();
+    for (const team of data.squads || []) {
+      for (const p of team.players || []) {
+        if (p.idPlayer) out.set(String(p.idPlayer), { photoUrl: p.photoUrl, jerseyNum: p.jerseyNum, teamName: team.teamName, idCountry: p.idCountry });
+      }
+    }
+    squadIndex = out;
+  } catch (_e) {
+    squadIndex = new Map();
+  }
+  return squadIndex;
+}
+
 /** Try to enrich with WM 2026 statistics from the locally-served topscorers blob. */
 async function fetchWmStats(name) {
   try {
@@ -106,9 +129,10 @@ async function fetchWmStats(name) {
   }
 }
 
-function render(player, wmStats) {
+function render(player, wmStats, squadEntry) {
   const name = loc(player.Name) || loc(player.PlayerName) || "?";
-  const country = player.IdCountry || "";
+  const countryCode = player.IdCountry || squadEntry?.idCountry || "";
+  const countryName = nameFromIso3(countryCode) || countryCode || "";
   const birth = player.BirthDate || "";
   const age = ageFrom(birth);
   const height = player.Height ?? null;
@@ -117,8 +141,12 @@ function render(player, wmStats) {
   const birthPlace = player.BirthPlace || player.BirthCity || "";
   const foot = footLabel(player.PreferredFoot);
   const positionLabel = loc(player.PositionLocalized) || "";
-  const shirt = player.JerseyNum ?? player.ShirtNumber ?? null;
-  const photo = (player.PlayerPicture && player.PlayerPicture.PictureUrl) || player.PictureUrl || null;
+  const shirt = player.JerseyNum ?? player.ShirtNumber ?? squadEntry?.jerseyNum ?? null;
+  const photo =
+    (player.PlayerPicture && player.PlayerPicture.PictureUrl) ||
+    player.PictureUrl ||
+    squadEntry?.photoUrl ||
+    null;
 
   const heroPhoto = photo
     ? `<div class="wm-pk-photo" style="background-image:url('${esc(photo)}')"></div>`
@@ -151,11 +179,12 @@ function render(player, wmStats) {
       </div>`
     : "";
 
+  const flagEmoji = flagFromIso3(countryCode) || flagFor(countryName) || "⚽";
   return `
     <div class="wm-pk-hero">
       ${heroPhoto}
       <div class="wm-pk-name">${esc(name)}</div>
-      <div class="wm-pk-nat"><span class="f">${flagFor(country)}</span>${esc(country)}</div>
+      <div class="wm-pk-nat"><span class="f">${flagEmoji}</span>${esc(countryName || countryCode)}</div>
       ${shirt != null || positionLabel ? `<div class="wm-pk-shirt-pos">${shirt != null ? "#" + shirt : ""}${shirt != null && positionLabel ? " · " : ""}${esc(positionLabel)}</div>` : ""}
     </div>
     ${strip}
@@ -171,10 +200,11 @@ async function open(idPlayer) {
   overlay.style.display = ""; // clear the close()-injected display:none
   document.body.classList.add("wm-pk-open");
   try {
-    const player = await fetchPlayer(idPlayer);
+    const [player, idx] = await Promise.all([fetchPlayer(idPlayer), ensureSquadIndex()]);
+    const squadEntry = idx.get(String(idPlayer)) || null;
     const name = loc(player.Name) || loc(player.PlayerName) || "";
     const wm = name ? await fetchWmStats(name) : null;
-    body.innerHTML = render(player, wm);
+    body.innerHTML = render(player, wm, squadEntry);
   } catch (_e) {
     body.innerHTML = `<div class="wm-pk-loading">Spielerkarte konnte nicht geladen werden.</div>`;
   }
