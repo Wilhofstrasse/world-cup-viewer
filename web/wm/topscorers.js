@@ -135,7 +135,11 @@ async function load() {
     const res = await fetch(`${API_BASE}/api/wm/topscorers`, { cache: "no-store" });
     if (!res.ok) throw new Error("status " + res.status);
     const data = await res.json();
-    const scorers = Array.isArray(data.scorers) ? data.scorers : [];
+    // FIFA's /topseasonplayerstatistics endpoint ships EVERY registered player
+    // (≈1250), most with goals=0. Filter to actual scorers — keeps the DOM small
+    // and the screen readable.
+    const all = Array.isArray(data.scorers) ? data.scorers : [];
+    const scorers = all.filter((s) => (s.goals || 0) > 0);
     lastState = scorers.length ? { kind: "ready", scorers } : { kind: "empty" };
   } catch (_e) {
     lastState = { kind: "error" };

@@ -86,6 +86,47 @@ function sidePillHtml() {
     </div>`;
 }
 
+/** Parse a Tactics string like "4-3-3" or "4-1-2-3" → row counts FRONT→BACK. */
+function parseFormation(tactics) {
+  const parts = String(tactics || "").trim().split(/[-_/]/).map((n) => parseInt(n, 10)).filter((n) => n > 0);
+  if (!parts.length) return [4, 3, 3];
+  // FIFA writes formations defence-first (4-3-3 = back to front). The pitch
+  // draws forwards at the top so we read them in reverse for row placement.
+  return parts.slice().reverse();
+}
+
+/** Assign approximate LineupX/Y to non-GK starters based on formation rows. */
+function synthesizeCoords(starters, tactics) {
+  const rows = parseFormation(tactics);
+  const total = rows.reduce((a, b) => a + b, 0);
+  if (starters.length < total + 1) return starters; // not enough players to fill
+  // Sort by current position bucket so GK first, then by ShirtNumber for stability.
+  const sorted = starters.slice().sort((a, b) => {
+    const pa = a.Position ?? 99, pb = b.Position ?? 99;
+    if (pa !== pb) return pa - pb;
+    return (a.ShirtNumber || 0) - (b.ShirtNumber || 0);
+  });
+  const out = [];
+  // GK
+  if (sorted[0]) out.push({ ...sorted[0], LineupX: 50, LineupY: 8 });
+  let cursor = 1;
+  // FWD row at top (LineupY high)
+  const topYs = rows.map((_, idx) => 22 + idx * (66 / Math.max(1, rows.length - 1 || 1)));
+  // We want forwards toward y=88, midfield middle, defence near GK
+  for (let r = 0; r < rows.length; r++) {
+    const count = rows[r];
+    const y = 22 + r * (66 / Math.max(1, rows.length - 1 || 1));
+    for (let c = 0; c < count; c++) {
+      const x = 12 + ((c + 1) * (76 / (count + 1)));
+      const p = sorted[cursor++];
+      if (!p) break;
+      out.push({ ...p, LineupX: x, LineupY: y });
+    }
+  }
+  // Remaining players keep their original (possibly missing) coords → ignored.
+  return out;
+}
+
 function pitchSvg(team) {
   if (!team) return "";
   const players = team.Players || [];
@@ -98,9 +139,16 @@ function pitchSvg(team) {
     if (b.Card === 1 || b.CardType === 1) yellowSet.add(id);
     if (b.Card === 2 || b.CardType === 2 || b.Card === 3) redSet.add(id);
   }
-  // Starters: FieldStatus === 1 or Status === 0 — FIFA's enum is inconsistent
-  // across feeds; the LineupX/Y pair is the only definitive starter signal.
-  const starters = players.filter((p) => typeof p.LineupX === "number" && typeof p.LineupY === "number");
+  // Starters: prefer FIFA's authoritative LineupX/Y pair. When the feed leaves
+  // those null (still rare for the 2026 season as of June), synthesise them
+  // from the Tactics string + Status/FieldStatus so a kid sees a real
+  // formation instead of an empty pitch.
+  let starters = players.filter((p) => typeof p.LineupX === "number" && typeof p.LineupY === "number");
+  if (!starters.length) {
+    const fromStatus = players.filter((p) => p.FieldStatus === 1 || p.Status === 1 || p.Status === 0).slice(0, 11);
+    starters = synthesizeCoords(fromStatus.length ? fromStatus : players.slice(0, 11), team.Tactics);
+    starters = starters.filter((p) => typeof p.LineupX === "number" && typeof p.LineupY === "number");
+  }
   // FIFA's coordinates: 0..100 with HomeTeam attacking upward. SVG y grows down
   // so we mirror Y. Pad inside the pitch frame.
   const W = 340;
@@ -157,9 +205,23 @@ function pitchSvg(team) {
     </svg>`;
 }
 
+/** Returns the set of IdPlayer values picked as starters (XI) for a team. */
+function starterIdSet(team) {
+  const players = team?.Players || [];
+  const real = players.filter((p) => typeof p.LineupX === "number" && typeof p.LineupY === "number");
+  if (real.length) return new Set(real.map((p) => p.IdPlayer).filter(Boolean));
+  // Synthesised path: first 11 by FieldStatus===1 or Status===0/1, sorted by Position.
+  const fromStatus = players
+    .filter((p) => p.FieldStatus === 1 || p.Status === 1 || p.Status === 0)
+    .slice(0, 11);
+  const pool = fromStatus.length ? fromStatus : players.slice(0, 11);
+  return new Set(pool.map((p) => p.IdPlayer).filter(Boolean));
+}
+
 function benchHtml(team) {
   const players = team?.Players || [];
-  const subs = players.filter((p) => !(typeof p.LineupX === "number" && typeof p.LineupY === "number"));
+  const starters = starterIdSet(team);
+  const subs = players.filter((p) => p.IdPlayer && !starters.has(p.IdPlayer));
   if (!subs.length) return "";
   const rows = subs
     .slice(0, 12)

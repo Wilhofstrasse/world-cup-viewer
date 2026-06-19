@@ -60,7 +60,7 @@ html, body {
 }
 .wm-brand { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
 .wm-menu-btn {
-  width: 34px; height: 34px; flex: none;
+  min-width: 44px; min-height: 44px; width: 44px; height: 44px; flex: none;
   border: none; background: transparent; color: var(--wm-ink);
   font-size: 21px; line-height: 1; cursor: pointer; padding: 0;
   display: inline-flex; align-items: center; justify-content: center;
@@ -82,7 +82,8 @@ html, body {
   font-family: var(--wm-rounded);
   font-size: 13px; font-weight: 700;
   border: none; background: transparent; color: var(--wm-ink);
-  padding: 6px 12px; border-radius: 999px; cursor: pointer;
+  min-height: 38px; padding: 8px 12px; border-radius: 999px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
   transition: background .14s, color .14s;
 }
 .wm-tab[aria-selected="true"] { background: var(--wm-accent); color: #fff; }
@@ -172,17 +173,21 @@ html, body {
   display: flex; align-items: center; gap: 2px;
   margin: 2px 10px;
 }
-.wm-drawer-row .wm-drawer-item { width: 100%; margin: 0; }
+/* Inside a flex row, `flex: 1; min-width: 0` makes the item take the
+   available width, shrinks correctly on long names, AND leaves a fixed
+   right column for ⓘ across every row — eliminates the v1.7.0 drift. */
+.wm-drawer-row .wm-drawer-item { flex: 1 1 0; width: auto; min-width: 0; margin: 0; }
 .wm-drawer-info {
-  flex: none; width: 34px; height: 36px;
+  flex: none; min-width: 44px; min-height: 44px; width: 44px; height: 44px;
   border: none; background: transparent;
   color: var(--wm-accent); cursor: pointer;
   font-size: 18px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
   border-radius: 10px;
   -webkit-tap-highlight-color: transparent;
 }
 .wm-drawer-info:active { background: var(--wm-accent-soft); }
-.wm-drawer-info-spacer { flex: none; width: 34px; height: 36px; display: inline-block; }
+.wm-drawer-info-spacer { flex: none; width: 44px; height: 44px; display: inline-block; }
 .wm-drawer-item {
   display: flex; align-items: center; gap: 11px;
   width: calc(100% - 20px); margin: 2px 10px;
@@ -304,12 +309,13 @@ html, body {
 .wm-info-chip {
   pointer-events: auto;
   display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 10px;
-  font-family: var(--wm-rounded); font-size: 12px; font-weight: 700;
+  margin-top: 10px; min-height: 44px;
+  font-family: var(--wm-rounded); font-size: 13px; font-weight: 700;
   color: #fff;
-  background: rgba(230,73,47,.18);
+  /* Opacity raised 18% → 50% — agent flagged WCAG contrast fail on dark feed. */
+  background: rgba(230,73,47,.5);
   border: 1.5px solid var(--wm-accent);
-  padding: 6px 12px;
+  padding: 10px 14px;
   border-radius: 999px; cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -393,12 +399,12 @@ html, body {
 .wm-live-badge { display: inline-block; margin-top: 7px; color: var(--wm-accent); font-weight: 800; font-size: 11px; font-family: var(--wm-mono); }
 .wm-match-link {
   display: inline-flex; align-items: center; gap: 5px;
-  margin-top: 9px;
-  font-family: var(--wm-rounded); font-size: 12px; font-weight: 700;
+  margin-top: 9px; min-height: 44px;
+  font-family: var(--wm-rounded); font-size: 13px; font-weight: 700;
   color: var(--wm-accent);
   background: transparent;
   border: 1.5px solid var(--wm-accent);
-  border-radius: 999px; padding: 4px 11px; cursor: pointer;
+  border-radius: 999px; padding: 10px 14px; cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 .wm-match-link:active { background: var(--wm-accent-soft); }
@@ -415,6 +421,11 @@ html, body {
 
 /* ── Version stamp ── */
 .wm-ver { /* (header version, defined above) */ }
+
+/* Respect prefers-reduced-motion across every keyframe animation. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
 
 /* ── iPad / large screens / landscape ── */
 @media (min-width: 760px) {
@@ -808,11 +819,12 @@ body.wm-pk-open { overflow: hidden; }
 }
 @keyframes wm-pk-up { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .wm-pk-close {
-  position: absolute; top: 12px; right: 12px;
-  width: 36px; height: 36px;
+  position: absolute; top: 10px; right: 10px;
+  min-width: 44px; min-height: 44px; width: 44px; height: 44px;
   border-radius: 50%; border: none;
   background: var(--wm-surface);
-  font-size: 16px; line-height: 1; color: var(--wm-ink);
+  font-size: 18px; line-height: 1; color: var(--wm-ink);
+  display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer; z-index: 2;
   box-shadow: 0 1px 0 var(--wm-line-soft), 0 4px 10px rgba(28,28,28,.06);
 }

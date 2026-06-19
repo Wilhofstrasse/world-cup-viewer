@@ -338,11 +338,17 @@ export function standingGroupLetter(raw: FifaStandingRow): string | null {
   return groupLetter(g);
 }
 
-/** Maps QualificationStatus pass-through string to our 3-state shape. */
+/**
+ * Maps QualificationStatus pass-through string to our 3-state shape. FIFA ships
+ * multiple variants: "Qualified" / "ConfirmedQualified" / "MathematicallyQualified"
+ * → "qualified"; "Eliminated" / "ConfirmedEliminated" / "MathematicallyEliminated"
+ * → "eliminated"; "Undefined" / "CouldQualify" / "CouldNotQualify" / anything else
+ * → null (in-play, no badge).
+ */
 export function mapQualificationStatus(s: string | undefined): "qualified" | "eliminated" | null {
   const t = (s || "").toLowerCase();
-  if (t === "qualified") return "qualified";
-  if (t === "eliminated") return "eliminated";
+  if (t.includes("qualified") && !t.includes("could")) return "qualified";
+  if (t.includes("eliminated") && !t.includes("could")) return "eliminated";
   return null;
 }
 

@@ -203,6 +203,15 @@ function render(state) {
   }
   mounted.innerHTML = renderTree(state.matches);
 
+  // Auto-scroll the bracket so the Finale column is visible on first paint
+  // (548 px tree on a 360-390 px viewport otherwise hides the crown).
+  const scroller = mounted.querySelector(".wm-kb-scroll");
+  if (scroller && scroller.scrollWidth > scroller.clientWidth) {
+    requestAnimationFrame(() => {
+      scroller.scrollLeft = Math.max(0, Math.round((scroller.scrollWidth - scroller.clientWidth) / 2));
+    });
+  }
+
   // Tap a cell → deep-link to that match in Spiele (reuses existing helper).
   mounted.querySelectorAll(".card[data-mid]").forEach((card) => {
     const id = card.dataset.mid;

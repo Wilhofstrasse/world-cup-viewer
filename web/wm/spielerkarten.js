@@ -38,6 +38,10 @@ function ensureOverlay() {
 function close() {
   if (!overlay) return;
   overlay.hidden = true;
+  // .wm-pk-overlay sets display:flex with higher specificity than the UA
+  // [hidden] rule, so the element keeps intercepting pointer events even
+  // after `hidden = true`. Force display:none here and clear it on open().
+  overlay.style.display = "none";
   document.body.classList.remove("wm-pk-open");
 }
 
@@ -164,6 +168,7 @@ async function open(idPlayer) {
   const body = overlay.querySelector("#wmPkBody");
   body.innerHTML = `<div class="wm-pk-loading">Lade Spielerkarte…</div>`;
   overlay.hidden = false;
+  overlay.style.display = ""; // clear the close()-injected display:none
   document.body.classList.add("wm-pk-open");
   try {
     const player = await fetchPlayer(idPlayer);

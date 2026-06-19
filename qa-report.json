@@ -1,0 +1,505 @@
+{
+  "findings": [
+    {
+      "id": "0",
+      "status": "DEFECT",
+      "title": "Tab touch targets below 44px",
+      "detail": "3 tabs have height < 44px",
+      "severity": "High",
+      "steps": [
+        "Open app",
+        "Inspect .wm-tab height"
+      ],
+      "fix": "Set min-height:44px on .wm-tab"
+    },
+    {
+      "id": "1a",
+      "status": "PASS",
+      "title": "Highlights feed loaded",
+      "detail": "27 clips visible",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "1e",
+      "status": "PASS",
+      "title": "Swipe to next clip works",
+      "detail": "Scroll navigation works",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "1g",
+      "status": "PASS",
+      "title": "Play button visible on first clip",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "2aa",
+      "status": "DEFECT",
+      "title": "☰ button below 44px touch target",
+      "detail": "Menu btn: 34x34px",
+      "severity": "High",
+      "steps": [
+        "Check #wmMenuBtn bounding box"
+      ],
+      "fix": "Set min-width/height:44px on #wmMenuBtn"
+    },
+    {
+      "id": "2c",
+      "status": "PASS",
+      "title": "Drawer opens on ☰ click",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "2g",
+      "status": "PASS",
+      "title": "Drawer search 'Brasilien' returns results",
+      "detail": "1 items",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "2i",
+      "status": "PASS",
+      "title": "Drawer closes after clip tap",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "3b",
+      "status": "DEFECT",
+      "title": "ⓘ drawer button below 44px touch target",
+      "detail": "Size: 34x36px",
+      "severity": "High",
+      "steps": [
+        "Open drawer",
+        "Inspect .wm-drawer-info button"
+      ],
+      "fix": "Set min-width/height:44px on .wm-drawer-info"
+    },
+    {
+      "id": "3d",
+      "status": "PASS",
+      "title": "Drawer ⓘ switches to Spiele tab",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "3e",
+      "status": "WARN",
+      "title": "No flash animation on target match card after deep-link",
+      "detail": "Match card reached but no visual flash confirmation",
+      "severity": "Low",
+      "steps": [
+        "Trigger ⓘ from drawer"
+      ],
+      "fix": "Add/verify .flash CSS animation on jumped-to .wm-match"
+    },
+    {
+      "id": "4b",
+      "status": "DEFECT",
+      "title": "Spielinfo chip below 44px touch target",
+      "detail": "Chip height: 32px",
+      "severity": "High",
+      "steps": [
+        "Check .wm-info-chip height"
+      ],
+      "fix": "Set min-height:44px on .wm-info-chip"
+    },
+    {
+      "id": "4d",
+      "status": "PASS",
+      "title": "Spielinfo chip navigates to Spiele",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "5c",
+      "status": "PASS",
+      "title": "27 Highlights backlinks visible in Spiele",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "5d",
+      "status": "DEFECT",
+      "title": "'▶ Highlights ansehen' button below 44px touch target",
+      "detail": "Height: 28px",
+      "severity": "High",
+      "steps": [
+        "Inspect .wm-match-link"
+      ],
+      "fix": "Set min-height:44px on .wm-match-link"
+    },
+    {
+      "id": "5f",
+      "status": "PASS",
+      "title": "'▶ Highlights ansehen' navigates to Highlights",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "6b",
+      "status": "PASS",
+      "title": "5 Mehr entries visible",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "6h",
+      "status": "PASS",
+      "title": "Torjägerliste: opens and back-navigates correctly",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "6h",
+      "status": "PASS",
+      "title": "Tabellen: opens and back-navigates correctly",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "6h",
+      "status": "PASS",
+      "title": "K.-o.-Baum: opens and back-navigates correctly",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "6h",
+      "status": "PASS",
+      "title": "Aufstellungen: opens and back-navigates correctly",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "6h",
+      "status": "PASS",
+      "title": "Kader: opens and back-navigates correctly",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "7b",
+      "status": "PASS",
+      "title": "Torjägerliste loaded 1255 scorers",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "7d",
+      "status": "PASS",
+      "title": "Medal accents present on top scorers",
+      "detail": "rk-1:1 rk-2:1 rk-3:1",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "7g",
+      "status": "PASS",
+      "title": "Scope pill toggle works",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "7i",
+      "status": "PASS",
+      "title": "Spielerkarten opens from Torjägerliste row",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "8d",
+      "status": "PASS",
+      "title": "All 12 groups present in Tabellen",
+      "detail": "Gruppe A, Gruppe B, Gruppe C, Gruppe D, Gruppe E, Gruppe F, Gruppe G, Gruppe H, Gruppe I, Gruppe J, Gruppe K, Gruppe L",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "8f",
+      "status": "PASS",
+      "title": "First group accordion open by default",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "8g",
+      "status": "INFO",
+      "title": "No qualification badges visible in Tabellen",
+      "detail": "Expected if tournament group stage not yet decided",
+      "severity": "Low",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "8j",
+      "status": "PASS",
+      "title": "Details toggle expands S/U/N/Tore/TD columns",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "9c",
+      "status": "PASS",
+      "title": "K.-o.-Baum stage labels present (VF, HF, Finale)",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "9e",
+      "status": "PASS",
+      "title": "Weltmeister crown present on Finale card",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "9g",
+      "status": "PASS",
+      "title": "Spiel um Platz 3 card present",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "9h",
+      "status": "PASS",
+      "title": "K.-o.-Baum tree is wider than viewport — horizontal scroll active",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "9l",
+      "status": "INFO",
+      "title": "No real bracket cards yet (all placeholder)",
+      "detail": "Tournament KO not started",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "10b",
+      "status": "PASS",
+      "title": "Aufstellungen picker present",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "10e",
+      "status": "PASS",
+      "title": "Heim/Auswärts pill switches correctly",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "11b",
+      "status": "PASS",
+      "title": "Kader shows team listings",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "12b",
+      "status": "PASS",
+      "title": "Spielerkarten overlay opens",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "12d",
+      "status": "DEFECT",
+      "title": "Spielerkarten close button below 44px",
+      "detail": "Size: 36x36px",
+      "severity": "High",
+      "steps": [
+        "Inspect #wmPkClose"
+      ],
+      "fix": "Set min 44x44px on .wm-pk-close"
+    },
+    {
+      "id": "12f",
+      "status": "PASS",
+      "title": "4 stat cells present",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "12h",
+      "status": "PASS",
+      "title": "Hero photo/initial present",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "12j",
+      "status": "PASS",
+      "title": "Player name displayed: \"Lionel MESSI\"",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "12l",
+      "status": "PASS",
+      "title": "WM 2026 Bilanz block present for topscorer",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "12m-overlay-pointer-bug",
+      "status": "DEFECT",
+      "title": "Spielerkarten overlay blocks pointer events when 'hidden' — CSS display:flex overrides [hidden]",
+      "detail": "Computed display is 'flex' instead of 'none' when overlay.hidden=true. This blocks all clicks to back buttons and other UI behind the overlay.",
+      "severity": "Critical",
+      "steps": [
+        "Open Spielerkarten",
+        "Close it",
+        "Try clicking #wmBackBtn — it will be blocked"
+      ],
+      "fix": "Add [hidden] { display: none !important; } to wm.css, OR remove display:flex from .wm-pk-overlay and use a wrapper div for the flex layout. Or use overlay.style.display='none' in close()."
+    },
+    {
+      "id": "12n",
+      "status": "DEFECT",
+      "title": "Tapping backdrop doesn't close Spielerkarten overlay",
+      "detail": "",
+      "severity": "Medium",
+      "steps": [
+        "Open Spielerkarten",
+        "Tap outside sheet"
+      ],
+      "fix": "Verify overlay click handler calls close()"
+    },
+    {
+      "id": "13a",
+      "status": "WARN",
+      "title": "Pull-to-refresh pill not visually confirmed during drag simulation",
+      "detail": "Playwright mouse drag may not trigger touch-based PTR logic",
+      "severity": "Low",
+      "steps": [
+        "In Spiele tab, drag down from top, hold 3s",
+        "Check for pill animation"
+      ],
+      "fix": "PTR works via touchstart/touchmove which requires real device or touch simulation"
+    },
+    {
+      "id": "14b",
+      "status": "PASS",
+      "title": "Hash deep-link navigates to Spiele tab",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "14d",
+      "status": "DEFECT",
+      "title": "Hash deep-link doesn't scroll to target match card",
+      "detail": "Match exists but isn't scrolled into view",
+      "severity": "High",
+      "steps": [
+        "Navigate to hash URL"
+      ],
+      "fix": "Check jumpToSpieleMatch scroll logic in matches.js"
+    },
+    {
+      "id": "V1-pass",
+      "status": "PASS",
+      "title": "Version stamp visible: \"v1.7.1\"",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "V2-pass",
+      "status": "PASS",
+      "title": "No team name text overflow detected in Spiele",
+      "detail": "",
+      "severity": "N/A",
+      "steps": [],
+      "fix": ""
+    },
+    {
+      "id": "V3",
+      "status": "DEFECT",
+      "title": "Torjägerliste renders 1255 DOM rows — extreme performance risk on mobile",
+      "detail": "All 1255+ scorers rendered at once; no pagination or virtualisation. On low-end devices this causes jank, memory pressure, and scroll lag.",
+      "severity": "High",
+      "steps": [
+        "Open Torjägerliste",
+        "Scroll list",
+        "Check frame rate drop"
+      ],
+      "fix": "Limit rendered rows to top 50 or implement pagination/virtualisation. The FIFA topscorers endpoint includes all registered players, not just those who scored — filter goals > 0."
+    }
+  ],
+  "screenshotDir": "/Users/filipeandrade/Developer/world-cup-viewer/qa-screenshots"
+}
