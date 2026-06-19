@@ -32,4 +32,7 @@ export interface Env {
   WM_FIFA_COMPETITION?: string;
   /** FIFA idSeason (WM 2026 = "285023"). */
   WM_FIFA_SEASON?: string;
+
+  /** SRF proxy base URL (home Mac via Cloudflare Tunnel). Empty = no proxy. */
+  SRF_PROXY_BASE?: string;
 }

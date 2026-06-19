@@ -16,6 +16,13 @@ WM_SEASON = "2026"
 WM_API_PROVIDER = "fifa"
 WM_FIFA_COMPETITION = "17"
 WM_FIFA_SEASON = "285023"
+# SRF proxy base — Cloudflare Tunnel from home Mac so non-CH viewers can
+# watch the geo-fenced SRF reels. Empty = no proxy (CH visitors only).
+# /api/config decides per-request via cf.country; CH visitors fetch direct.
+# Set to "https://srf.filipeandrade.com" AFTER the tunnel is created + DNS
+# is live (see tools/srf-proxy/README.md). Empty for now so a non-CH visitor
+# doesn't get pointed at a dead host.
+SRF_PROXY_BASE = ""
 
 # Match schedule/scores/scorers blob (wm/matches.json). Create once:
 #   wrangler r2 bucket create world-cup-data

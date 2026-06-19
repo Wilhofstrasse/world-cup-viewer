@@ -18,6 +18,27 @@ import { parseLiveCenterTitle } from "./parse.js";
 
 export const IL_BASE = "https://il.srgssr.ch/integrationlayer";
 
+/**
+ * Routes SRF + Akamai URLs through the home-Mac proxy when the visitor is
+ * outside CH (the proxy gets its base from /api/config — see appshell.js).
+ * Returns the URL unchanged when no proxy is set, when the URL is already
+ * proxified, or when the host isn't on the SRGSSR/Akamai surface.
+ */
+function proxify(url) {
+  const base = typeof window !== "undefined" ? window.WM_SRF_PROXY : null;
+  if (!base || !url) return url;
+  let host = "";
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    return url;
+  }
+  if (host === new URL(base).hostname) return url; // already going through us
+  const isSrf = /\.srgssr\.ch$/.test(host) || /\.akamaized\.net$/.test(host) || /\.srf\.ch$/.test(host);
+  if (!isSrf) return url;
+  return `${base.replace(/\/$/, "")}/proxy?url=${encodeURIComponent(url)}`;
+}
+
 /** SRF "FIFA WM 2026 Clips" show. */
 export const WM_SHOW_URN = "urn:srf:show:tv:c55b9fb8-e108-4994-a1d0-8c288bf8d5bc";
 
@@ -97,7 +118,7 @@ export async function fetchClips(opts = {}) {
     `?vector=${VECTOR}&pageSize=${pageSize}`;
   const all = [];
   for (let i = 0; i < maxPages && url; i++) {
-    const res = await fetch(url, { signal: opts.signal });
+    const res = await fetch(proxify(url), { signal: opts.signal });
     if (!res.ok) {
       if (i === 0) throw new Error(`IL list ${res.status}`);
       break; // a later-page hiccup → return what we have rather than nothing
@@ -142,7 +163,7 @@ export function liveCenterFixtures(data) {
  */
 export async function fetchFixtures(opts = {}) {
   const url = `${IL_BASE}/2.0/srf/mediaList/video/scheduledLivestreams/livecenter?pageSize=100&vector=${VECTOR}`;
-  const res = await fetch(url, { signal: opts.signal });
+  const res = await fetch(proxify(url), { signal: opts.signal });
   if (!res.ok) throw new Error(`IL livecenter ${res.status}`);
   return liveCenterFixtures(await res.json());
 }
@@ -156,9 +177,11 @@ export async function fetchFixtures(opts = {}) {
 export async function fetchHls(urn, opts = {}) {
   const url =
     `${IL_BASE}/2.1/mediaComposition/byUrn/${urn}?onlyChapters=true&vector=${VECTOR}`;
-  const res = await fetch(url, { signal: opts.signal });
+  const res = await fetch(proxify(url), { signal: opts.signal });
   if (!res.ok) throw new Error(`IL composition ${res.status}`);
   const hls = hlsFromMediaComposition(await res.json());
   if (!hls) throw new Error("no HLS resource");
-  return hls;
+  // Route the HLS playlist through the proxy too — the proxy rewrites segment
+  // URLs inside the playlist so the player never hits Akamai directly.
+  return { ...hls, url: proxify(hls.url) };
 }

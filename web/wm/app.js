@@ -70,16 +70,31 @@ try {
   sessionStorage.removeItem("wm.tab");
 } catch (_e) {/* storage may be unavailable; non-fatal */}
 
-// The ☰ drawer lives in the header and is a GLOBAL control backed by the
-// Highlights clip list, so initialise the feed at boot REGARDLESS of the active
-// tab. This wires ☰ (and gives the drawer its clips) even when we boot straight
-// into Spiele — e.g. after a SW-recovery reload restored wm.tab=spiele. Without
-// it, ☰ is dead on Spiele because wireDrawer() only runs inside initFeed().
-if (!inited.highlights) {
-  inited.highlights = true;
-  initFeed();
+// Runtime config (SRF proxy base for non-CH viewers) — fetched once at boot.
+// Resolves whether or not the network call succeeds: an offline first paint
+// degrades to direct SRF (works for CH visitors, gracefully fails for others).
+function bootstrapConfig() {
+  return fetch("/api/config", { cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : {}))
+    .then((cfg) => {
+      window.WM_SRF_PROXY = (cfg && cfg.srfProxy) || "";
+    })
+    .catch(() => {});
 }
-activate(bootTab);
+
+bootstrapConfig().finally(() => {
+  // The ☰ drawer lives in the header and is a GLOBAL control backed by the
+  // Highlights clip list, so initialise the feed at boot REGARDLESS of the
+  // active tab. This wires ☰ (and gives the drawer its clips) even when we
+  // boot straight into Spiele — e.g. after a SW-recovery reload restored
+  // wm.tab=spiele. Without it, ☰ is dead on Spiele because wireDrawer() only
+  // runs inside initFeed().
+  if (!inited.highlights) {
+    inited.highlights = true;
+    initFeed();
+  }
+  activate(bootTab);
+});
 
 // PWA: register the shared service worker (offline shell + push).
 if ("serviceWorker" in navigator) {

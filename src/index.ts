@@ -48,6 +48,20 @@ async function handleSquads(env: Env): Promise<Response> {
   return json({ squads: data.squads, updatedAt: data.updatedAt, season: data.season });
 }
 
+/**
+ * /api/config — runtime config the client reads at boot. Today: the SRF proxy
+ * base URL, served ONLY when the viewer is outside CH (CH visitors fetch SRF
+ * direct — faster, one less hop). country comes from Cloudflare's `cf.country`
+ * header so we don't ship the proxy URL to a CH visitor unnecessarily.
+ */
+function handleConfig(request: Request, env: Env): Response {
+  const cf = (request as Request & { cf?: { country?: string } }).cf;
+  const country = cf?.country || "";
+  const proxy = env.SRF_PROXY_BASE || "";
+  const srfProxy = proxy && country && country !== "CH" ? proxy : "";
+  return json({ srfProxy, country });
+}
+
 /** Cron that drives the football ingest (self-gated to the tournament window). */
 const WM_INGEST_CRON = "*/15 * * * *";
 
@@ -66,6 +80,7 @@ export default {
       if (pathname === "/api/wm/topscorers" && method === "GET") return await handleTopScorers(env);
       if (pathname === "/api/wm/tabellen" && method === "GET") return await handleTabellen(env);
       if (pathname === "/api/wm/squads" && method === "GET") return await handleSquads(env);
+      if (pathname === "/api/config" && method === "GET") return handleConfig(request, env);
       if (pathname === "/api/version" && method === "GET") return json({ version: env.APP_VERSION ?? "dev" });
     } catch {
       return json({ error: "Internal error" }, 500);

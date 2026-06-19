@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  LaunchAgent for cloudflared (the Cloudflare Tunnel daemon).
+  Install (one-time, AFTER `cloudflared tunnel create wm-srf-proxy` + DNS route):
+    cp tools/srf-proxy/com.filipeandrade.cloudflared.plist ~/Library/LaunchAgents/
+    launchctl load   ~/Library/LaunchAgents/com.filipeandrade.cloudflared.plist
+    launchctl start  com.filipeandrade.cloudflared
+  Check:
+    launchctl list | grep cloudflared
+    curl -s https://srf.filipeandrade.com/health
+  Logs:
+    tail -f /Users/filipeandrade/Library/Logs/cloudflared.log
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.filipeandrade.cloudflared</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/cloudflared</string>
+    <string>tunnel</string>
+    <string>--config</string>
+    <string>/Users/filipeandrade/Developer/world-cup-viewer/tools/srf-proxy/cloudflared-config.yml</string>
+    <string>run</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key><string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/Users/filipeandrade/Library/Logs/cloudflared.log</string>
+  <key>StandardErrorPath</key><string>/Users/filipeandrade/Library/Logs/cloudflared.log</string>
+</dict>
+</plist>
