@@ -5,7 +5,7 @@ compatibility_date = "2026-05-01"
 [vars]
 # Deployed app version — surfaced via GET /api/version so the PWA footer shows
 # the true running build even when the installed shell is cached.
-APP_VERSION = "1.8.0"
+APP_VERSION = "1.8.1"
 # WM 2026 football (non-secret config). API-Football key is a secret:
 #   wrangler secret put APIFOOTBALL_KEY
 # WM_LEAGUE_ID 1 = FIFA World Cup (confirm on first live call).
@@ -19,10 +19,11 @@ WM_FIFA_SEASON = "285023"
 # SRF proxy base — Cloudflare Tunnel from home Mac so non-CH viewers can
 # watch the geo-fenced SRF reels. Empty = no proxy (CH visitors only).
 # /api/config decides per-request via cf.country; CH visitors fetch direct.
-# Set to "https://srf.filipeandrade.com" AFTER the tunnel is created + DNS
-# is live (see tools/srf-proxy/README.md). Empty for now so a non-CH visitor
-# doesn't get pointed at a dead host.
-SRF_PROXY_BASE = ""
+# Live since 19.06.2026 via cloudflared LaunchAgent + Node proxy on the home
+# Mac (see tools/srf-proxy/README.md). CH visitors fetch SRF direct
+# (/api/config serves srfProxy="" for cf.country=CH); non-CH visitors get
+# routed through the tunnel so the SRF reels stay watchable abroad.
+SRF_PROXY_BASE = "https://srf.filipeandrade.com"
 
 # Match schedule/scores/scorers blob (wm/matches.json). Create once:
 #   wrangler r2 bucket create world-cup-data

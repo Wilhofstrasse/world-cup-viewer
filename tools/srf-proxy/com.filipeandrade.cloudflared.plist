@@ -16,13 +16,16 @@
 <dict>
   <key>Label</key>
   <string>com.filipeandrade.cloudflared</string>
+  <!-- Token-based run: tunnel UUID + secret are encoded in TUNNEL_TOKEN.
+       Install the token to your login keychain FIRST so it isn't in the plist:
+         security add-generic-password \
+           -a "$USER" -s wm-srf-proxy-token -w "<TOKEN_FROM_CHAT>" -U
+       Then the wrapper below reads it on every launch. -->
   <key>ProgramArguments</key>
   <array>
-    <string>/opt/homebrew/bin/cloudflared</string>
-    <string>tunnel</string>
-    <string>--config</string>
-    <string>/Users/filipeandrade/Developer/world-cup-viewer/tools/srf-proxy/cloudflared-config.yml</string>
-    <string>run</string>
+    <string>/bin/sh</string>
+    <string>-c</string>
+    <string>exec /opt/homebrew/bin/cloudflared tunnel run --token "$(security find-generic-password -a $USER -s wm-srf-proxy-token -w)"</string>
   </array>
   <key>EnvironmentVariables</key>
   <dict>
