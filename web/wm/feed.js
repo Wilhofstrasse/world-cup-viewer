@@ -335,10 +335,13 @@ function renderDrawerList(q) {
     const teams = c.match ? `${esc(c.match.teamA)} – ${esc(c.match.teamB)}` : esc(c.title);
     const cls = i === cur ? "wm-drawer-item is-current" : "wm-drawer-item";
     const match = c.match ? findMatchByTeams(c.match.teamA, c.match.teamB) : null;
-    const infoBtn = match
+    // Always render a slot at the right edge so the ⓘ column lines up across
+    // every row — when no Spielinfo exists for this clip, the slot is empty
+    // but reserves the same width as the button.
+    const rightSlot = match
       ? `<button class="wm-drawer-info" data-mid="${match.id}" type="button" aria-label="Spielinfo öffnen" title="Spielinfo">ⓘ</button>`
-      : "";
-    return `<div class="wm-drawer-row"><button class="${cls}" data-i="${i}" type="button"><span class="f">${flags}</span><span class="t">${teams}</span><span class="d">${fmtWhen(c.dateISO)}</span></button>${infoBtn}</div>`;
+      : `<span class="wm-drawer-info-spacer" aria-hidden="true"></span>`;
+    return `<div class="wm-drawer-row"><button class="${cls}" data-i="${i}" type="button"><span class="f">${flags}</span><span class="t">${teams}</span><span class="d">${fmtWhen(c.dateISO)}</span></button>${rightSlot}</div>`;
   }
   function section(label, arr) {
     return arr.length ? `<div class="wm-drawer-group">${label}</div>` + arr.map(itemMarkup).join("") : "";
