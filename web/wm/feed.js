@@ -312,7 +312,38 @@ function buildDrawer(visible) {
   renderDrawerList(search ? search.value : "");
 }
 
-/** (Re)render the drawer list for a query — grouped HEUTE/FRÜHER, flat while searching. */
+/** Day key (YYYY-MM-DD) for grouping; "" when ISO is bad. */
+function dayKey(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(+d)) return "";
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Day label ("Heute" / "Gestern" / "Mi. 18.06.2026") for a clip's local day. */
+function dayLabel(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(+d)) return "";
+  const today = new Date();
+  const sameDay = d.toDateString() === today.toDateString();
+  if (sameDay) return "Heute";
+  const y = new Date(today);
+  y.setDate(today.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return "Gestern";
+  return d.toLocaleDateString("de-CH", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+/** Kickoff time HH:MM, mono, for the timeline rail. */
+function dayTime(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(+d)) return "";
+  return d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Zurich" });
+}
+
+/** (Re)render the drawer as a vertical timeline grouped by day. */
 function renderDrawerList(q) {
   const list = document.getElementById("wmDrawerList");
   if (!list) return;
@@ -331,29 +362,49 @@ function renderDrawerList(q) {
   }
 
   function itemMarkup({ c, i }) {
-    const flags = c.match ? `${flagFor(c.match.teamA)} ${flagFor(c.match.teamB)}` : "🎬";
-    const teams = c.match ? `${esc(c.match.teamA)} – ${esc(c.match.teamB)}` : esc(c.title);
+    const flagA = c.match ? flagFor(c.match.teamA) : "🎬";
+    const flagB = c.match ? flagFor(c.match.teamB) : "";
+    const nameA = c.match ? esc(c.match.teamA) : esc(c.title);
+    const nameB = c.match ? esc(c.match.teamB) : "";
     const cls = i === cur ? "wm-drawer-item is-current" : "wm-drawer-item";
     const match = c.match ? findMatchByTeams(c.match.teamA, c.match.teamB) : null;
-    // Always render a slot at the right edge so the ⓘ column lines up across
-    // every row — when no Spielinfo exists for this clip, the slot is empty
-    // but reserves the same width as the button.
     const rightSlot = match
       ? `<button class="wm-drawer-info" data-mid="${match.id}" type="button" aria-label="Spielinfo öffnen" title="Spielinfo">ⓘ</button>`
       : `<span class="wm-drawer-info-spacer" aria-hidden="true"></span>`;
-    return `<div class="wm-drawer-row"><button class="${cls}" data-i="${i}" type="button"><span class="f">${flags}</span><span class="t">${teams}</span><span class="d">${fmtWhen(c.dateISO)}</span></button>${rightSlot}</div>`;
+    const time = dayTime(c.dateISO);
+    return `<div class="wm-drawer-row">
+        <button class="${cls}" data-i="${i}" type="button">
+          <span class="wm-drawer-time">${esc(time)}</span>
+          <span class="wm-drawer-teams">
+            <span class="wm-drawer-team"><span class="f">${flagA}</span><span class="nm">${nameA}</span></span>
+            ${nameB ? `<span class="wm-drawer-team"><span class="f">${flagB}</span><span class="nm">${nameB}</span></span>` : ""}
+          </span>
+        </button>
+        ${rightSlot}
+      </div>`;
   }
-  function section(label, arr) {
-    return arr.length ? `<div class="wm-drawer-group">${label}</div>` + arr.map(itemMarkup).join("") : "";
+
+  function dayGroup(label, arr) {
+    return `<div class="wm-drawer-day"><div class="wm-drawer-day-head">${esc(label)}</div><div class="wm-drawer-day-list">${arr.map(itemMarkup).join("")}</div></div>`;
   }
 
   const loadingHint = clipsLoading && !ql ? `<p class="wm-drawer-loading">Weitere Spiele werden geladen…</p>` : "";
   if (ql) {
-    list.innerHTML = items.map(itemMarkup).join("");
+    list.innerHTML = `<div class="wm-drawer-search-list">${items.map(itemMarkup).join("")}</div>`;
   } else {
-    const today = items.filter(({ c }) => isToday(c.dateISO));
-    const older = items.filter(({ c }) => !isToday(c.dateISO));
-    list.innerHTML = section("Heute", today) + section("Früher", older) + loadingHint;
+    // Group by day, newest day first; within day keep the original (newest-first) order.
+    const groups = new Map();
+    for (const it of items) {
+      const key = dayKey(it.c.dateISO);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(it);
+    }
+    const sortedKeys = [...groups.keys()].sort((a, b) => b.localeCompare(a));
+    list.innerHTML = sortedKeys.map((k) => {
+      const arr = groups.get(k);
+      const label = dayLabel(arr[0].c.dateISO) || "—";
+      return dayGroup(label, arr);
+    }).join("") + loadingHint;
   }
 
   list.querySelectorAll(".wm-drawer-item").forEach((b) =>
