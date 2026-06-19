@@ -587,7 +587,9 @@ html, body {
   border: 1.5px solid var(--wm-line-soft);
   display: flex; align-items: center; justify-content: center;
   font-size: 15px; font-weight: 800; color: var(--wm-ink-dim);
-  background-size: cover; background-position: center;
+  /* FIFA full-body kit crop → face-zoom (same as the overlay). */
+  background-size: 220% auto; background-position: 50% 14%;
+  background-repeat: no-repeat;
   overflow: hidden;
 }
 .wm-ts-row.rk-1 .wm-ts-photo { border-color: #d4a017; border-width: 2px; }
@@ -906,7 +908,10 @@ body.wm-pk-open { overflow: hidden; }
 .wm-pk-photo {
   width: 104px; height: 104px; border-radius: 50%;
   background: var(--wm-surface);
-  background-size: cover; background-position: center;
+  /* FIFA ships full-body kit shots — zoom + position so the face is in frame
+     instead of the chest/legs. */
+  background-size: 220% auto; background-position: 50% 14%;
+  background-repeat: no-repeat;
   border: 3px solid var(--wm-ink);
   margin: 0 auto 12px;
   display: flex; align-items: center; justify-content: center;
