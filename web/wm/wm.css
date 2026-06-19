@@ -587,8 +587,8 @@ html, body {
   border: 1.5px solid var(--wm-line-soft);
   display: flex; align-items: center; justify-content: center;
   font-size: 15px; font-weight: 800; color: var(--wm-ink-dim);
-  /* FIFA full-body kit crop → face-zoom (same as the overlay). */
-  background-size: 220% auto; background-position: 50% 14%;
+  background-size: contain;
+  background-position: center;
   background-repeat: no-repeat;
   overflow: hidden;
 }
@@ -908,9 +908,11 @@ body.wm-pk-open { overflow: hidden; }
 .wm-pk-photo {
   width: 104px; height: 104px; border-radius: 50%;
   background: var(--wm-surface);
-  /* FIFA ships full-body kit shots — zoom + position so the face is in frame
-     instead of the chest/legs. */
-  background-size: 220% auto; background-position: 50% 14%;
+  /* FIFA mixes full-body kit shots with head-and-shoulders portraits. `contain`
+     never clips heads or feet; small extra paper around tight portraits is the
+     price for never cutting a face. */
+  background-size: contain;
+  background-position: center;
   background-repeat: no-repeat;
   border: 3px solid var(--wm-ink);
   margin: 0 auto 12px;
@@ -918,7 +920,10 @@ body.wm-pk-open { overflow: hidden; }
   font-size: 34px; font-weight: 800; color: var(--wm-ink-dim);
   position: relative; z-index: 1;
   box-shadow: 0 4px 0 var(--wm-line-soft), 0 8px 16px rgba(28,28,28,.08);
+  cursor: zoom-in;
+  -webkit-tap-highlight-color: transparent;
 }
+.wm-pk-photo[data-zoomable]:active { transform: scale(.98); }
 .wm-pk-name { font-size: 24px; font-weight: 800; line-height: 1.1; letter-spacing: -.015em; position: relative; z-index: 1; }
 .wm-pk-nat { font-size: 13px; color: var(--wm-ink-dim); margin-top: 4px; display: inline-flex; align-items: center; gap: 6px; position: relative; z-index: 1; }
 .wm-pk-nat .f { font-size: 16px; }
@@ -962,6 +967,33 @@ body.wm-pk-open { overflow: hidden; }
 .wm-pk-wm .g { text-align: center; }
 .wm-pk-wm .g .v { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--wm-ink); letter-spacing: -.02em; }
 .wm-pk-wm .g .l { font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--wm-ink-dim); margin-top: 3px; font-weight: 800; }
+
+/* Lightbox — tap player photo to view full-size image. */
+.wm-pk-lightbox {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(8, 8, 8, .92);
+  display: flex; align-items: center; justify-content: center;
+  padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  animation: wm-pk-fade .14s ease-out;
+  cursor: zoom-out;
+}
+.wm-pk-lightbox img {
+  max-width: 100%; max-height: 100%;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  background: var(--wm-surface);
+  -webkit-user-drag: none;
+}
+.wm-pk-lightbox .wm-pk-lightbox-close {
+  position: absolute; top: max(12px, env(safe-area-inset-top));
+  right: 14px;
+  min-width: 44px; min-height: 44px; width: 44px; height: 44px;
+  border-radius: 50%; border: none;
+  background: rgba(255,255,255,.95);
+  font-size: 20px; color: var(--wm-ink);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
 
 /* ════════════════════════════════════════════════════════════════════════
    Aufstellungen — match picker + pitch + bench (Mehr ▸ Aufstellungen).

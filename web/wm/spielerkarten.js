@@ -149,7 +149,7 @@ function render(player, wmStats, squadEntry) {
     null;
 
   const heroPhoto = photo
-    ? `<div class="wm-pk-photo" style="background-image:url('${esc(photo)}')"></div>`
+    ? `<div class="wm-pk-photo" data-zoomable data-src="${esc(photo)}" role="button" aria-label="Foto vergrössern" style="background-image:url('${esc(photo)}')"></div>`
     : `<div class="wm-pk-photo">${esc(initial(name))}</div>`;
 
   const stripCell = (lbl, val, sub) => `
@@ -192,6 +192,25 @@ function render(player, wmStats, squadEntry) {
     ${wmBlock}`;
 }
 
+function openLightbox(src) {
+  let lb = document.getElementById("wmPkLightbox");
+  if (!lb) {
+    lb = document.createElement("div");
+    lb.id = "wmPkLightbox";
+    lb.className = "wm-pk-lightbox";
+    lb.innerHTML = `<button class="wm-pk-lightbox-close" aria-label="Schliessen">✕</button><img alt="" />`;
+    document.body.appendChild(lb);
+    lb.addEventListener("click", (ev) => {
+      if (ev.target === lb || ev.target.classList.contains("wm-pk-lightbox-close") || ev.target.tagName === "IMG" && ev.target !== ev.currentTarget && false) {
+        lb.remove();
+      }
+    });
+    // Plain click anywhere on the backdrop or the close button → close.
+    lb.addEventListener("click", () => lb.remove(), { capture: false });
+  }
+  lb.querySelector("img").src = src;
+}
+
 async function open(idPlayer) {
   ensureOverlay();
   const body = overlay.querySelector("#wmPkBody");
@@ -205,6 +224,14 @@ async function open(idPlayer) {
     const name = loc(player.Name) || loc(player.PlayerName) || "";
     const wm = name ? await fetchWmStats(name) : null;
     body.innerHTML = render(player, wm, squadEntry);
+    // Wire photo tap → lightbox.
+    body.querySelectorAll(".wm-pk-photo[data-zoomable]").forEach((el) => {
+      el.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        const src = el.dataset.src;
+        if (src) openLightbox(src);
+      });
+    });
   } catch (_e) {
     body.innerHTML = `<div class="wm-pk-loading">Spielerkarte konnte nicht geladen werden.</div>`;
   }
