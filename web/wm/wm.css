@@ -90,9 +90,12 @@ html, body {
   transition: background .14s, color .14s;
   white-space: nowrap;
 }
-@media (max-width: 380px) {
-  .wm-tab { padding: 8px 8px; font-size: 12px; }
-  .wm-appnav-link { font-size: 17px; }
+/* iPhone-class viewports: ☰ + 3-tab pill alone don't physically fit when the
+   "WM 2026" wordmark sits between them. Drop the wordmark on narrow screens;
+   it's redundant — the favicon + tab pill already say "WM app". iPad keeps it. */
+@media (max-width: 480px) {
+  .wm-appnav-link { display: none; }
+  .wm-tab { padding: 8px 11px; font-size: 13px; }
 }
 .wm-tab[aria-selected="true"] { background: var(--wm-accent); color: #fff; }
 
