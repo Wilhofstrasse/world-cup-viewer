@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-label="WM 2026">
+  <!-- Brand circle: tomato accent, ink outline (matches the PWA chrome). -->
+  <circle cx="256" cy="256" r="248" fill="#c73b21" stroke="#1c1c1c" stroke-width="16"/>
+  <!-- Soccer ball: white sphere with the classic pentagon/hexagon pattern. -->
+  <g transform="translate(256 256)">
+    <circle r="170" fill="#ffffff" stroke="#1c1c1c" stroke-width="11"/>
+    <!-- Centre pentagon. -->
+    <polygon points="0,-66 63,-20 39,54 -39,54 -63,-20" fill="#1c1c1c"/>
+    <!-- Three outer pentagons hint the ball's curvature (top/bottom-left/bottom-right). -->
+    <polygon points="0,-150 -47,-118 -28,-72 28,-72 47,-118" fill="#1c1c1c" opacity=".95"/>
+    <polygon points="-138,52 -118,3 -69,7 -47,55 -85,90" fill="#1c1c1c" opacity=".95"/>
+    <polygon points="138,52 118,3 69,7 47,55 85,90" fill="#1c1c1c" opacity=".95"/>
+    <!-- Seams connecting the panels — six thin strokes radiating from the centre pentagon. -->
+    <g stroke="#1c1c1c" stroke-width="6" stroke-linecap="round" fill="none">
+      <line x1="0" y1="-66" x2="0" y2="-118"/>
+      <line x1="-63" y1="-20" x2="-100" y2="-12"/>
+      <line x1="63" y1="-20" x2="100" y2="-12"/>
+      <line x1="-39" y1="54" x2="-74" y2="76"/>
+      <line x1="39" y1="54" x2="74" y2="76"/>
+      <line x1="-150" y1="0" x2="-170" y2="0" opacity="0"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-label="WM 2026">
+  <!-- Maskable: bleed the brand colour to the edge so Android can crop into any
+       shape (circle, squircle, super-ellipse). The ball stays inside the
+       "safe zone" (80% of the canvas) so no detail is ever cropped. -->
+  <rect width="512" height="512" fill="#c73b21"/>
+  <g transform="translate(256 256)">
+    <circle r="136" fill="#ffffff" stroke="#1c1c1c" stroke-width="9"/>
+    <polygon points="0,-52 50,-16 31,42 -31,42 -50,-16" fill="#1c1c1c"/>
+    <polygon points="0,-120 -38,-94 -22,-58 22,-58 38,-94" fill="#1c1c1c" opacity=".95"/>
+    <polygon points="-110,42 -94,2 -55,5 -38,44 -68,72" fill="#1c1c1c" opacity=".95"/>
+    <polygon points="110,42 94,2 55,5 38,44 68,72" fill="#1c1c1c" opacity=".95"/>
+    <g stroke="#1c1c1c" stroke-width="5" stroke-linecap="round" fill="none">
+      <line x1="0" y1="-52" x2="0" y2="-94"/>
+      <line x1="-50" y1="-16" x2="-80" y2="-10"/>
+      <line x1="50" y1="-16" x2="80" y2="-10"/>
+      <line x1="-31" y1="42" x2="-59" y2="60"/>
+      <line x1="31" y1="42" x2="59" y2="60"/>
+    </g>
+  </g>
+</svg>
