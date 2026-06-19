@@ -23,6 +23,8 @@ import {
   mapQualificationStatus,
   standingGroupLetter,
   mapFifaStanding,
+  mapFifaSquadPlayer,
+  mapFifaSquad,
 } from "../wm/fifa.js";
 import { getProvider } from "../wm/football.js";
 import type { FifaMatch, FifaTimelineEvent } from "../wm/types.js";
@@ -175,6 +177,7 @@ describe("mapFifaTopScorer", () => {
     expect(s).toEqual({
       rank: 1,
       player: "L. Messi",
+      idPlayer: null,
       team: "Argentinien",
       idTeam: "43946",
       goals: 5,
@@ -208,8 +211,8 @@ describe("enrichScorerTeams", () => {
   it("fills the team display name from idTeam → name map", () => {
     const out = enrichScorerTeams(
       [
-        { rank: 1, player: "Messi", team: "", idTeam: "43946", goals: 5, assists: 2, matches: 3, photoUrl: null },
-        { rank: 2, player: "Mbappé", team: "Frankreich", idTeam: "43948", goals: 4, assists: 1, matches: 3, photoUrl: null },
+        { rank: 1, player: "Messi", idPlayer: "1", team: "", idTeam: "43946", goals: 5, assists: 2, matches: 3, photoUrl: null },
+        { rank: 2, player: "Mbappé", idPlayer: "2", team: "Frankreich", idTeam: "43948", goals: 4, assists: 1, matches: 3, photoUrl: null },
       ],
       new Map([["43946", "Argentinien"]]),
     );
@@ -219,7 +222,7 @@ describe("enrichScorerTeams", () => {
 
   it("leaves team blank when the id is unknown", () => {
     const out = enrichScorerTeams(
-      [{ rank: 1, player: "X", team: "", idTeam: "999", goals: 1, assists: 0, matches: 1, photoUrl: null }],
+      [{ rank: 1, player: "X", idPlayer: "9", team: "", idTeam: "999", goals: 1, assists: 0, matches: 1, photoUrl: null }],
       new Map(),
     );
     expect(out[0]?.team).toBe("");
@@ -291,6 +294,64 @@ describe("mapFifaStanding", () => {
   it("returns null when neither Name nor ShortClubName are present", () => {
     const r = mapFifaStanding({ Position: 1, Team: { IdTeam: "x" } });
     expect(r).toBeNull();
+  });
+});
+
+describe("mapFifaSquadPlayer", () => {
+  it("normalizes a typical squad row", () => {
+    const p = mapFifaSquadPlayer({
+      IdPlayer: "448217",
+      PlayerName: [{ Description: "Matt TURNER" }],
+      JerseyNum: 1,
+      Position: 0,
+      PositionLocalized: [{ Description: "Torhüter" }],
+      BirthDate: "1994-06-24T00:00:00Z",
+      Height: 190,
+      PlayerPicture: { PictureUrl: "https://digitalhub.fifa.com/x.png" },
+      IdCountry: "USA",
+    });
+    expect(p).toEqual({
+      idPlayer: "448217",
+      name: "Matt TURNER",
+      jerseyNum: 1,
+      position: 0,
+      positionLabel: "Torhüter",
+      birthDate: "1994-06-24T00:00:00Z",
+      height: 190,
+      photoUrl: "https://digitalhub.fifa.com/x.png",
+      idCountry: "USA",
+    });
+  });
+
+  it("returns null when IdPlayer is missing", () => {
+    expect(mapFifaSquadPlayer({ PlayerName: [{ Description: "X" }] })).toBeNull();
+  });
+
+  it("falls back to ShortName when PlayerName is empty", () => {
+    const p = mapFifaSquadPlayer({
+      IdPlayer: "1",
+      ShortName: [{ Description: "TURNER" }],
+    });
+    expect(p?.name).toBe("TURNER");
+  });
+});
+
+describe("mapFifaSquad", () => {
+  it("sorts players by position then jersey number", () => {
+    const sq = mapFifaSquad({
+      IdTeam: "T1",
+      TeamName: [{ Description: "USA" }],
+      Players: [
+        { IdPlayer: "p3", PlayerName: [{ Description: "A" }], JerseyNum: 22, Position: 3 },
+        { IdPlayer: "p1", PlayerName: [{ Description: "B" }], JerseyNum: 1, Position: 0 },
+        { IdPlayer: "p2", PlayerName: [{ Description: "C" }], JerseyNum: 4, Position: 1 },
+      ],
+    });
+    expect(sq?.players.map((p) => p.idPlayer)).toEqual(["p1", "p2", "p3"]);
+  });
+
+  it("returns null when TeamName is empty", () => {
+    expect(mapFifaSquad({ IdTeam: "T", TeamName: [] })).toBeNull();
   });
 });
 

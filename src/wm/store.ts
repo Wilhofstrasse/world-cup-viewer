@@ -6,14 +6,16 @@
  */
 
 import type { Env } from "../types.js";
-import type { WmData, WmTopScorers, WmTabellen } from "./types.js";
+import type { WmData, WmTopScorers, WmTabellen, WmSquads } from "./types.js";
 
 const MATCHES_KEY = "wm/matches.json";
 const TOPSCORERS_KEY = "wm/topscorers.json";
 const TABELLEN_KEY = "wm/tabellen.json";
+const SQUADS_KEY = "wm/squads.json";
 const EMPTY_MATCHES: WmData = { updatedAt: 0, season: "", matches: [] };
 const EMPTY_TOPSCORERS: WmTopScorers = { updatedAt: 0, season: "", scorers: [] };
 const EMPTY_TABELLEN: WmTabellen = { updatedAt: 0, season: "", rows: [] };
+const EMPTY_SQUADS: WmSquads = { updatedAt: 0, season: "", squads: [] };
 
 export async function loadWmData(env: Env): Promise<WmData> {
   if (!env.WM_R2) return { ...EMPTY_MATCHES };
@@ -71,6 +73,26 @@ export async function loadWmTabellen(env: Env): Promise<WmTabellen> {
 export async function saveWmTabellen(env: Env, data: WmTabellen): Promise<void> {
   if (!env.WM_R2) return;
   await env.WM_R2.put(TABELLEN_KEY, JSON.stringify(data), {
+    httpMetadata: { contentType: "application/json" },
+  });
+}
+
+export async function loadWmSquads(env: Env): Promise<WmSquads> {
+  if (!env.WM_R2) return { ...EMPTY_SQUADS };
+  try {
+    const obj = await env.WM_R2.get(SQUADS_KEY);
+    if (!obj) return { ...EMPTY_SQUADS };
+    const data = JSON.parse(await obj.text()) as WmSquads;
+    if (!data || !Array.isArray(data.squads)) return { ...EMPTY_SQUADS };
+    return data;
+  } catch {
+    return { ...EMPTY_SQUADS };
+  }
+}
+
+export async function saveWmSquads(env: Env, data: WmSquads): Promise<void> {
+  if (!env.WM_R2) return;
+  await env.WM_R2.put(SQUADS_KEY, JSON.stringify(data), {
     httpMetadata: { contentType: "application/json" },
   });
 }

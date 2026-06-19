@@ -26,6 +26,8 @@ import type {
   GoalType,
   TopScorer,
   TabellenRow,
+  Squad,
+  SquadPlayer,
   FifaLoc,
   FifaMatch,
   FifaMatchesResponse,
@@ -35,6 +37,9 @@ import type {
   FifaTopScorersResponse,
   FifaStandingRow,
   FifaStandingResponse,
+  FifaSquadPlayer,
+  FifaSquadTeam,
+  FifaSquadsResponse,
 } from "./types.js";
 import type { FootballProvider } from "./football.js"; // type-only → no runtime cycle
 
@@ -238,6 +243,7 @@ export function mapFifaTopScorer(raw: FifaTopScorerRow): TopScorer | null {
   return {
     rank: raw.Rank,
     player,
+    idPlayer: info.IdPlayer || null,
     team: loc(info.TeamName) || "",
     idTeam: info.IdTeam || null,
     goals: raw.GoalsScored ?? 0,
@@ -361,6 +367,62 @@ export function mapFifaStanding(raw: FifaStandingRow): TabellenRow | null {
     qualification: mapQualificationStatus(raw.QualificationStatus),
     crestUrlTemplate: raw.Team.PictureUrl ?? null,
   };
+}
+
+/** Normalizes a FIFA squad player → SquadPlayer. */
+export function mapFifaSquadPlayer(raw: FifaSquadPlayer): SquadPlayer | null {
+  if (!raw.IdPlayer) return null;
+  const name = loc(raw.PlayerName) || loc(raw.ShortName) || "";
+  if (!name) return null;
+  return {
+    idPlayer: raw.IdPlayer,
+    name,
+    jerseyNum: raw.JerseyNum ?? null,
+    position: typeof raw.Position === "number" ? raw.Position : 0,
+    positionLabel: loc(raw.PositionLocalized) || "",
+    birthDate: raw.BirthDate || "",
+    height: raw.Height ?? null,
+    photoUrl: (raw.PlayerPicture && raw.PlayerPicture.PictureUrl) || raw.PictureUrl || null,
+    idCountry: raw.IdCountry || null,
+  };
+}
+
+/** Normalizes one squad team → Squad, sorting players by jersey number. */
+export function mapFifaSquad(raw: FifaSquadTeam): Squad | null {
+  if (!raw.IdTeam) return null;
+  const teamName = loc(raw.TeamName) || "";
+  if (!teamName) return null;
+  const players: SquadPlayer[] = [];
+  for (const p of raw.Players || []) {
+    const sp = mapFifaSquadPlayer(p);
+    if (sp) players.push(sp);
+  }
+  players.sort((a, b) => {
+    if (a.position !== b.position) return a.position - b.position;
+    const ja = a.jerseyNum ?? 999;
+    const jb = b.jerseyNum ?? 999;
+    return ja - jb;
+  });
+  return {
+    idTeam: raw.IdTeam,
+    teamName,
+    crestUrl: raw.PictureUrl || null,
+    players,
+  };
+}
+
+/** All 48 team squads. Server-sorted by teamName for a stable list. */
+export async function fetchSquads(env: Env): Promise<Squad[]> {
+  const data = await fifaGet<FifaSquadsResponse>(
+    `/teams/squads/all/${comp(env)}/${season(env)}?language=de-DE`,
+  );
+  const out: Squad[] = [];
+  for (const t of data.Results || []) {
+    const sq = mapFifaSquad(t);
+    if (sq) out.push(sq);
+  }
+  out.sort((a, b) => a.teamName.localeCompare(b.teamName));
+  return out;
 }
 
 /**

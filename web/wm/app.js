@@ -12,6 +12,7 @@ import { initFeed } from "./feed.js";
 import { initMatches, jumpToSpieleMatch } from "./matches.js";
 import { initMehr, openMehrSubview, closeMehrSubview } from "./mehr.js";
 import { findClipByTeams, getMatch } from "./linkstore.js";
+import { openSpielerkarte } from "./spielerkarten.js";
 
 const inited = { highlights: false, spiele: false, mehr: false };
 
@@ -90,6 +91,7 @@ if ("serviceWorker" in navigator) {
 // Expose sub-view navigation for inline handlers / other modules.
 window.openMehrSubview = openMehrSubview;
 window.closeMehrSubview = closeMehrSubview;
+window.openSpielerkarte = openSpielerkarte;
 
 // ── Cross-tab deep-linking ──────────────────────────────────────────────────
 //

@@ -69,6 +69,8 @@ export interface WmData {
 export interface TopScorer {
   rank: number;
   player: string;
+  /** FIFA IdPlayer — opens Spielerkarten on tap. null when missing. */
+  idPlayer: string | null;
   team: string;
   idTeam: string | null;
   goals: number;
@@ -112,6 +114,40 @@ export interface WmTabellen {
   updatedAt: number;
   season: string;
   rows: TabellenRow[];
+}
+
+/** One player row inside a Squad. */
+export interface SquadPlayer {
+  idPlayer: string;
+  name: string;
+  jerseyNum: number | null;
+  /** FIFA position bucket: 0=Tor, 1=Abwehr, 2=Mittelfeld, 3=Angriff (best effort). */
+  position: number;
+  /** Localized position string ("Torhüter"); empty when unavailable. */
+  positionLabel: string;
+  /** ISO-8601 birth date; "" when unknown. */
+  birthDate: string;
+  /** Centimeters; null when unknown. */
+  height: number | null;
+  /** FIFA-hosted PictureUrl; null when unknown. */
+  photoUrl: string | null;
+  /** Country code (ISO3) for the player's nationality. */
+  idCountry: string | null;
+}
+
+export interface Squad {
+  idTeam: string;
+  teamName: string;
+  /** FIFA flag/crest URL (already resolved to {format,size} where possible). */
+  crestUrl: string | null;
+  players: SquadPlayer[];
+}
+
+/** The blob stored in R2 at wm/squads.json and served by /api/wm/squads. */
+export interface WmSquads {
+  updatedAt: number;
+  season: string;
+  squads: Squad[];
 }
 
 // ---------------------------------------------------------------------------
@@ -253,4 +289,29 @@ export interface FifaStandingRow {
 
 export interface FifaStandingResponse {
   Results?: FifaStandingRow[];
+}
+
+export interface FifaSquadPlayer {
+  IdPlayer?: string;
+  PlayerName?: FifaLoc[];
+  ShortName?: FifaLoc[];
+  JerseyNum?: number | null;
+  Position?: number;
+  PositionLocalized?: FifaLoc[];
+  BirthDate?: string;
+  Height?: number | null;
+  PictureUrl?: string | null;
+  PlayerPicture?: FifaPlayerPicture | null;
+  IdCountry?: string | null;
+}
+
+export interface FifaSquadTeam {
+  IdTeam?: string;
+  TeamName?: FifaLoc[];
+  PictureUrl?: string | null;
+  Players?: FifaSquadPlayer[];
+}
+
+export interface FifaSquadsResponse {
+  Results?: FifaSquadTeam[];
 }

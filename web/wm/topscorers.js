@@ -52,8 +52,9 @@ function rowHtml(s, isTied) {
   const photo = s.photoUrl
     ? `<span class="wm-ts-photo" style="background-image:url('${esc(s.photoUrl)}')"></span>`
     : `<span class="wm-ts-photo">${esc(initial(s.player))}</span>`;
+  const dataAttr = s.idPlayer ? ` data-id="${esc(s.idPlayer)}"` : "";
   return `
-    <div class="wm-ts-row ${rankClass(s.rank)}">
+    <div class="wm-ts-row ${rankClass(s.rank)} ${s.idPlayer ? "is-tappable" : ""}"${dataAttr}>
       <div class="wm-ts-rank">${rankHtml(s.rank, isTied)}</div>
       ${photo}
       <div class="wm-ts-who">
@@ -114,6 +115,13 @@ function render(state) {
       // FIFA's feed is tournament-to-date today — recompute path is for v1.5.
       // Re-render only to flip the pill's selected state for now.
       render(lastState);
+    }),
+  );
+  // Tap a row → open the Spielerkarten overlay for that player.
+  mounted.querySelectorAll(".wm-ts-row.is-tappable").forEach((row) =>
+    row.addEventListener("click", () => {
+      const id = row.dataset.id;
+      if (id && typeof window.openSpielerkarte === "function") window.openSpielerkarte(id);
     }),
   );
 }

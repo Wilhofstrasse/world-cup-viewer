@@ -16,13 +16,23 @@
  */
 
 import type { Env } from "../types.js";
-import type { Match, WmData, WmTopScorers, WmTabellen } from "./types.js";
+import type { Match, WmData, WmTopScorers, WmTabellen, WmSquads } from "./types.js";
 import { getProvider } from "./football.js";
-import { loadWmData, loadWmTopScorers, loadWmTabellen, saveWmData, saveWmTopScorers, saveWmTabellen } from "./store.js";
-import { fetchTopScorers, enrichScorerTeams, fetchTabellen } from "./fifa.js";
+import {
+  loadWmData,
+  loadWmTopScorers,
+  loadWmTabellen,
+  loadWmSquads,
+  saveWmData,
+  saveWmTopScorers,
+  saveWmTabellen,
+  saveWmSquads,
+} from "./store.js";
+import { fetchTopScorers, enrichScorerTeams, fetchTabellen, fetchSquads } from "./fifa.js";
 
 const TOPSCORERS_MAX_AGE_MS = 30 * 60 * 1000; // refresh every 30 min in-window
 const TABELLEN_MAX_AGE_MS = 30 * 60 * 1000;
+const SQUADS_MAX_AGE_MS = 6 * 60 * 60 * 1000; // squads change rarely → 6 h
 
 // Tournament window (Europe/Zurich offsets). Outside this, ingest no-ops.
 const WM_START_MS = Date.parse("2026-06-11T00:00:00+02:00");
@@ -91,6 +101,25 @@ async function refreshTopScorers(env: Env, matches: Match[], nowMs: number): Pro
 }
 
 /**
+ * Refreshes the all-48-team squads blob from FIFA (keyless, single request).
+ * Squads change rarely; the freshness clock is 6 h.
+ */
+async function refreshSquads(env: Env, nowMs: number): Promise<void> {
+  if ((env.WM_API_PROVIDER || "fifa") !== "fifa") return;
+  try {
+    const squads = await fetchSquads(env);
+    const data: WmSquads = {
+      updatedAt: Math.floor(nowMs / 1000),
+      season: env.WM_SEASON || "2026",
+      squads,
+    };
+    await saveWmSquads(env, data);
+  } catch {
+    // upstream hiccup — keep last good blob, retry next tick
+  }
+}
+
+/**
  * Refreshes the group-standings blob from FIFA (keyless, single request) — its
  * own freshness clock, same as top scorers. No budget gate.
  */
@@ -127,6 +156,10 @@ export async function runWmIngest(env: Env): Promise<void> {
   const prevTab = await loadWmTabellen(env);
   const tabStale = !prevTab.rows.length || (nowMs - prevTab.updatedAt * 1000 > TABELLEN_MAX_AGE_MS);
   if (tabStale) await refreshTabellen(env, nowMs);
+
+  const prevSq = await loadWmSquads(env);
+  const sqStale = !prevSq.squads.length || (nowMs - prevSq.updatedAt * 1000 > SQUADS_MAX_AGE_MS);
+  if (sqStale) await refreshSquads(env, nowMs);
 
   if (!shouldFetch(prev, nowMs)) return;
 

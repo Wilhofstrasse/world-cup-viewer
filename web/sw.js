@@ -18,7 +18,7 @@
 
 "use strict";
 
-const SHELL_CACHE = "wm-shell-v16";
+const SHELL_CACHE = "wm-shell-v17";
 const DATA_CACHE = "wm-data-v2";
 const THUMB_CACHE = "wm-thumbs-v2";
 const THUMB_MAX = 120; // cap stored thumbnails
@@ -41,6 +41,8 @@ const WM_SHELL = [
   "/wm/topscorers.js",
   "/wm/tabellen.js",
   "/wm/bracket.js",
+  "/wm/kader.js",
+  "/wm/spielerkarten.js",
   "/wm/linkstore.js",
   "/wm/il.js",
   "/wm/parse.js",
@@ -158,6 +160,7 @@ function isWmData(url, sameOrigin) {
   if (sameOrigin && url.pathname === "/api/wm/matches") return true;
   if (sameOrigin && url.pathname === "/api/wm/topscorers") return true;
   if (sameOrigin && url.pathname === "/api/wm/tabellen") return true;
+  if (sameOrigin && url.pathname === "/api/wm/squads") return true;
   return url.hostname === "il.srgssr.ch" && url.pathname.includes("/episodeComposition/");
 }
 
