@@ -37,7 +37,20 @@ const WORKER_BASE = process.env.WORKER_BASE || "https://wm.filipeandrade.com";
 const AUTH_TOKEN = process.env.WM_MARKERS_TOKEN || "";
 
 const PRE_ROLL_SEC = 4;
-const GOAL_RE = /\b(?:t+o+o*r+|t+o+r+e|trifft|treffer|gleicher|fuhrung|fuehrung|goal|goooal|netz|reinstecken|reingedru?eckt|einnetzt)/i;
+const DEDUP_SEC = 15;          // commentator excitement clusters → merge inside 15 s
+const MAX_MARKERS = 8;         // cap per clip — real games rarely have > 6 goals
+const SKIP_INTRO_SEC = 3;
+const SKIP_OUTRO_SEC = 5;
+
+/**
+ * Cue regex. Whisper transcribes a shouted goal as either "Tor!", "Tooor!" or
+ * "Treffer!" — match any of those. Word-bounded "Tor" so compounds like
+ * "Tordifferenz", "Torwart", "Torschütze" don't slip in. "Goal" / "Goooal"
+ * carries from any English-language clip.
+ */
+const GOAL_RE = /\b(?:tor+e?!?|tre+ffer!?|go+a+l+!?)\b/i;
+/** Reject obvious compound contexts even if the word boundary matched. */
+const NEGATIVE_CONTEXT = /\b(?:torwart|torhüter|torhueter|torsch(?:ü|u)tze|torsch(?:ü|u)tzin|torchance|torgefahr|tordifferenz|torjäger|torjaeger|torlinie|torpfost|tribuna|tribuene|tribuene|tordistanz|tornetz)\b/i;
 
 const log = (...a) => console.log("[goals]", new Date().toISOString(), ...a);
 
@@ -146,18 +159,25 @@ function parseSrt(srt) {
   return out;
 }
 
-/** Heuristically merge segments that sit < 3 s apart (commentator yells once). */
-function findGoals(segments) {
+/**
+ * Heuristically pick goal moments: tight regex + DEDUP_SEC merge window + skip
+ * intro/outro chrome + cap at MAX_MARKERS so a chatty commentator can't
+ * over-tag the clip. Excludes the very last seconds because outro music often
+ * triggers false matches.
+ */
+function findGoals(segments, clipDurationSec) {
+  const tail = clipDurationSec ? clipDurationSec - SKIP_OUTRO_SEC : Infinity;
   const hits = [];
   for (const s of segments) {
-    if (GOAL_RE.test(s.text)) {
-      const shifted = Math.max(0, s.tStartSec - PRE_ROLL_SEC);
-      if (!hits.length || shifted - hits[hits.length - 1].tSec > 8) {
-        hits.push({ tSec: Math.round(shifted), label: s.text.slice(0, 80) });
-      }
+    if (!GOAL_RE.test(s.text)) continue;
+    if (NEGATIVE_CONTEXT.test(s.text)) continue;
+    if (s.tStartSec < SKIP_INTRO_SEC || s.tStartSec > tail) continue;
+    const shifted = Math.max(0, s.tStartSec - PRE_ROLL_SEC);
+    if (!hits.length || shifted - hits[hits.length - 1].tSec > DEDUP_SEC) {
+      hits.push({ tSec: Math.round(shifted), label: s.text.slice(0, 80) });
     }
   }
-  return hits;
+  return hits.slice(0, MAX_MARKERS);
 }
 
 async function postMarkers(urn, markers) {
@@ -180,7 +200,7 @@ async function processClip(clip) {
     const hls = await resolveHls(clip.urn);
     await extractAudio(hls, wav);
     const segments = await transcribe(wav);
-    const goals = findGoals(segments);
+    const goals = findGoals(segments, clip.durationSec);
     log("  →", goals.length, "goal markers");
     await postMarkers(clip.urn, goals);
     return goals.length;
