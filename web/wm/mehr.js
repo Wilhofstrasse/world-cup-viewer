@@ -19,6 +19,8 @@ import { initTabellen, destroyTabellen } from "./tabellen.js";
 import { initBracket, destroyBracket } from "./bracket.js";
 import { initKader, destroyKader } from "./kader.js";
 import { initAufstellungen, destroyAufstellungen } from "./aufstellungen.js";
+import { initSettings, destroySettings } from "./settings.js";
+import { track } from "./track.js";
 
 const SUBVIEWS = [
   { key: "topscorers", label: "Torjägerliste", title: "Torjägerliste", icon: "⚽", sub: "Goldener Schuh · Tore, Vorlagen, Spiele", section: "Statistiken", ready: true, primary: true },
@@ -26,6 +28,7 @@ const SUBVIEWS = [
   { key: "bracket", label: "K.-o.-Baum", title: "K.-o.-Baum", icon: "🏆", sub: "Viertelfinal bis Finale · der Weg zum Pokal", section: "Spielplan", ready: true },
   { key: "lineups", label: "Aufstellungen", title: "Aufstellungen", icon: "🎽", sub: "Formationen, Startelf, Auswechslungen", section: "Spielplan", ready: true },
   { key: "squads", label: "Kader", title: "Kader", icon: "👥", sub: "Alle 48 Teams · Tippe auf einen Spieler für die Karte", section: "Spieler & Mannschaften", ready: true },
+  { key: "settings", label: "Einstellungen", title: "Einstellungen", icon: "⚙️", sub: "Besucherkarte · Feedback · App-Version", section: "App", ready: true },
 ];
 
 let currentView = null;
@@ -87,11 +90,13 @@ export function openMehrSubview(key) {
   if (subtitle) subtitle.textContent = v.title;
 
   el.innerHTML = "";
+  track("mehr_sub_open", { target: key });
   if (key === "topscorers") initTopScorers(el);
   else if (key === "tabellen") initTabellen(el);
   else if (key === "bracket") initBracket(el);
   else if (key === "lineups") initAufstellungen(el);
   else if (key === "squads") initKader(el);
+  else if (key === "settings") initSettings(el);
 }
 
 export function closeMehrSubview() {
@@ -101,6 +106,7 @@ export function closeMehrSubview() {
   else if (currentView === "bracket") destroyBracket();
   else if (currentView === "lineups") destroyAufstellungen();
   else if (currentView === "squads") destroyKader();
+  else if (currentView === "settings") destroySettings();
   currentView = null;
   delete document.body.dataset.subview;
   const subtitle = document.getElementById("wmSubtitle");

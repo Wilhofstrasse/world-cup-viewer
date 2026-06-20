@@ -14,6 +14,7 @@
 import { fetchClips, fetchHls } from "./il.js";
 import { parseMatchTitle, classifyClip, flagFor } from "./parse.js";
 import { findMatchByTeams, setClips, subscribe, prefetchMatches } from "./linkstore.js";
+import { track } from "./track.js";
 
 const CACHE_KEY = "wm.clips.v1";
 const KIND_LABEL = { match: "Spielzusammenfassung", summary: "Zusammenfassung", goal: "Szene", feature: "Magazin" };
@@ -193,6 +194,8 @@ async function playSlide(slideEl) {
   const clip = slideEl._clip;
   if (!clip || slideEl.classList.contains("playing")) return;
   slideEl.classList.add("loading");
+  slideEl._playStartMs = Date.now();
+  track("clip_play_start", { target: clip.urn });
 
   let src;
   try {
@@ -260,6 +263,12 @@ async function playSlide(slideEl) {
 
 function stopSlide(slideEl) {
   const video = slideEl.querySelector(".wm-video");
+  if (slideEl._playStartMs) {
+    const durationMs = Date.now() - slideEl._playStartMs;
+    slideEl._playStartMs = 0;
+    const clip = slideEl._clip;
+    if (clip && durationMs > 500) track("clip_play_stop", { target: clip.urn, durationMs });
+  }
   if (video) {
     if (video._onOrientation) {
       if (typeof landscapeMq.removeEventListener === "function") landscapeMq.removeEventListener("change", video._onOrientation);

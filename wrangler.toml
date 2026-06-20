@@ -5,7 +5,7 @@ compatibility_date = "2026-05-01"
 [vars]
 # Deployed app version — surfaced via GET /api/version so the PWA footer shows
 # the true running build even when the installed shell is cached.
-APP_VERSION = "1.8.9"
+APP_VERSION = "1.9.0"
 # WM 2026 football (non-secret config). API-Football key is a secret:
 #   wrangler secret put APIFOOTBALL_KEY
 # WM_LEAGUE_ID 1 = FIFA World Cup (confirm on first live call).
@@ -24,6 +24,14 @@ WM_FIFA_SEASON = "285023"
 # (/api/config serves srfProxy="" for cf.country=CH); non-CH visitors get
 # routed through the tunnel so the SRF reels stay watchable abroad.
 SRF_PROXY_BASE = "https://srf.filipeandrade.com"
+
+# Analytics Engine — anonymous client telemetry for the Mehr ▸ Einstellungen
+# world map (per-country dots, top events, daily counts). Free tier 100k events
+# /day, ~90-day retention. Set CF_ACCOUNT_ID + CF_AE_TOKEN via `wrangler secret
+# put` so /api/stats can query the SQL endpoint.
+[[analytics_engine_datasets]]
+binding = "WM_EVENTS"
+dataset = "wm_events"
 
 # Match schedule/scores/scorers blob (wm/matches.json). Create once:
 #   wrangler r2 bucket create world-cup-data

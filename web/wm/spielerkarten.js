@@ -12,6 +12,7 @@
 "use strict";
 
 import { flagFor, flagFromIso3, nameFromIso3 } from "./parse.js";
+import { track } from "./track.js";
 
 const FIFA_PLAYER_URL = (id) => `https://api.fifa.com/api/v3/players/${encodeURIComponent(id)}?language=de-DE`;
 const FIFA_SEASON = "285023";
@@ -239,6 +240,7 @@ async function open(idPlayer) {
 
 export function openSpielerkarte(idPlayer) {
   if (idPlayer == null) return;
+  track("spielerkarte_open", { target: String(idPlayer) });
   open(String(idPlayer));
 }
 

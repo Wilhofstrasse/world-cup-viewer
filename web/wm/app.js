@@ -13,14 +13,17 @@ import { initMatches, jumpToSpieleMatch } from "./matches.js";
 import { initMehr, openMehrSubview, closeMehrSubview } from "./mehr.js";
 import { findClipByTeams, getMatch } from "./linkstore.js";
 import { openSpielerkarte } from "./spielerkarten.js";
+import { track } from "./track.js";
 
 const inited = { highlights: false, spiele: false, mehr: false };
 
 function activate(tab) {
+  const prev = document.body.dataset.tab;
   document.body.dataset.tab = tab;
   // Every tab switch wipes the Spielerkarten scroll-lock — defensive cleanup
   // so a stuck overlay class can't trap the page in `overflow: hidden`.
   document.body.classList.remove("wm-pk-open");
+  if (prev !== tab) track("tab_switch", { target: tab });
   document.querySelectorAll(".wm-tab").forEach((b) =>
     b.setAttribute("aria-selected", String(b.dataset.tab === tab)),
   );
@@ -92,6 +95,7 @@ if (!inited.highlights) {
   initFeed();
 }
 activate(bootTab);
+track("page_load", { target: bootTab });
 
 // PWA: register the shared service worker (offline shell + push).
 if ("serviceWorker" in navigator) {

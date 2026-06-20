@@ -35,4 +35,12 @@ export interface Env {
 
   /** SRF proxy base URL (home Mac via Cloudflare Tunnel). Empty = no proxy. */
   SRF_PROXY_BASE?: string;
+
+  /** Cloudflare Analytics Engine dataset binding for client telemetry. */
+  WM_EVENTS?: AnalyticsEngineDataset;
+
+  /** Cloudflare account id (for /api/stats SQL queries). Set via `wrangler secret put`. */
+  CF_ACCOUNT_ID?: string;
+  /** API token with Analytics:Read scope (for /api/stats SQL queries). Secret. */
+  CF_AE_TOKEN?: string;
 }

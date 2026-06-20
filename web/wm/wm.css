@@ -1139,3 +1139,52 @@ body.wm-pk-open { overflow: hidden; }
 .wm-au-b-row .n { font-family: var(--wm-mono); font-variant-numeric: tabular-nums; font-weight: 800; color: var(--wm-accent); width: 22px; text-align: right; font-size: 13px; }
 .wm-au-b-row .nm { flex: 1; min-width: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wm-au-b-row .ps { font-size: 10px; color: var(--wm-ink-dim); font-family: var(--wm-mono); text-transform: uppercase; font-weight: 700; letter-spacing: .04em; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   Einstellungen — visitor map + meta (Mehr ▸ Einstellungen).
+   ════════════════════════════════════════════════════════════════════════ */
+.wm-sett { padding: 0 0 24px; }
+.wm-sett-totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 14px; }
+.wm-sett-cell {
+  background: var(--wm-surface);
+  border: 1.5px solid var(--wm-line-soft);
+  border-radius: 14px; padding: 12px 6px; text-align: center;
+  box-shadow: 0 1px 0 var(--wm-line-soft);
+}
+.wm-sett-cell .lbl { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--wm-ink-dim); }
+.wm-sett-cell .val { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 6px; letter-spacing: -.02em; }
+.wm-sett-sec {
+  font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--wm-accent); margin: 18px 4px 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.wm-sett-sec::after { content: ""; flex: 1; height: 1px; background: linear-gradient(to right, var(--wm-line-soft), transparent); }
+.wm-sett-map {
+  height: 240px;
+  border: 1.5px solid var(--wm-line-soft);
+  border-radius: 14px; overflow: hidden;
+  background: var(--wm-paper);
+  box-shadow: 0 1px 0 var(--wm-line-soft);
+}
+.wm-sett-list { display: flex; flex-direction: column; gap: 4px; }
+.wm-sett-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--wm-surface);
+  border: 1.5px solid var(--wm-line-soft);
+  border-radius: 10px; padding: 10px 13px;
+  font-size: 14px; color: var(--wm-ink);
+}
+.wm-sett-row .t { font-weight: 700; }
+.wm-sett-row .n { font-family: var(--wm-mono); font-variant-numeric: tabular-nums; font-weight: 800; color: var(--wm-accent); }
+.wm-sett-empty { color: var(--wm-ink-dim); font-size: 13px; text-align: center; padding: 18px 12px; }
+.wm-sett-meta { display: flex; flex-direction: column; gap: 8px; }
+.wm-sett-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--wm-surface);
+  border: 1.5px solid var(--wm-line-soft);
+  border-radius: 12px; padding: 12px 14px;
+  font-size: 14px; font-weight: 700; color: var(--wm-ink);
+  text-decoration: none;
+}
+.wm-sett-link:active { background: var(--wm-paper); }
+.wm-sett-version { font-family: var(--wm-mono); font-size: 11px; color: var(--wm-ink-dim); text-align: center; padding-top: 8px; }

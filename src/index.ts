@@ -17,7 +17,7 @@ import { loadWmData, loadWmTopScorers, loadWmTabellen, loadWmSquads } from "./wm
 
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
@@ -46,6 +46,122 @@ async function handleTabellen(env: Env): Promise<Response> {
 async function handleSquads(env: Env): Promise<Response> {
   const data = await loadWmSquads(env);
   return json({ squads: data.squads, updatedAt: data.updatedAt, season: data.season });
+}
+
+/** Whitelist of event names so a random caller can't pollute the dataset. */
+const ALLOWED_EVENTS = new Set([
+  "page_load",
+  "tab_switch",
+  "clip_play_start",
+  "clip_play_stop",
+  "mehr_sub_open",
+  "spielerkarte_open",
+  "drawer_open",
+  "spielinfo_open",
+  "highlights_link_open",
+]);
+
+interface TrackBody {
+  event?: string;
+  sessionId?: string;
+  target?: string;
+  durationMs?: number;
+  durationSec?: number;
+  path?: string;
+}
+
+/**
+ * POST /api/track — client telemetry into Analytics Engine. Anonymous: no IP,
+ * no persistent ID. sessionId is a per-tab UUID the client makes up. cf.country
+ * + cf.colo come from Cloudflare's request metadata. Always returns 204.
+ */
+async function handleTrack(request: Request, env: Env): Promise<Response> {
+  if (!env.WM_EVENTS) return new Response(null, { status: 204, headers: CORS });
+  let body: TrackBody = {};
+  try {
+    body = (await request.json()) as TrackBody;
+  } catch {
+    return new Response(null, { status: 204, headers: CORS });
+  }
+  const event = String(body.event || "").slice(0, 32);
+  if (!ALLOWED_EVENTS.has(event)) return new Response(null, { status: 204, headers: CORS });
+  const cf = (request as Request & { cf?: { country?: string; colo?: string } }).cf;
+  const country = (cf?.country || "").slice(0, 2).toUpperCase();
+  const colo = (cf?.colo || "").slice(0, 5).toUpperCase();
+  const session = String(body.sessionId || "").slice(0, 36);
+  const target = String(body.target || "").slice(0, 64);
+  const path = String(body.path || "").slice(0, 128);
+  const duration = Number.isFinite(body.durationSec)
+    ? Math.max(0, Math.min(7200, body.durationSec || 0))
+    : Number.isFinite(body.durationMs)
+    ? Math.round(Math.max(0, Math.min(7200000, body.durationMs || 0)) / 1000)
+    : 0;
+  try {
+    env.WM_EVENTS.writeDataPoint({
+      blobs: [event, country, colo, session, target, path],
+      doubles: [duration],
+      indexes: [event],
+    });
+  } catch {
+    // upstream / quota issue — swallow; telemetry never breaks the app
+  }
+  return new Response(null, { status: 204, headers: CORS });
+}
+
+/** Run an SQL statement on AE via the REST endpoint. Returns parsed rows. */
+async function aeSql(env: Env, sql: string): Promise<unknown[]> {
+  if (!env.CF_ACCOUNT_ID || !env.CF_AE_TOKEN) return [];
+  const res = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/analytics_engine/sql`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.CF_AE_TOKEN}`,
+        "Content-Type": "text/plain",
+      },
+      body: sql,
+    },
+  );
+  if (!res.ok) return [];
+  const data = (await res.json()) as { data?: unknown[] };
+  return Array.isArray(data.data) ? data.data : [];
+}
+
+/**
+ * GET /api/stats — aggregated map data for the Mehr ▸ Einstellungen world map.
+ * Anonymous aggregates only; nothing personally identifiable comes out.
+ */
+async function handleStats(_request: Request, env: Env): Promise<Response> {
+  if (!env.CF_ACCOUNT_ID || !env.CF_AE_TOKEN) {
+    return json({ byCountry: [], byEvent: [], byDay: [], totals: { events: 0, sessions: 0 } });
+  }
+  const since = "INTERVAL '30' DAY";
+  const [byCountry, byEvent, byDay, totals] = await Promise.all([
+    aeSql(
+      env,
+      `SELECT blob2 AS country, count() AS n
+       FROM wm_events WHERE timestamp >= NOW() - ${since}
+       GROUP BY blob2 ORDER BY n DESC LIMIT 100`,
+    ),
+    aeSql(
+      env,
+      `SELECT blob1 AS event, count() AS n
+       FROM wm_events WHERE timestamp >= NOW() - ${since}
+       GROUP BY blob1 ORDER BY n DESC LIMIT 20`,
+    ),
+    aeSql(
+      env,
+      `SELECT toDate(timestamp) AS day, count() AS n
+       FROM wm_events WHERE timestamp >= NOW() - ${since}
+       GROUP BY day ORDER BY day ASC LIMIT 100`,
+    ),
+    aeSql(
+      env,
+      `SELECT count() AS events, uniqExact(blob4) AS sessions
+       FROM wm_events WHERE timestamp >= NOW() - ${since}`,
+    ),
+  ]);
+  return json({ byCountry, byEvent, byDay, totals: (totals[0] || { events: 0, sessions: 0 }) });
 }
 
 /**
@@ -81,6 +197,8 @@ export default {
       if (pathname === "/api/wm/tabellen" && method === "GET") return await handleTabellen(env);
       if (pathname === "/api/wm/squads" && method === "GET") return await handleSquads(env);
       if (pathname === "/api/config" && method === "GET") return handleConfig(request, env);
+      if (pathname === "/api/track" && method === "POST") return await handleTrack(request, env);
+      if (pathname === "/api/stats" && method === "GET") return await handleStats(request, env);
       if (pathname === "/api/version" && method === "GET") return json({ version: env.APP_VERSION ?? "dev" });
     } catch {
       return json({ error: "Internal error" }, 500);
