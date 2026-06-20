@@ -43,4 +43,7 @@ export interface Env {
   CF_ACCOUNT_ID?: string;
   /** API token with Analytics:Read scope (for /api/stats SQL queries). Secret. */
   CF_AE_TOKEN?: string;
+
+  /** Shared bearer for POST /api/wm/markers from the home-Mac goal detector. */
+  WM_MARKERS_TOKEN?: string;
 }

@@ -402,6 +402,32 @@ html, body {
 .wm-slide.wm-empty p { font-size: 15px; line-height: 1.5; }
 .wm-slide.wm-error .wm-meta::after { content: "Konnte nicht geladen werden."; display: block; color: #ff8a7a; font-size: 12px; margin-top: 6px; }
 
+/* Goal markers — accent dots on a bottom rail above native iOS player controls. */
+.wm-marker-rail {
+  position: absolute;
+  left: 4%; right: 4%;
+  bottom: calc(54px + env(safe-area-inset-bottom));
+  height: 24px;
+  pointer-events: none; z-index: 6;
+}
+.wm-marker-dot {
+  position: absolute; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--wm-accent);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,.45);
+  pointer-events: auto; cursor: pointer;
+  padding: 0;
+}
+.wm-marker-dot:active { transform: translate(-50%, -50%) scale(.9); }
+.wm-marker-dot::after {
+  content: "⚽"; font-size: 9px; line-height: 1;
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
 /* Backlink chip — opens Spiele scrolled to this match, with the score baked in. */
 .wm-info-chip {
   pointer-events: auto;

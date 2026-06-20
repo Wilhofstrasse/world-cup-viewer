@@ -48,6 +48,62 @@ async function handleSquads(env: Env): Promise<Response> {
   return json({ squads: data.squads, updatedAt: data.updatedAt, season: data.season });
 }
 
+interface MarkersBody {
+  markers?: Array<{ tSec?: number; label?: string }>;
+  updatedAt?: number;
+}
+
+/** Sanitise a clip URN before using it as an R2 key. */
+function safeUrn(s: string): string {
+  return s.replace(/[^a-zA-Z0-9:\-_.]/g, "").slice(0, 128);
+}
+
+/**
+ * POST /api/wm/markers/<urn> — the home-Mac goal detector posts per-clip
+ * markers here after whisper-transcribing the audio. Bearer-auth via
+ * WM_MARKERS_TOKEN so only the detector can write.
+ */
+async function handleMarkersPut(request: Request, env: Env, urn: string): Promise<Response> {
+  if (!env.WM_R2 || !env.WM_MARKERS_TOKEN) return json({ error: "Not configured" }, 503);
+  const auth = request.headers.get("authorization") || "";
+  const expected = `Bearer ${env.WM_MARKERS_TOKEN}`;
+  if (auth !== expected) return json({ error: "Unauthorized" }, 401);
+  let body: MarkersBody = {};
+  try {
+    body = (await request.json()) as MarkersBody;
+  } catch {
+    return json({ error: "Bad body" }, 400);
+  }
+  const markers = (body.markers || [])
+    .map((m) => ({
+      tSec: Number.isFinite(m.tSec) ? Math.max(0, Math.min(7200, Math.round(m.tSec || 0))) : 0,
+      label: String(m.label || "").slice(0, 120),
+    }))
+    .filter((m) => m.tSec > 0 || m.label);
+  const payload = {
+    urn,
+    markers,
+    updatedAt: Number.isFinite(body.updatedAt) ? Math.round(body.updatedAt || 0) : Math.floor(Date.now() / 1000),
+  };
+  await env.WM_R2.put(`wm/markers/${safeUrn(urn)}.json`, JSON.stringify(payload), {
+    httpMetadata: { contentType: "application/json" },
+  });
+  return json({ ok: true, n: markers.length });
+}
+
+/** GET /api/wm/markers/<urn> — anonymous read for the highlights player. */
+async function handleMarkersGet(env: Env, urn: string): Promise<Response> {
+  if (!env.WM_R2) return json({ urn, markers: [], updatedAt: 0 });
+  const obj = await env.WM_R2.get(`wm/markers/${safeUrn(urn)}.json`);
+  if (!obj) return json({ urn, markers: [], updatedAt: 0 });
+  try {
+    const data = JSON.parse(await obj.text());
+    return json(data);
+  } catch {
+    return json({ urn, markers: [], updatedAt: 0 });
+  }
+}
+
 /** Whitelist of event names so a random caller can't pollute the dataset. */
 const ALLOWED_EVENTS = new Set([
   "page_load",
@@ -196,6 +252,14 @@ export default {
       if (pathname === "/api/wm/topscorers" && method === "GET") return await handleTopScorers(env);
       if (pathname === "/api/wm/tabellen" && method === "GET") return await handleTabellen(env);
       if (pathname === "/api/wm/squads" && method === "GET") return await handleSquads(env);
+      {
+        const m = /^\/api\/wm\/markers\/(.+)$/.exec(pathname);
+        if (m) {
+          const urn = decodeURIComponent(m[1] || "");
+          if (method === "GET") return await handleMarkersGet(env, urn);
+          if (method === "POST") return await handleMarkersPut(request, env, urn);
+        }
+      }
       if (pathname === "/api/config" && method === "GET") return handleConfig(request, env);
       if (pathname === "/api/track" && method === "POST") return await handleTrack(request, env);
       if (pathname === "/api/stats" && method === "GET") return await handleStats(request, env);

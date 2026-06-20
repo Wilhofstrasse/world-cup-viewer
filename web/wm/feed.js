@@ -190,12 +190,64 @@ function loadHls() {
   return hlsLoading;
 }
 
+async function fetchMarkers(urn) {
+  try {
+    const r = await fetch(`/api/wm/markers/${encodeURIComponent(urn)}`, { cache: "no-store" });
+    if (!r.ok) return [];
+    const d = await r.json();
+    return Array.isArray(d.markers) ? d.markers : [];
+  } catch (_e) {
+    return [];
+  }
+}
+
+function renderMarkers(slideEl, markers, durationSec) {
+  let rail = slideEl.querySelector(".wm-marker-rail");
+  if (!rail) {
+    rail = document.createElement("div");
+    rail.className = "wm-marker-rail";
+    slideEl.appendChild(rail);
+  }
+  rail.innerHTML = "";
+  const total = durationSec || slideEl._clip?.durationSec || 0;
+  if (!total || !markers.length) {
+    rail.hidden = true;
+    return;
+  }
+  rail.hidden = false;
+  for (const m of markers) {
+    const pct = Math.max(0, Math.min(1, (m.tSec || 0) / total));
+    const dot = document.createElement("button");
+    dot.className = "wm-marker-dot";
+    dot.type = "button";
+    dot.style.left = `${(pct * 100).toFixed(2)}%`;
+    dot.title = m.label || "Tor";
+    dot.setAttribute("aria-label", "Springe zu " + (m.label || "Tor"));
+    dot.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const v = slideEl.querySelector(".wm-video");
+      if (v) {
+        try {
+          v.currentTime = m.tSec;
+          v.play().catch(() => {});
+        } catch (_e) {}
+      }
+    });
+    rail.appendChild(dot);
+  }
+}
+
 async function playSlide(slideEl) {
   const clip = slideEl._clip;
   if (!clip || slideEl.classList.contains("playing")) return;
   slideEl.classList.add("loading");
   slideEl._playStartMs = Date.now();
   track("clip_play_start", { target: clip.urn });
+  fetchMarkers(clip.urn).then((markers) => {
+    if (slideEl.classList.contains("playing") || slideEl.classList.contains("loading")) {
+      renderMarkers(slideEl, markers, clip.durationSec);
+    }
+  });
 
   let src;
   try {

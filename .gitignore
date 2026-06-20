@@ -22,3 +22,8 @@ qa-report.json
 test-qa.mjs
 review-tmp.js
 wm-smoke*.mjs
+
+# Goal-detector local state + heavyweight models
+tools/goal-detector/.state.json
+tools/goal-detector/.tmp/
+tools/goal-detector/models/*.bin
