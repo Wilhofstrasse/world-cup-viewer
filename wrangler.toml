@@ -5,7 +5,7 @@ compatibility_date = "2026-05-01"
 [vars]
 # Deployed app version — surfaced via GET /api/version so the PWA footer shows
 # the true running build even when the installed shell is cached.
-APP_VERSION = "1.9.0"
+APP_VERSION = "1.9.1"
 # WM 2026 football (non-secret config). API-Football key is a secret:
 #   wrangler secret put APIFOOTBALL_KEY
 # WM_LEAGUE_ID 1 = FIFA World Cup (confirm on first live call).
