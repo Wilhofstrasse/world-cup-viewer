@@ -55,18 +55,27 @@ function decorate(clip) {
 // Rendering
 // ---------------------------------------------------------------------------
 
-/** Backlink chip — finds the Spiele match for this clip and shows score/status. */
+/** Big inline score line — shown between the teams line and the title. */
+function scoreLineMarkup(clip) {
+  if (!clip.match) return "";
+  const m = findMatchByTeams(clip.match.teamA, clip.match.teamB);
+  if (!m) return "";
+  if (m.status === "live") {
+    const minute = m.minute ? `${m.minute}'` : "";
+    return `<div class="wm-score is-live"><span class="wm-score-val">${m.scoreA ?? 0} – ${m.scoreB ?? 0}</span><span class="wm-score-live">● LIVE ${minute}</span></div>`;
+  }
+  if (m.status === "finished" && m.scoreA != null && m.scoreB != null) {
+    return `<div class="wm-score"><span class="wm-score-val">${m.scoreA} – ${m.scoreB}</span><span class="wm-score-tag">Endstand</span></div>`;
+  }
+  return "";
+}
+
+/** Backlink chip — opens Spiele on this match. */
 function infoChipMarkup(clip) {
   if (!clip.match) return "";
   const m = findMatchByTeams(clip.match.teamA, clip.match.teamB);
   if (!m) return "";
-  let badge = "Spielinfo";
-  if (m.status === "finished" && m.scoreA != null && m.scoreB != null) {
-    badge = `${m.scoreA}:${m.scoreB}`;
-  } else if (m.status === "live") {
-    badge = `LIVE ${m.minute ? m.minute + "'" : ""}`.trim();
-  }
-  return `<button class="wm-info-chip" type="button" data-mid="${m.id}">→ Spielinfo <span class="b">${esc(badge)}</span></button>`;
+  return `<button class="wm-info-chip" type="button" data-mid="${m.id}">→ Spielinfo</button>`;
 }
 
 function slideMarkup(clip, i) {
@@ -85,6 +94,7 @@ function slideMarkup(clip, i) {
       <div class="wm-meta">
         ${flags}
         ${teams}
+        ${scoreLineMarkup(clip)}
         <h2 class="wm-title">${esc(clip.title)}</h2>
         <div class="wm-sub">
           <span class="wm-kind">${KIND_LABEL[clip.kind] || ""}</span>
