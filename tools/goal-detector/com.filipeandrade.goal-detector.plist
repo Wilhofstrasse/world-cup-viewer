@@ -18,7 +18,7 @@
   <array>
     <string>/bin/sh</string>
     <string>-c</string>
-    <string>export WM_MARKERS_TOKEN="$(security find-generic-password -a $USER -s wm-markers-token -w)"; export WORKER_BASE="https://wm.filipeandrade.com"; exec /opt/homebrew/bin/node /Users/filipeandrade/Developer/world-cup-viewer/tools/goal-detector/detect.mjs</string>
+    <string>export WM_MARKERS_TOKEN="$(security find-generic-password -a $USER -s wm-markers-token -w)"; export ANTHROPIC_API_KEY="$(security find-generic-password -a anthropic/api-key -w 2>/dev/null)"; export WORKER_BASE="https://wm.filipeandrade.com"; exec /opt/homebrew/bin/node /Users/filipeandrade/Developer/world-cup-viewer/tools/goal-detector/detect.mjs</string>
   </array>
   <key>EnvironmentVariables</key>
   <dict>

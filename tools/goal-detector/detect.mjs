@@ -21,6 +21,8 @@ import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { parseMatchTitle, teamsMatch } from "../../web/wm/parse.js";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const SHOW_URN = "urn:srf:show:tv:c55b9fb8-e108-4994-a1d0-8c288bf8d5bc";
@@ -35,6 +37,8 @@ const TMP = join(__dirname, ".tmp");
 
 const WORKER_BASE = process.env.WORKER_BASE || "https://wm.filipeandrade.com";
 const AUTH_TOKEN = process.env.WM_MARKERS_TOKEN || "";
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || "";
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
 
 const PRE_ROLL_SEC = 4;
 const DEDUP_SEC = 15;          // commentator excitement clusters → merge inside 15 s
@@ -180,6 +184,123 @@ function findGoals(segments, clipDurationSec) {
   return hits.slice(0, MAX_MARKERS);
 }
 
+/** Pull the FIFA match blob (teams + score + goals[].minute) so we can give the
+ *  LLM ground-truth context per clip. Falls back to [] on error. */
+async function fetchMatches() {
+  try {
+    const r = await fetch(`${WORKER_BASE}/api/wm/matches`);
+    if (!r.ok) return [];
+    const d = await r.json();
+    return Array.isArray(d.matches) ? d.matches : [];
+  } catch (_e) {
+    return [];
+  }
+}
+
+/** Match a clip ("Die Live-Highlights bei A - B") to its FIFA fixture using the
+ *  same tolerant team comparator the web client uses. Null when teams can't be
+ *  resolved (live broadcasts, magazine clips, etc.). */
+function findMatchForClip(clip, matches) {
+  const parsed = parseMatchTitle(clip.title);
+  if (!parsed) return null;
+  for (const m of matches) {
+    if (
+      (teamsMatch(parsed.teamA, m.teamA) && teamsMatch(parsed.teamB, m.teamB)) ||
+      (teamsMatch(parsed.teamA, m.teamB) && teamsMatch(parsed.teamB, m.teamA))
+    ) {
+      return m;
+    }
+  }
+  return null;
+}
+
+/**
+ * Ask Claude Haiku to identify the goal moments in a whisper transcript.
+ * The LLM gets the FIFA ground-truth goal count + scorer/minute list as
+ * context so it can match commentary mentions to the right number of events
+ * instead of blindly counting "Tor"-substrings (which over-fires on past
+ * references, near-misses, and "Torwart"/"Torchance" compounds).
+ *
+ * Returns markers in the same shape as findGoals() does. Throws on API error
+ * (caller falls back to the regex path).
+ */
+async function findGoalsLLM(segments, match, clipDurationSec) {
+  if (!ANTHROPIC_KEY) throw new Error("ANTHROPIC_API_KEY not set");
+  const total = (match.scoreA || 0) + (match.scoreB || 0);
+  if (!total) return []; // 0–0 match: nothing to mark, skip the API call.
+
+  const goalHint = (match.goals || [])
+    .map((g) => `${g.minute}' ${g.scorer || "?"} (${g.team === "A" ? match.teamA : match.teamB}${g.type === "penalty" ? ", FE" : g.type === "own" ? ", ET" : ""})`)
+    .join("; ");
+
+  const transcript = segments
+    .map((s) => `[${s.tStartSec.toFixed(1)}s] ${s.text}`)
+    .join("\n");
+
+  const system =
+    "You analyze German-language football commentary transcripts of WM 2026 highlight reels. The timestamps in [N.Ns] are RELATIVE to the clip's own playhead, not the match minute. Return exactly the number of goal markers requested, sorted ASCENDING by tSec.";
+
+  const userMsg = `MATCH: ${match.teamA} ${match.scoreA ?? "?"} – ${match.scoreB ?? "?"} ${match.teamB}
+FIFA GOAL EVENTS (match minute, scorer, team): ${goalHint || "unknown"}
+CLIP DURATION: ${clipDurationSec || "unknown"} seconds
+
+TASK: Identify EXACTLY ${total} real goal moments in this clip. A real goal moment is when the commentator reacts to a goal being scored RIGHT NOW in the clip — a sudden "Tor!", "Treffer!", "Goooal!", a shouted scorer's name, or unmistakable celebration language at the moment of the strike.
+
+IGNORE:
+- Past-tense references ("seinen dritten Treffer in diesem Turnier") — that names an already-scored goal in past games, not a new one
+- Near-misses ("knapp vorbei", "der Schuss aufs Tor", "Latte", "Pfosten")
+- Compound words: "Torwart", "Torhüter", "Torchance", "Torgefahr", "Tordifferenz", "Torjäger", "Torlinie", "Torpfost"
+- Statistical recaps ("die ersten beiden Tore fielen nach Standardsituationen")
+- Substitutions, fouls, cards, VAR reviews
+
+For each goal, set tSec to ~3 seconds BEFORE the celebration burst so the player gets a brief build-up. tSec must be an integer between 0 and ${clipDurationSec || 600}.
+
+RETURN ONLY this JSON array (no prose, no markdown fence):
+[{"tSec": <int>, "scorer": "<surname or null>", "label": "<short German caption, max 60 chars>"}]
+
+If you genuinely cannot find ${total} distinct moments, return as many as you can confidently identify — never invent.
+
+TRANSCRIPT:
+${transcript}`;
+
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": ANTHROPIC_KEY,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1024,
+      system,
+      messages: [{ role: "user", content: userMsg }],
+    }),
+  });
+  if (!r.ok) {
+    const body = await r.text().catch(() => "");
+    throw new Error(`Anthropic ${r.status}: ${body.slice(0, 200)}`);
+  }
+  const j = await r.json();
+  const text = j?.content?.[0]?.text || "";
+  const m = text.match(/\[[\s\S]*\]/);
+  if (!m) return [];
+  let arr;
+  try {
+    arr = JSON.parse(m[0]);
+  } catch (_e) {
+    return [];
+  }
+  return arr
+    .filter((x) => typeof x.tSec === "number" && isFinite(x.tSec))
+    .map((x) => ({
+      tSec: Math.max(0, Math.round(x.tSec)),
+      label: (x.scorer ? `${x.scorer}: ` : "") + (x.label || "Tor"),
+    }))
+    .sort((a, b) => a.tSec - b.tSec)
+    .slice(0, MAX_MARKERS);
+}
+
 async function postMarkers(urn, markers) {
   const r = await fetch(`${WORKER_BASE}/api/wm/markers/${encodeURIComponent(urn)}`, {
     method: "POST",
@@ -192,7 +313,7 @@ async function postMarkers(urn, markers) {
   if (!r.ok) throw new Error(`POST markers ${r.status}`);
 }
 
-async function processClip(clip) {
+async function processClip(clip, matches) {
   log("processing", clip.urn, "—", clip.title);
   await mkdir(TMP, { recursive: true });
   const wav = join(TMP, `${clip.urn.replace(/[^a-z0-9]/gi, "_")}.wav`);
@@ -200,8 +321,22 @@ async function processClip(clip) {
     const hls = await resolveHls(clip.urn);
     await extractAudio(hls, wav);
     const segments = await transcribe(wav);
-    const goals = findGoals(segments, clip.durationSec);
-    log("  →", goals.length, "goal markers");
+    const match = findMatchForClip(clip, matches);
+    let goals = [];
+    let usedLLM = false;
+    if (match && ANTHROPIC_KEY) {
+      try {
+        goals = await findGoalsLLM(segments, match, clip.durationSec);
+        usedLLM = true;
+      } catch (e) {
+        log(`  ! LLM failed (${e.message}) — falling back to regex`);
+      }
+    }
+    if (!usedLLM) {
+      goals = findGoals(segments, clip.durationSec);
+    }
+    const expected = match ? (match.scoreA || 0) + (match.scoreB || 0) : null;
+    log(`  → ${goals.length} markers${expected != null ? ` (FIFA expects ${expected})` : ""}${usedLLM ? " [LLM]" : " [regex]"}`);
     await postMarkers(clip.urn, goals);
     return goals.length;
   } finally {
@@ -214,14 +349,15 @@ async function processClip(clip) {
 async function main() {
   if (!AUTH_TOKEN) throw new Error("WM_MARKERS_TOKEN env var required");
   if (!existsSync(MODEL)) throw new Error(`whisper model missing at ${MODEL}`);
+  if (!ANTHROPIC_KEY) log("WARN: ANTHROPIC_API_KEY not set — falling back to regex detection only");
   const state = await loadState();
-  const clips = await listClips();
-  log(`found ${clips.length} match-highlights; ${Object.keys(state.processed).length} already processed`);
+  const [clips, matches] = await Promise.all([listClips(), fetchMatches()]);
+  log(`found ${clips.length} match-highlights; ${matches.length} FIFA fixtures; ${Object.keys(state.processed).length} already processed`);
   let processed = 0;
   for (const c of clips) {
     if (state.processed[c.urn]) continue;
     try {
-      const n = await processClip(c);
+      const n = await processClip(c, matches);
       state.processed[c.urn] = { ts: Date.now(), goals: n };
       await saveState(state);
       processed++;
