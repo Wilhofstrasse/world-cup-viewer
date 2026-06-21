@@ -26,6 +26,10 @@ Two compounding causes, found via workflow + Codex:
 
 **Fix mechanism — one-shot kill-switch** (`sw.js`): on first activate of a byte-changed worker, wipe ALL caches + `self.registration.unregister()` ONCE, drop a `KILL_DONE` sentinel cache, return. Re-registered worker sees the sentinel → just claims → persists (no thrash, push/offline return). Plus `register(sw.js,{updateViaCache:'none'})` so the SW script is never HTTP-cached again, and an appshell.js `/api/version`-mismatch one-shot `location.reload()` (sessionStorage-guarded) for same-bytes deploys. **Lesson: bumping app version without changing `sw.js` bytes does NOT update an installed iOS PWA — always touch the SHELL_CACHE name when shipping an asset fix.** Codex confirmed SHIP. Guaranteed device cure if the 24h SW check hasn't elapsed: delete + re-add the home-screen icon.
 
+## Known bugs
+
+- **Goal-marker count ≠ score (v1.9.2, observed 21.06.2026):** marker dots on the seek rail don't match the final score on tested games — count is visibly wrong by inspection (rail balls vs. `m.scoreA + m.scoreB` from FIFA). v3 tuning (`tor+e?!?|tre+ffer!?|go+a+l+!?` + NEGATIVE_CONTEXT compound stoplist + `DEDUP_SEC=15` + `MAX_MARKERS=8`) reduced false positives but base count accuracy still off. Whisper-only path on home Mac, medium DE model, `PRE_ROLL_SEC=4`. Next: cross-check whisper transcripts vs FIFA goal count, audit per-clip; consider scorer-minute reconciliation (FIFA goals carry `minute`, could pin markers instead of trusting whisper for count). Detector: `tools/goal-detector/detect.mjs`. LaunchAgent: `com.filipeandrade.goal-detector` every 30 min.
+
 ## Open decisions
 
 - **Custom domain** — ✅ done: `wm.filipeandrade.com` (custom_domain route, no CF Access; public).

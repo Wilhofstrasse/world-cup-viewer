@@ -423,7 +423,10 @@ function renderDrawerList(q) {
 
   // Keep each clip's ORIGINAL feed index so a tap scrolls to the right slide.
   const items = drawerClips
-    .map((c, i) => ({ c, i }))
+    .map((c, i) => {
+      const match = c.match ? findMatchByTeams(c.match.teamA, c.match.teamB) : null;
+      return { c, i, match, kickoffISO: match?.dateISO || c.dateISO };
+    })
     .filter(({ c }) => !ql || clipSearchText(c).includes(ql));
 
   if (!items.length) {
@@ -432,7 +435,7 @@ function renderDrawerList(q) {
     return;
   }
 
-  function itemMarkup({ c, i }) {
+  function itemMarkup({ c, i, match, kickoffISO }) {
     const flagA = c.match ? flagFor(c.match.teamA) : "🎬";
     const flagB = c.match ? flagFor(c.match.teamB) : "";
     const nameA = c.match ? esc(c.match.teamA) : esc(c.title);
@@ -440,11 +443,10 @@ function renderDrawerList(q) {
     const isCur = i === cur;
     const cls = isCur ? "wm-drawer-item is-current" : "wm-drawer-item";
     const rowCls = isCur ? "wm-drawer-row is-current" : "wm-drawer-row";
-    const match = c.match ? findMatchByTeams(c.match.teamA, c.match.teamB) : null;
     const rightSlot = match
       ? `<button class="wm-drawer-info" data-mid="${match.id}" type="button" aria-label="Spielinfo öffnen" title="Spielinfo">ⓘ</button>`
       : `<span class="wm-drawer-info-spacer" aria-hidden="true"></span>`;
-    const time = dayTime(c.dateISO);
+    const time = dayTime(kickoffISO);
     return `<div class="${rowCls}">
         <button class="${cls}" data-i="${i}" type="button">
           <span class="wm-drawer-time">${esc(time)}</span>
@@ -468,14 +470,14 @@ function renderDrawerList(q) {
     // Group by day, newest day first; within day keep the original (newest-first) order.
     const groups = new Map();
     for (const it of items) {
-      const key = dayKey(it.c.dateISO);
+      const key = dayKey(it.kickoffISO);
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(it);
     }
     const sortedKeys = [...groups.keys()].sort((a, b) => b.localeCompare(a));
     list.innerHTML = sortedKeys.map((k) => {
       const arr = groups.get(k);
-      const label = dayLabel(arr[0].c.dateISO) || "—";
+      const label = dayLabel(arr[0].kickoffISO) || "—";
       return dayGroup(label, arr);
     }).join("") + loadingHint;
   }
