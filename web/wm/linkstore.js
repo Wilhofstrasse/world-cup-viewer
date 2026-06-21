@@ -85,6 +85,12 @@ export function getMatch(id) {
   return store.matches.find((m) => String(m.id) === want) || null;
 }
 
+/** All matches currently in the store. Used by the drawer to surface upcoming
+ *  fixtures that don't have a clip yet. */
+export function getAllMatches() {
+  return store.matches.slice();
+}
+
 /** Match by team-pair, order-insensitive. Returns null when no match found. */
 export function findMatchByTeams(a, b) {
   if (!a || !b) return null;

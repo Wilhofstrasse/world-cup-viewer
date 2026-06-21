@@ -248,6 +248,10 @@ html, body {
 }
 .wm-drawer-item:active { background: #f0ece3; }
 .wm-drawer-item.is-current { background: var(--wm-accent-soft); }
+/* Upcoming fixture without a clip yet — greyed, italic. Tap opens Spielinfo. */
+.wm-drawer-item.is-upcoming { opacity: .55; }
+.wm-drawer-item.is-upcoming .wm-drawer-team { font-style: italic; font-weight: 600; }
+.wm-drawer-row.is-upcoming::before { background: var(--wm-paper); border-color: var(--wm-line-soft); border-style: dashed; }
 .wm-drawer-item.is-current::after {
   content: ""; position: absolute; left: 6px; top: 8px; bottom: 8px;
   width: 2px; background: var(--wm-accent); border-radius: 2px;

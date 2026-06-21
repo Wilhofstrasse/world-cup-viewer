@@ -13,7 +13,7 @@
 
 import { fetchClips, fetchHls } from "./il.js";
 import { parseMatchTitle, classifyClip, flagFor } from "./parse.js";
-import { findMatchByTeams, setClips, subscribe, prefetchMatches } from "./linkstore.js";
+import { findMatchByTeams, findClipByTeams, getAllMatches, setClips, subscribe, prefetchMatches } from "./linkstore.js";
 import { track } from "./track.js";
 
 const CACHE_KEY = "wm.clips.v1";
@@ -154,6 +154,12 @@ function render() {
 // once metadata has loaded — the generic Element.requestFullscreen() is a no-op
 // on iPhone. Android/desktop use the standard path as a fallback.
 const landscapeMq = window.matchMedia("(orientation: landscape)");
+// Auto-fullscreen on rotation only makes sense on touch devices (phone in
+// hand → rotate to watch). On a desktop browser the window is permanently
+// landscape, so auto-fullscreen fires immediately and hides our custom marker
+// rail overlay. Restrict to touch surfaces; desktop users tap the video to go
+// fullscreen explicitly.
+const isTouchSurface = ("ontouchstart" in window) || (navigator.maxTouchPoints || 0) > 0;
 
 function enterFullscreen(video) {
   try {
@@ -303,14 +309,14 @@ async function playSlide(slideEl) {
       video.addEventListener("loadedmetadata", video._metaHandler, { once: true });
     }
   };
-  const onOrientation = () => { if (landscapeMq.matches) tryEnter(); else exitFullscreen(video); };
-  const onTap = () => { if (landscapeMq.matches) enterFullscreen(video); }; // user gesture → reliable on iOS
+  const onOrientation = () => { if (isTouchSurface && landscapeMq.matches) tryEnter(); else exitFullscreen(video); };
+  const onTap = () => { if (landscapeMq.matches) enterFullscreen(video); }; // user gesture → reliable on iOS + desktop
   video._onOrientation = onOrientation;
   video._onTap = onTap;
   video.addEventListener("click", onTap);
   if (typeof landscapeMq.addEventListener === "function") landscapeMq.addEventListener("change", onOrientation);
   else if (typeof landscapeMq.addListener === "function") landscapeMq.addListener(onOrientation);
-  if (landscapeMq.matches) onOrientation(); // best-effort promote if already landscape
+  if (isTouchSurface && landscapeMq.matches) onOrientation(); // touch-only auto-promote
 }
 
 function stopSlide(slideEl) {
@@ -369,6 +375,12 @@ function clipSearchText(c) {
   return (c.match ? `${c.match.teamA} ${c.match.teamB}` : c.title || "").toLowerCase();
 }
 
+/** Search text for any drawer row (clip OR upcoming fixture). */
+function itemSearchText(it) {
+  if (it.upcoming && it.match) return `${it.match.teamA} ${it.match.teamB}`.toLowerCase();
+  return clipSearchText(it.c);
+}
+
 /** Index of the clip currently snapped in the feed (full-height scroll-snap). */
 function currentSlideIndex() {
   const feed = document.getElementById("wmFeed");
@@ -392,14 +404,16 @@ function dayKey(iso) {
   return `${y}-${m}-${day}`;
 }
 
-/** Day label ("Heute" / "Gestern" / "Mi. 18.06.2026") for a clip's local day. */
+/** Day label ("Morgen" / "Heute" / "Gestern" / "Mi. 18.06.2026") for a clip's local day. */
 function dayLabel(iso) {
   if (!iso) return "";
   const d = new Date(iso);
   if (isNaN(+d)) return "";
   const today = new Date();
-  const sameDay = d.toDateString() === today.toDateString();
-  if (sameDay) return "Heute";
+  if (d.toDateString() === today.toDateString()) return "Heute";
+  const tom = new Date(today);
+  tom.setDate(today.getDate() + 1);
+  if (d.toDateString() === tom.toDateString()) return "Morgen";
   const y = new Date(today);
   y.setDate(today.getDate() - 1);
   if (d.toDateString() === y.toDateString()) return "Gestern";
@@ -422,12 +436,27 @@ function renderDrawerList(q) {
   const cur = currentSlideIndex();
 
   // Keep each clip's ORIGINAL feed index so a tap scrolls to the right slide.
-  const items = drawerClips
-    .map((c, i) => {
-      const match = c.match ? findMatchByTeams(c.match.teamA, c.match.teamB) : null;
-      return { c, i, match, kickoffISO: match?.dateISO || c.dateISO };
+  const clipItems = drawerClips.map((c, i) => {
+    const match = c.match ? findMatchByTeams(c.match.teamA, c.match.teamB) : null;
+    return { c, i, match, kickoffISO: match?.dateISO || c.dateISO };
+  });
+
+  // Upcoming fixtures (today + tomorrow) without a clip yet — rendered as
+  // greyed-out rows. Tap → opens the Spiele card; no slide jump.
+  const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+  const endOfTomorrow = new Date(startOfToday); endOfTomorrow.setDate(endOfTomorrow.getDate() + 2);
+  const upcomingItems = getAllMatches()
+    .filter((m) => {
+      if (m.status === "finished") return false;
+      if (!m.dateISO) return false;
+      const d = new Date(m.dateISO);
+      if (isNaN(+d)) return false;
+      if (d < startOfToday || d >= endOfTomorrow) return false;
+      return !findClipByTeams(m.teamA, m.teamB);
     })
-    .filter(({ c }) => !ql || clipSearchText(c).includes(ql));
+    .map((m) => ({ c: null, i: -1, match: m, kickoffISO: m.dateISO, upcoming: true }));
+
+  const items = [...clipItems, ...upcomingItems].filter((it) => !ql || itemSearchText(it).includes(ql));
 
   if (!items.length) {
     const msg = ql ? "Kein Spiel gefunden." : clipsLoading ? "Spiele werden geladen…" : "Noch keine Spiele.";
@@ -435,20 +464,25 @@ function renderDrawerList(q) {
     return;
   }
 
-  function itemMarkup({ c, i, match, kickoffISO }) {
-    const flagA = c.match ? flagFor(c.match.teamA) : "🎬";
-    const flagB = c.match ? flagFor(c.match.teamB) : "";
-    const nameA = c.match ? esc(c.match.teamA) : esc(c.title);
-    const nameB = c.match ? esc(c.match.teamB) : "";
-    const isCur = i === cur;
-    const cls = isCur ? "wm-drawer-item is-current" : "wm-drawer-item";
-    const rowCls = isCur ? "wm-drawer-row is-current" : "wm-drawer-row";
+  function itemMarkup({ c, i, match, kickoffISO, upcoming }) {
+    const teamA = upcoming ? match.teamA : (c.match ? c.match.teamA : null);
+    const teamB = upcoming ? match.teamB : (c.match ? c.match.teamB : null);
+    const flagA = teamA ? flagFor(teamA) : "🎬";
+    const flagB = teamB ? flagFor(teamB) : "";
+    const nameA = teamA ? esc(teamA) : esc(c.title);
+    const nameB = teamB ? esc(teamB) : "";
+    const isCur = !upcoming && i === cur;
+    const cls = upcoming ? "wm-drawer-item is-upcoming" : (isCur ? "wm-drawer-item is-current" : "wm-drawer-item");
+    const rowCls = upcoming ? "wm-drawer-row is-upcoming" : (isCur ? "wm-drawer-row is-current" : "wm-drawer-row");
     const rightSlot = match
       ? `<button class="wm-drawer-info" data-mid="${match.id}" type="button" aria-label="Spielinfo öffnen" title="Spielinfo">ⓘ</button>`
       : `<span class="wm-drawer-info-spacer" aria-hidden="true"></span>`;
     const time = dayTime(kickoffISO);
+    const dataAttrs = upcoming
+      ? `data-upcoming="1" data-mid="${match.id}"`
+      : `data-i="${i}"`;
     return `<div class="${rowCls}">
-        <button class="${cls}" data-i="${i}" type="button">
+        <button class="${cls}" ${dataAttrs} type="button">
           <span class="wm-drawer-time">${esc(time)}</span>
           <span class="wm-drawer-teams">
             <span class="wm-drawer-team"><span class="f">${flagA}</span><span class="nm">${nameA}</span></span>
@@ -483,7 +517,15 @@ function renderDrawerList(q) {
   }
 
   list.querySelectorAll(".wm-drawer-item").forEach((b) =>
-    b.addEventListener("click", () => jumpToClip(parseInt(b.dataset.i, 10))),
+    b.addEventListener("click", () => {
+      if (b.dataset.upcoming === "1") {
+        const mid = b.dataset.mid;
+        closeDrawer();
+        if (mid && typeof window.jumpToSpieleMatch === "function") window.jumpToSpieleMatch(mid);
+      } else {
+        jumpToClip(parseInt(b.dataset.i, 10));
+      }
+    }),
   );
   list.querySelectorAll(".wm-drawer-info").forEach((b) =>
     b.addEventListener("click", (ev) => {
