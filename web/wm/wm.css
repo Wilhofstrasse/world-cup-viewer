@@ -27,7 +27,11 @@
 
   --wm-rounded: "SF Pro Rounded", ui-rounded, "Varela Round", "Hiragino Maru Gothic ProN", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --wm-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --wm-bar-h: 58px;
+  /* Total top-bar height including iOS safe-area inset. Bar pads
+     `max(8px, env(safe-area-inset-top))` on top; 50px = content + bottom pad +
+     border. On desktop env=0 → 58px (matches old constant); on iPhone PWA the
+     notch is absorbed automatically so the feed sits flush below the bar. */
+  --wm-bar-h: calc(50px + max(8px, env(safe-area-inset-top)));
 
   /* Pull-to-refresh pill colour (light page → accent pill) */
   --ptr-bg: #c73b21;
@@ -285,7 +289,11 @@ html, body {
    Highlights — Reels-style feed (DARK: video reads best on black)
    ════════════════════════════════════════════════════════════════════════ */
 .wm-feed {
-  height: 100dvh;
+  /* Reserve the top bar so videos aren't cut by the fixed `.wm-bar`. The bar
+     is `position: fixed` at top with z-index 30; without this offset the slide
+     starts at 0 and the bar overlaps the SRF in-video chrome (Codex P0). */
+  margin-top: var(--wm-bar-h);
+  height: calc(100dvh - var(--wm-bar-h));
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
@@ -296,7 +304,9 @@ html, body {
 
 .wm-slide {
   position: relative;
-  height: 100dvh;
+  /* Match `.wm-feed`'s subtracted height so each slide fills exactly one screen
+     below the bar — scroll-snap stays accurate. */
+  height: calc(100dvh - var(--wm-bar-h));
   scroll-snap-align: start;
   scroll-snap-stop: always;
   overflow: hidden;
@@ -435,8 +445,8 @@ html, body {
   margin-top: 10px; min-height: 44px;
   font-family: var(--wm-rounded); font-size: 13px; font-weight: 700;
   color: #fff;
-  /* Opacity raised 18% → 50% — agent flagged WCAG contrast fail on dark feed. */
-  background: rgba(230,73,47,.5);
+  /* Opacity 85% so the orange reads clearly against dark video frames. */
+  background: rgba(230,73,47,.85);
   border: 1.5px solid var(--wm-accent);
   padding: 10px 14px;
   border-radius: 999px; cursor: pointer;
