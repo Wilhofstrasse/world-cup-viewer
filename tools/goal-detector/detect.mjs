@@ -46,6 +46,14 @@ const MAX_MARKERS = 8;         // cap per clip — real games rarely have > 6 go
 const SKIP_INTRO_SEC = 3;
 const SKIP_OUTRO_SEC = 5;
 
+// Whisper loop-detection thresholds — clip is flagged ONLY when BOTH a low
+// unique-density AND a long single-span run are present (per Codex review:
+// uniqueDensity alone false-flags legitimately sparse-commentary clips).
+const LOOP_MIN_UNIQUE_DENSITY = 0.10;
+const LOOP_MAX_RUN_SPAN_RATIO = 0.30;
+const LOOP_MIN_CLIP_SEC = 30;  // don't flag short clips — too noisy
+const LOOP_RETRY_MIN_UNIQ_GAIN = 0.02; // retry must beat pass1 by ≥ this margin
+
 /**
  * Cue regex. Whisper transcribes a shouted goal as either "Tor!", "Tooor!" or
  * "Treffer!" — match any of those. Word-bounded "Tor" so compounds like
@@ -130,8 +138,19 @@ async function extractAudio(hlsUrl, wavPath) {
   ]);
 }
 
-/** Run whisper.cpp on the WAV. Writes <wav>.srt next to it; returns segments. */
-async function transcribe(wavPath) {
+/** Run whisper.cpp on the WAV. Writes <wav>.srt next to it; returns segments.
+ *  Decoder-stability tuning (v1.9.7, 21.06.2026): default whisper.cpp config
+ *  produces repetition loops on noisy SRF clips (intro music, crowd-only
+ *  stretches) because --max-context defaults to -1 (unlimited) and re-feeds
+ *  hallucinated text into the next window as prompt. We disable that
+ *  (-mc 0), raise entropy/logprob fallback thresholds so locked-in loops
+ *  trigger the temperature ladder, and suppress non-speech tokens.
+ *  NEVER add -nf / --no-fallback — that disables the temperature ladder,
+ *  which is the mechanism that recovers from a fired threshold. */
+async function transcribe(wavPath, opts = {}) {
+  const tp = opts.temperature ?? 0.0;
+  const et = opts.entropyThold ?? 2.8;
+  const lpt = opts.logprobThold ?? -0.5;
   await run(WHISPER, [
     "-m", MODEL,
     "-l", "de",
@@ -139,6 +158,11 @@ async function transcribe(wavPath) {
     "-osrt",
     "-of", wavPath, // -of strips the extension automatically
     "-t", String(Math.max(4, Math.min(10, navigatorThreadCount()))),
+    "-mc", "0",           // disable prior-text conditioning (kills feedback loops)
+    "-et", String(et),    // raise entropy threshold for fallback
+    "-lpt", String(lpt),  // raise logprob threshold for fallback
+    "-tp", String(tp),    // baseline temperature (ladder kicks in via -tpi 0.2 default)
+    "-sns",                // suppress non-speech tokens (music/crowd seeds)
     "-pp",
   ]);
   const srt = await readFile(`${wavPath}.srt`, "utf8");
@@ -149,9 +173,13 @@ function navigatorThreadCount() {
   return (typeof navigator !== "undefined" && navigator.hardwareConcurrency) || 8;
 }
 
-/** SRT → [{ tStartSec, tEndSec, text }]. Collapses whisper's "stuck loop"
- *  hallucination (same sentence repeated for many consecutive segments) so the
- *  LLM sees one occurrence per unique utterance instead of dozens. */
+/** SRT → [{ tStartSec, tEndSec, text, repeatCount }]. Collapses whisper's
+ *  "stuck loop" hallucination (same sentence repeated for many consecutive
+ *  segments) so the LLM sees one occurrence per unique utterance instead of
+ *  dozens. `repeatCount` is the number of raw blocks that collapsed into the
+ *  segment (1 = no collapse). assessTranscriptHealth uses repeatCount > 1
+ *  to distinguish a legitimately long single segment (e.g. a 40s silence)
+ *  from a collapsed-duplicate loop (Codex finding 2026-06-21). */
 function parseSrt(srt) {
   const raw = [];
   const blocks = srt.split(/\r?\n\r?\n/);
@@ -162,19 +190,85 @@ function parseSrt(srt) {
     const tEndSec = (+m[5]) * 3600 + (+m[6]) * 60 + (+m[7]) + (+m[8]) / 1000;
     raw.push({ tStartSec, tEndSec, text: m[9].replace(/\s+/g, " ").trim() });
   }
-  // Drop runs of identical text. Whisper's medium model loops on a phrase for
-  // minutes when it loses lock — we keep the first occurrence and the
-  // tEndSec from the last duplicate so downstream timing logic is sane.
   const out = [];
   for (const seg of raw) {
     const prev = out[out.length - 1];
     if (prev && prev.text === seg.text) {
       prev.tEndSec = seg.tEndSec; // extend the run; same segment.
+      prev.repeatCount = (prev.repeatCount || 1) + 1;
     } else {
-      out.push({ ...seg });
+      out.push({ ...seg, repeatCount: 1 });
     }
   }
   return out;
+}
+
+/** Canonicalize a transcript line so near-duplicate loops (whisper varies
+ *  punctuation, casing, number formatting between repetitions) collapse to
+ *  the same key for health-check purposes. Lower-case, strip punctuation,
+ *  normalize "1 zu 1" / "1:1" / "1-1" → "1 1", collapse whitespace. */
+function canonicalizeText(t) {
+  return (t || "")
+    .toLowerCase()
+    .replace(/[‐-―\-:.,!?;()"„""''`]/g, " ")
+    .replace(/\b(\d+)\s*(?:zu|:|-)\s*(\d+)\b/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Assess transcript health to detect whisper repetition-loop failures.
+ *  uniqueDensity = unique canonical segment count / clip seconds.
+ *  maxRunSpanRatio = longest deduped (post-canonical) segment span / clip seconds.
+ *  Per Codex review: flag is set ONLY when BOTH signals fire — uniqueDensity
+ *  alone false-flags legitimately sparse-commentary clips. Span-only flags
+ *  on legitimate long silences are protected by the AND. Both heuristics fire
+ *  on the Deutschland-Elfenbeinküste case observed 21.06.2026 (55x "Deniz
+ *  Undaf trifft zum 1 zu 1" → uniqueDensity ≈ 0.089, maxRunSpanRatio ≈ 0.34). */
+function assessTranscriptHealth(segments, clipDurationSec) {
+  if (!clipDurationSec || !isFinite(clipDurationSec) || clipDurationSec < LOOP_MIN_CLIP_SEC) {
+    return { uniqueDensity: 1, maxRunSpanRatio: 0, looped: false, reason: "too-short" };
+  }
+  const canon = segments.map((s) => canonicalizeText(s.text)).filter((t) => t.length > 0);
+  const uniqueCount = new Set(canon).size;
+  const uniqueDensity = uniqueCount / clipDurationSec;
+  // Compute longest run-span on canonicalized text so near-duplicates with
+  // punctuation/casing drift also count as a single run.
+  let maxRunSpan = 0;
+  let runStart = null;
+  let runKey = null;
+  for (const seg of segments) {
+    const span = seg.tEndSec - seg.tStartSec;
+    if (!isFinite(span) || span < 0) continue; // defensive — bad SRT timestamps
+    const key = canonicalizeText(seg.text);
+    if (!key) continue;
+    if (runKey === key && runStart != null) {
+      const runSpan = seg.tEndSec - runStart;
+      if (isFinite(runSpan) && runSpan > maxRunSpan) maxRunSpan = runSpan;
+    } else {
+      runKey = key;
+      runStart = seg.tStartSec;
+      // Codex finding 2026-06-21: parseSrt collapses exact duplicate runs
+      // into ONE segment with extended tEndSec, so the `runKey === key`
+      // branch never fires on the original 115× loop. We DO need to count
+      // already-collapsed runs (repeatCount > 1) as long-span events here.
+      // A first occurrence with repeatCount > 1 came from a real loop —
+      // use its own span. repeatCount == 1 means a single legitimate
+      // statement (no collapse) and stays out of the run-span signal.
+      if ((seg.repeatCount || 1) > 1 && isFinite(span) && span > maxRunSpan) {
+        maxRunSpan = span;
+      }
+    }
+  }
+  const maxRunSpanRatio = maxRunSpan / clipDurationSec;
+  const lowDensity = uniqueDensity < LOOP_MIN_UNIQUE_DENSITY;
+  const longRun = maxRunSpanRatio > LOOP_MAX_RUN_SPAN_RATIO;
+  const reasons = [];
+  if (lowDensity) reasons.push(`unique-density ${uniqueDensity.toFixed(3)} < ${LOOP_MIN_UNIQUE_DENSITY}`);
+  if (longRun) reasons.push(`run-span ${maxRunSpanRatio.toFixed(3)} > ${LOOP_MAX_RUN_SPAN_RATIO}`);
+  // AND-gate: only flag when both signals fire (Codex #3) — kills false-positives
+  // on legitimately sparse clips that just happen to have a long single statement.
+  const looped = lowDensity && longRun;
+  return { uniqueDensity, maxRunSpanRatio, looped, reason: looped ? reasons.join(" + ") : (reasons.length ? `${reasons.join(" + ")} (single signal — not flagged)` : "healthy") };
 }
 
 /**
@@ -342,17 +436,41 @@ async function processClip(clip, matches) {
   try {
     const hls = await resolveHls(clip.urn);
     await extractAudio(hls, wav);
-    const segments = await transcribe(wav);
-    // Debug: keep a copy of the SRT for offline prompt-tuning. /tmp is wiped on
-    // reboot, so this never accumulates indefinitely. Safe to leave on in prod.
+    let segments = await transcribe(wav);
+    // Debug: snapshot pass-1 SRT IMMEDIATELY (BEFORE any retry can clobber
+    // <wav>.srt — Codex #6) so we can inspect the original output offline.
+    const debugDir = "/tmp/wm-detector-debug";
+    const stem = clip.urn.replace(/[^a-z0-9]/gi, "_");
     try {
-      const srtSrc = `${wav}.srt`;
-      const debugDir = "/tmp/wm-detector-debug";
       await mkdir(debugDir, { recursive: true });
-      const debugPath = join(debugDir, `${clip.urn.replace(/[^a-z0-9]/gi, "_")}.srt`);
-      const txt = await readFile(srtSrc, "utf8");
-      await writeFile(debugPath, txt);
+      const txt = await readFile(`${wav}.srt`, "utf8");
+      await writeFile(join(debugDir, `${stem}.pass1.srt`), txt);
     } catch (_e) { /* debug-only; never block production */ }
+    let health = assessTranscriptHealth(segments, clip.durationSec);
+    log(`  health uniqueDensity=${health.uniqueDensity.toFixed(3)} maxRunSpan=${health.maxRunSpanRatio.toFixed(3)} (${health.reason})`);
+    let pass = 1;
+    if (health.looped) {
+      log(`  ! whisper loop detected (${health.reason}) — retrying with -tp 0.4 + tighter thresholds`);
+      const retrySegs = await transcribe(wav, { temperature: 0.4, entropyThold: 3.0, logprobThold: -0.3 });
+      const retryHealth = assessTranscriptHealth(retrySegs, clip.durationSec);
+      log(`  retry health uniqueDensity=${retryHealth.uniqueDensity.toFixed(3)} maxRunSpan=${retryHealth.maxRunSpanRatio.toFixed(3)} (${retryHealth.reason})`);
+      try {
+        const txt = await readFile(`${wav}.srt`, "utf8");
+        await writeFile(join(debugDir, `${stem}.pass2.srt`), txt);
+      } catch (_e) { /* debug-only */ }
+      // Replacement guard (Codex #5): only swap pass1 → retry if retry beats
+      // pass1 by a meaningful uniqueDensity margin AND is not itself flagged
+      // as suspicious. A retry that's only marginally better — or still looped
+      // — is rejected, preventing pass1 being replaced by hallucinated variety.
+      const meaningfullyBetter = retryHealth.uniqueDensity > health.uniqueDensity + LOOP_RETRY_MIN_UNIQ_GAIN;
+      const retryNotSuspicious = !retryHealth.looped;
+      if (meaningfullyBetter && retryNotSuspicious) {
+        segments = retrySegs;
+        health = retryHealth;
+        pass = 2;
+      }
+      log(`  → using pass${pass} segments`);
+    }
     const match = findMatchForClip(clip, matches);
     let goals = [];
     let usedLLM = false;
@@ -368,7 +486,7 @@ async function processClip(clip, matches) {
       goals = findGoals(segments, clip.durationSec);
     }
     const expected = match ? (match.scoreA || 0) + (match.scoreB || 0) : null;
-    log(`  → ${goals.length} markers${expected != null ? ` (FIFA expects ${expected})` : ""}${usedLLM ? " [LLM]" : " [regex]"}`);
+    log(`  → ${goals.length} markers${expected != null ? ` (FIFA expects ${expected})` : ""}${usedLLM ? " [LLM" : " [regex"}, pass${pass}, uniqDensity=${health.uniqueDensity.toFixed(3)}]`);
     await postMarkers(clip.urn, goals);
     return goals.length;
   } finally {
