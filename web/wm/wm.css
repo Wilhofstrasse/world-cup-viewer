@@ -319,6 +319,13 @@ html, body {
   display: flex;
   align-items: flex-end;
 }
+/* On mobile this fills the slide (inset:0) so every absolute child below —
+   .wm-thumb / .wm-scrim / .wm-playbtn / .wm-video / .wm-marker-rail — anchors
+   to the same rectangle the slide used to. On desktop (≥760px, see media
+   query at the bottom) the well becomes a 16:9 card and the meta panel
+   sits below it as a separate block. */
+.wm-media-well { position: absolute; inset: 0; }
+
 .wm-thumb {
   position: absolute;
   inset: 0;
@@ -569,6 +576,83 @@ html, body {
   /* The feed/video fills the screen (object-fit:contain letterboxes it) so a
      landscape phone or a desktop shows a big video, not a narrow centred strip. */
   #view-spiele, #view-mehr { max-width: 600px; } /* readable column */
+}
+
+/* ── Highlights desktop card layout (≥760px AND ≥700px tall) ──────────────
+   Width gate keeps phones in Reels mode; HEIGHT gate keeps iPhone landscape
+   (812/844/932 × 375-430px tall) in Reels mode too — a 16:9 well + meta card
+   never fits below ~700px tall. iPad portrait/landscape (768/1024px) and
+   desktop both pass and get the card layout. */
+@media (min-width: 760px) and (min-height: 700px) {
+  .wm-feed { padding: 28px 24px 0; background: var(--wm-feed-bg); }
+
+  .wm-slide {
+    display: grid;
+    grid-template-columns: minmax(0, 900px);
+    grid-template-rows: auto auto;
+    justify-content: center;
+    align-content: center;
+    row-gap: 18px;
+    background: var(--wm-feed-bg);
+    align-items: initial;
+  }
+
+  .wm-media-well {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, .5);
+  }
+
+  /* Scrim is a video-overlay gradient — irrelevant when meta is a separate
+     card below the video. Hide it on desktop. */
+  .wm-media-well > .wm-scrim { display: none; }
+
+  /* Meta becomes a normal-flow translucent card under the well. Drops the
+     mobile pointer-events:none so title/teams are selectable. */
+  .wm-slide > .wm-meta {
+    position: static;
+    width: 100%;
+    max-width: 900px;
+    margin-inline: auto;
+    padding: 18px 20px 20px;
+    background: var(--wm-feed-bg2);
+    border-radius: 14px;
+    pointer-events: auto;
+  }
+  .wm-slide > .wm-meta .wm-title { max-width: 70ch; }
+
+  /* Marker rail still anchors to the bottom of the well (the video
+     timeline). No safe-area inset on desktop, so the 54px native-controls
+     offset stays correct above the player chrome inside the well. */
+  .wm-media-well > .wm-marker-rail { bottom: 54px; }
+
+  /* Loading spinner anchors to the well (the media area), not the whole
+     slide — otherwise on desktop it would sit too low in the gap or over
+     the meta card. Disable the slide-level pseudo and paint a new one
+     centered on the well. */
+  .wm-slide.loading::after { display: none; }
+  .wm-slide.loading .wm-media-well::after {
+    content: "";
+    position: absolute; top: 50%; left: 50%;
+    width: 44px; height: 44px; margin: -22px;
+    border: 3px solid rgba(255, 255, 255, .3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: wm-spin .8s linear infinite;
+    z-index: 6;
+  }
+
+  /* Empty/error slide stays centered when there's no card to show. */
+  .wm-slide.wm-empty {
+    display: grid;
+    place-content: center;
+    text-align: center;
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════════════

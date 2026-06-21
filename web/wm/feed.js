@@ -89,9 +89,11 @@ function slideMarkup(clip, i) {
   const thumb = clip.thumbnailUrl ? ` style="background-image:url('${encodeURI(clip.thumbnailUrl)}')"` : "";
   return `
     <section class="wm-slide" data-i="${i}" aria-roledescription="Clip">
-      <div class="wm-thumb"${thumb} aria-hidden="true"></div>
-      <div class="wm-scrim" aria-hidden="true"></div>
-      <button class="wm-playbtn" type="button" aria-label="Abspielen">▶</button>
+      <div class="wm-media-well">
+        <div class="wm-thumb"${thumb} aria-hidden="true"></div>
+        <div class="wm-scrim" aria-hidden="true"></div>
+        <button class="wm-playbtn" type="button" aria-label="Abspielen">▶</button>
+      </div>
       <div class="wm-meta">
         ${flags}
         ${teams}
@@ -106,6 +108,14 @@ function slideMarkup(clip, i) {
         ${infoChipMarkup(clip)}
       </div>
     </section>`;
+}
+
+/** Host element for runtime-mounted media (video + marker rail). On normal
+ *  slides this is the `.wm-media-well` wrapper introduced in v1.9.8 so the
+ *  desktop card layout can size the media independently of the meta panel.
+ *  Empty/error slides have no well — fall back to the slide itself. */
+function mediaHost(slideEl) {
+  return slideEl.querySelector(".wm-media-well") || slideEl;
 }
 
 function esc(s) {
@@ -212,7 +222,7 @@ function renderMarkers(slideEl, markers, durationSec) {
   if (!rail) {
     rail = document.createElement("div");
     rail.className = "wm-marker-rail";
-    slideEl.appendChild(rail);
+    mediaHost(slideEl).appendChild(rail);
   }
   rail.innerHTML = "";
   const total = durationSec || slideEl._clip?.durationSec || 0;
@@ -291,7 +301,7 @@ async function playSlide(slideEl) {
 
   slideEl.classList.remove("loading");
   slideEl.classList.add("playing");
-  slideEl.appendChild(video);
+  mediaHost(slideEl).appendChild(video);
   video.play().catch(() => {/* gesture already happened; ignore */});
 
   // Landscape → fullscreen, portrait → inline. The orientation-change attempt is
