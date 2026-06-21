@@ -509,6 +509,11 @@ function renderDrawerList(q) {
       groups.get(key).push(it);
     }
     const sortedKeys = [...groups.keys()].sort((a, b) => b.localeCompare(a));
+    // Within each day, sort by kickoff ASCENDING so HEUTE reads top-down
+    // as a chronological schedule (02:00, 06:00, 18:00, 21:00).
+    for (const k of sortedKeys) {
+      groups.get(k).sort((a, b) => (a.kickoffISO || "").localeCompare(b.kickoffISO || ""));
+    }
     list.innerHTML = sortedKeys.map((k) => {
       const arr = groups.get(k);
       const label = dayLabel(arr[0].kickoffISO) || "—";
