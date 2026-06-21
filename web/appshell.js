@@ -21,7 +21,7 @@
 "use strict";
 
 (function () {
-  var APP_BUILT = "1.9.6"; // version of THIS shipped asset
+  var APP_BUILT = "1.9.7"; // version of THIS shipped asset
 
   // ── 1. Version stamp ─────────────────────────────────────────────────────
   function showVersion() {
