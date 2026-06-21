@@ -149,16 +149,30 @@ function navigatorThreadCount() {
   return (typeof navigator !== "undefined" && navigator.hardwareConcurrency) || 8;
 }
 
-/** SRT → [{ tStartSec, tEndSec, text }]. */
+/** SRT → [{ tStartSec, tEndSec, text }]. Collapses whisper's "stuck loop"
+ *  hallucination (same sentence repeated for many consecutive segments) so the
+ *  LLM sees one occurrence per unique utterance instead of dozens. */
 function parseSrt(srt) {
-  const out = [];
+  const raw = [];
   const blocks = srt.split(/\r?\n\r?\n/);
   for (const b of blocks) {
     const m = /(\d{2}):(\d{2}):(\d{2})[.,](\d{3})\s+-->\s+(\d{2}):(\d{2}):(\d{2})[.,](\d{3})\s+([\s\S]+)/.exec(b);
     if (!m) continue;
     const tStartSec = (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]) + (+m[4]) / 1000;
     const tEndSec = (+m[5]) * 3600 + (+m[6]) * 60 + (+m[7]) + (+m[8]) / 1000;
-    out.push({ tStartSec, tEndSec, text: m[9].replace(/\s+/g, " ").trim() });
+    raw.push({ tStartSec, tEndSec, text: m[9].replace(/\s+/g, " ").trim() });
+  }
+  // Drop runs of identical text. Whisper's medium model loops on a phrase for
+  // minutes when it loses lock — we keep the first occurrence and the
+  // tEndSec from the last duplicate so downstream timing logic is sane.
+  const out = [];
+  for (const seg of raw) {
+    const prev = out[out.length - 1];
+    if (prev && prev.text === seg.text) {
+      prev.tEndSec = seg.tEndSec; // extend the run; same segment.
+    } else {
+      out.push({ ...seg });
+    }
   }
   return out;
 }
@@ -244,7 +258,12 @@ async function findGoalsLLM(segments, match, clipDurationSec) {
 FIFA GOAL EVENTS (match minute, scorer, team): ${goalHint || "unknown"}
 CLIP DURATION: ${clipDurationSec || "unknown"} seconds
 
-TASK: Identify EXACTLY ${total} real goal moments in this clip. A real goal moment is when the commentator reacts to a goal being scored RIGHT NOW in the clip — a sudden "Tor!", "Treffer!", "Goooal!", a shouted scorer's name, or unmistakable celebration language at the moment of the strike.
+TASK: Identify up to ${total} real goal moments in this clip — fewer if you can't find that many distinct events. A real goal moment is when the commentator reacts to a goal being scored RIGHT NOW in the clip. Cues include:
+- A sudden "Tor!", "Treffer!", "Goooal!", shouted scorer's name, or unmistakable celebration
+- A score announcement like "trifft zum 1:0", "macht das 2:1", "erzielt den Ausgleich"
+- Past tense IS fine when describing the moment that just happened ("Deniz Undaf trifft zum 1 zu 1" IS a real goal report — German commentators routinely narrate goals this way)
+
+Whisper sometimes loops on a phrase — if you see the SAME sentence many times in a row, treat the FIRST occurrence as the goal moment and ignore the duplicates (the parser already de-duplicates consecutive duplicates before you see it).
 
 IGNORE:
 - Past-tense references ("seinen dritten Treffer in diesem Turnier") — that names an already-scored goal in past games, not a new one
@@ -258,7 +277,10 @@ For each goal, set tSec to ~3 seconds BEFORE the celebration burst so the player
 RETURN ONLY this JSON array (no prose, no markdown fence):
 [{"tSec": <int>, "scorer": "<surname or null>", "label": "<short German caption, max 60 chars>"}]
 
-If you genuinely cannot find ${total} distinct moments, return as many as you can confidently identify — never invent.
+RULES:
+- Return AT LEAST 1 marker if there is ANY plausible goal cue in the transcript and FIFA expects ${total} ≥ 1. Returning [] when the FIFA score is non-zero is almost always a mistake.
+- Return AT MOST ${total} markers. If you see more than ${total} candidates, pick the strongest.
+- If you genuinely find zero plausible goal cues (silent/music-only clip), return [].
 
 TRANSCRIPT:
 ${transcript}`;
@@ -321,6 +343,16 @@ async function processClip(clip, matches) {
     const hls = await resolveHls(clip.urn);
     await extractAudio(hls, wav);
     const segments = await transcribe(wav);
+    // Debug: keep a copy of the SRT for offline prompt-tuning. /tmp is wiped on
+    // reboot, so this never accumulates indefinitely. Safe to leave on in prod.
+    try {
+      const srtSrc = `${wav}.srt`;
+      const debugDir = "/tmp/wm-detector-debug";
+      await mkdir(debugDir, { recursive: true });
+      const debugPath = join(debugDir, `${clip.urn.replace(/[^a-z0-9]/gi, "_")}.srt`);
+      const txt = await readFile(srtSrc, "utf8");
+      await writeFile(debugPath, txt);
+    } catch (_e) { /* debug-only; never block production */ }
     const match = findMatchForClip(clip, matches);
     let goals = [];
     let usedLLM = false;
