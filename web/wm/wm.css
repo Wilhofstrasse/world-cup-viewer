@@ -23,7 +23,6 @@
   /* Dark palette (Highlights video reels only) */
   --wm-feed-bg:  #0c1c33;
   --wm-feed-bg2: #0f2748;
-  --wm-feed-line: rgba(255,255,255,.12);
 
   --wm-rounded: "SF Pro Rounded", ui-rounded, "Varela Round", "Hiragino Maru Gothic ProN", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --wm-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -33,9 +32,33 @@
      notch is absorbed automatically so the feed sits flush below the bar. */
   --wm-bar-h: calc(50px + max(8px, env(safe-area-inset-top)));
 
+  /* Height of the native video chrome inside the well (iOS Safari/iPad PWA
+     player controls). The goal-marker rail sits just above this. Default 54px
+     is calibrated for iOS native fullscreen controls; desktop browsers (Chrome,
+     Safari, Firefox) ship ~34px controls — overridden in the desktop card block
+     below so dots don't float above the actual timeline. */
+  --wm-player-h: 54px;
+
   /* Pull-to-refresh pill colour (light page → accent pill) */
   --ptr-bg: #c73b21;
 }
+
+/* ────────────────────────────────────────────────────────────────────────
+   Z-INDEX HIERARCHY — single reference, ordered low → high.
+   Avoids the silent shuffle when stacking contexts collide.
+     1   timeline rails, k.-o.-baum lines, drawer rail dots
+     2   sticky day-headers, k.-o.-baum cards, player-card close button
+     3   .wm-meta — slide caption (above scrim+thumb on mobile)
+     4   .wm-video — playing video (above thumb, below playbtn)
+     5   .wm-playbtn — tap target (above video)
+     6   .wm-marker-rail, loading spinner — above the playing video
+    30   .wm-bar — fixed top bar across all views
+    39   .wm-drawer-scrim — dimmer under the side drawer
+    40   .wm-drawer — slide-out side menu
+   100   .wm-pk-overlay — Spielerkarten sheet (over everything)
+   200   .wm-pk-lightbox — full-screen photo (over the sheet)
+   999   pull-to-refresh pill (appshell.js, inline style)
+   ──────────────────────────────────────────────────────────────────────── */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -423,11 +446,13 @@ html, body {
 .wm-slide.wm-empty p { font-size: 15px; line-height: 1.5; }
 .wm-slide.wm-error .wm-meta::after { content: "Konnte nicht geladen werden."; display: block; color: #ff8a7a; font-size: 12px; margin-top: 6px; }
 
-/* Goal markers — accent dots on a bottom rail above native iOS player controls. */
+/* Goal markers — accent dots on a bottom rail above the native player chrome.
+   `--wm-player-h` defaults to 54px (iOS Safari fullscreen controls); the
+   desktop card block overrides it to match Chrome/Safari desktop controls. */
 .wm-marker-rail {
   position: absolute;
   left: 4%; right: 4%;
-  bottom: calc(54px + env(safe-area-inset-bottom));
+  bottom: calc(var(--wm-player-h) + env(safe-area-inset-bottom));
   height: 24px;
   pointer-events: none; z-index: 6;
 }
@@ -563,9 +588,6 @@ html, body {
   animation: wm-flash-pulse 1.5s ease-out 1;
 }
 
-/* ── Version stamp ── */
-.wm-ver { /* (header version, defined above) */ }
-
 /* Respect prefers-reduced-motion across every keyframe animation. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
@@ -582,8 +604,18 @@ html, body {
    Width gate keeps phones in Reels mode; HEIGHT gate keeps iPhone landscape
    (812/844/932 × 375-430px tall) in Reels mode too — a 16:9 well + meta card
    never fits below ~700px tall. iPad portrait/landscape (768/1024px) and
-   desktop both pass and get the card layout. */
+   desktop both pass and get the card layout.
+   iPad portrait (768×1024) intentionally passes: 720w × 405h well + 18h
+   row-gap + ~210h meta + 28h feed top padding + 58h bar ≈ 719h, fits 1024h
+   with ~305px headroom (bar grows by safe-area-inset-top on iPad PWA, so
+   real headroom is slightly less; still comfortable). Verified v1.9.9. */
 @media (min-width: 760px) and (min-height: 700px) {
+  /* Desktop browsers paint compact native controls (~34px) inside the well.
+     Mobile inherits the root 54px (iOS fullscreen). iPad portrait passes the
+     gate but still receives in-page <video> controls of the same ~34px height
+     when not fullscreened, so the desktop override is correct here too. */
+  :root { --wm-player-h: 34px; }
+
   .wm-feed { padding: 28px 24px 0; background: var(--wm-feed-bg); }
 
   .wm-slide {
@@ -626,10 +658,12 @@ html, body {
   }
   .wm-slide > .wm-meta .wm-title { max-width: 70ch; }
 
-  /* Marker rail still anchors to the bottom of the well (the video
-     timeline). No safe-area inset on desktop, so the 54px native-controls
-     offset stays correct above the player chrome inside the well. */
-  .wm-media-well > .wm-marker-rail { bottom: 54px; }
+  /* Marker rail still anchors to the bottom of the well. Inside the card
+     block, drop env(safe-area-inset-bottom) — that value is viewport-global
+     (positive on iPad PWA home-indicator) and would push the rail above the
+     player controls by inset px, not 0. The well is a centred element where
+     only player-chrome height matters. Override the base rule explicitly. */
+  .wm-media-well > .wm-marker-rail { bottom: var(--wm-player-h); }
 
   /* Loading spinner anchors to the well (the media area), not the whole
      slide — otherwise on desktop it would sit too low in the gap or over
