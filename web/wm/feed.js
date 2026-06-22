@@ -152,6 +152,34 @@ function render() {
     });
   });
   observePauses(feed);
+  attachScrollHint(feed);
+}
+
+/** First-slide scroll affordance: animated "↓ Mehr" hint that fades the moment
+ *  the user has scrolled past ~30 px. Hidden on the desktop card layout via
+ *  CSS (peek = 0 there). One-shot per session — if the user has already
+ *  scrolled once, the hint is suppressed on re-renders. */
+let scrollHintConsumed = false;
+function attachScrollHint(feed) {
+  if (scrollHintConsumed) return;
+  if (feed.scrollTop > 30) { scrollHintConsumed = true; return; }
+  const firstSlide = feed.querySelector(".wm-slide");
+  if (!firstSlide || firstSlide.classList.contains("wm-empty")) return;
+  // Avoid duplicates on re-render (subscribe()-driven repaints).
+  firstSlide.querySelector(".wm-scroll-hint")?.remove();
+  const hint = document.createElement("div");
+  hint.className = "wm-scroll-hint";
+  hint.setAttribute("aria-hidden", "true");
+  hint.textContent = "Mehr";
+  firstSlide.appendChild(hint);
+  const onScroll = () => {
+    if (feed.scrollTop <= 30) return;
+    hint.classList.add("is-hidden");
+    scrollHintConsumed = true;
+    feed.removeEventListener("scroll", onScroll);
+    setTimeout(() => hint.remove(), 400);
+  };
+  feed.addEventListener("scroll", onScroll, { passive: true });
 }
 
 // ---------------------------------------------------------------------------

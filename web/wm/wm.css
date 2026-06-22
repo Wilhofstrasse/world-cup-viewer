@@ -39,6 +39,11 @@
      below so dots don't float above the actual timeline. */
   --wm-player-h: 54px;
 
+  /* Peek of the next slide visible at the bottom of the current slide as a
+     scroll affordance (v1.9.10). Mobile only — set to 0 in the desktop card
+     block where each clip is a centered card with its own framing. */
+  --wm-peek-h: 28px;
+
   /* Pull-to-refresh pill colour (light page → accent pill) */
   --ptr-bg: #c73b21;
 }
@@ -331,9 +336,11 @@ html, body {
 
 .wm-slide {
   position: relative;
-  /* Match `.wm-feed`'s subtracted height so each slide fills exactly one screen
-     below the bar — scroll-snap stays accurate. */
-  height: calc(100dvh - var(--wm-bar-h));
+  /* Slide is `--wm-peek-h` shorter than the snap window so the next clip's
+     top edge peeks above the bottom of the viewport — a "more below" hint
+     without an explicit "scroll" affordance on every slide. Desktop card
+     block flips `--wm-peek-h` to 0 (each card is already self-framed). */
+  height: calc(100dvh - var(--wm-bar-h) - var(--wm-peek-h));
   scroll-snap-align: start;
   scroll-snap-stop: always;
   overflow: hidden;
@@ -341,6 +348,38 @@ html, body {
   color: #fff;
   display: flex;
   align-items: flex-end;
+}
+
+/* Animated chevron + "Mehr" copy on the FIRST slide only — guides a first-time
+   visitor to swipe. Fades out the moment the feed has scrolled past ~30 px.
+   Hidden on the desktop card layout (peek is 0 there; the card framing makes
+   "more below" obvious). */
+.wm-scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--wm-peek-h) + 8px);
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0;
+  color: rgba(255,255,255,.9);
+  font-family: var(--wm-rounded);
+  font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0,0,0,.75);
+  pointer-events: none;
+  z-index: 7;
+  animation: wm-scroll-hint-bounce 1.7s ease-in-out infinite;
+  transition: opacity .35s ease;
+}
+.wm-scroll-hint::before {
+  content: "↓";
+  font-size: 22px; line-height: 1;
+  margin-bottom: 2px;
+}
+.wm-scroll-hint.is-hidden { opacity: 0; animation: none; }
+@keyframes wm-scroll-hint-bounce {
+  0%, 100% { transform: translate(-50%, 0); }
+  50%      { transform: translate(-50%, 5px); }
 }
 /* On mobile this fills the slide (inset:0) so every absolute child below —
    .wm-thumb / .wm-scrim / .wm-playbtn / .wm-video / .wm-marker-rail — anchors
@@ -615,6 +654,10 @@ html, body {
      gate but still receives in-page <video> controls of the same ~34px height
      when not fullscreened, so the desktop override is correct here too. */
   :root { --wm-player-h: 34px; }
+  /* Card layout has its own framing — no need to peek the next card. */
+  :root { --wm-peek-h: 0px; }
+  /* "Mehr ↓" hint is mobile-only — desktop cards make scrollability obvious. */
+  .wm-scroll-hint { display: none; }
 
   .wm-feed { padding: 28px 24px 0; background: var(--wm-feed-bg); }
 
