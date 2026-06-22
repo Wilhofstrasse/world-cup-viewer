@@ -21,7 +21,7 @@
 "use strict";
 
 (function () {
-  var APP_BUILT = "1.9.12"; // version of THIS shipped asset
+  var APP_BUILT = "1.9.13"; // version of THIS shipped asset
 
   // ── 1. Version stamp ─────────────────────────────────────────────────────
   function showVersion() {
@@ -352,11 +352,40 @@
     return "unsupported";
   };
 
+  // ── 4. Pull-to-refresh nudge (v1.9.13) ───────────────────────────────────
+  // First-time visitors don't know the 3-second hold-at-top gesture exists.
+  // Show a one-shot bouncing pill near the top after the page settles, then
+  // fade it after a few seconds. Only fires in standalone PWA mode — in a
+  // browser tab the user already has a native reload button.
+  var PTR_HINT_KEY = "wm.ptr.hint.shown";
+  function attachUpdateNudge() {
+    if (!isStandalone()) return;
+    try { if (localStorage.getItem(PTR_HINT_KEY)) return; } catch (_e) { return; }
+    setTimeout(function () {
+      if (document.getElementById("wmPtrHint")) return;
+      var hint = document.createElement("div");
+      hint.id = "wmPtrHint";
+      hint.className = "wm-ptr-hint";
+      hint.setAttribute("role", "status");
+      hint.innerHTML = '<span class="wm-ptr-arrow" aria-hidden="true">↓</span><span>Ziehen + halten zum Aktualisieren</span>';
+      document.body.appendChild(hint);
+      try { localStorage.setItem(PTR_HINT_KEY, String(Date.now())); } catch (_e) {}
+      // Tap dismisses early.
+      hint.addEventListener("click", function () { hideHint(); });
+      function hideHint() {
+        hint.classList.add("is-hiding");
+        setTimeout(function () { if (hint.parentNode) hint.parentNode.removeChild(hint); }, 400);
+      }
+      setTimeout(hideHint, 7000);
+    }, 3500);
+  }
+
   function init() {
     swRecover();
     showVersion();
     attachPullToRefresh();
     attachInstallNudge();
+    attachUpdateNudge();
   }
 
   if (document.readyState !== "loading") init();

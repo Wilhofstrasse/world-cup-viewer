@@ -392,14 +392,14 @@ html, body {
   z-index: 50;
   background: var(--wm-paper);
   color: var(--wm-ink);
-  border: 2.5px solid var(--wm-ink);
-  border-radius: 16px;
-  box-shadow: 0 12px 32px rgba(0,0,0,.28);
-  padding: 14px 14px 14px 16px;
+  border: 2px solid var(--wm-ink);
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.24);
+  padding: 10px 8px 10px 12px;
   display: grid;
   grid-template-columns: auto 1fr auto auto;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-family: var(--wm-rounded);
   animation: wm-install-rise .3s ease-out;
 }
@@ -411,13 +411,14 @@ html, body {
 .wm-install-icon {
   font-size: 28px;
   line-height: 1;
-  color: #007aff; /* iOS systemBlue — matches the platform Share icon */
+  color: #007aff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 30px; height: 30px;
 }
-.wm-install-icon .wm-iphone-icon { color: var(--wm-ink); }
-.wm-install-icon .wm-download-icon { color: var(--wm-accent); }
+.wm-install-icon .wm-iphone-icon { color: var(--wm-ink); width: 18px; height: 28px; }
+.wm-install-icon .wm-download-icon { color: var(--wm-accent); width: 22px; height: 22px; }
 /* Inline iOS share glyph used in body copy — sits on the baseline next to
    "Teilen" so the user maps the word to the icon they'll see on their phone. */
 .wm-ios-icon {
@@ -427,21 +428,23 @@ html, body {
   margin: 0 1px;
 }
 .wm-install-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.wm-install-text strong { font-size: 15px; font-weight: 800; }
-.wm-install-text span { font-size: 12.5px; color: var(--wm-ink-dim); line-height: 1.3; }
+.wm-install-text strong { font-size: 14px; font-weight: 800; line-height: 1.2; }
+.wm-install-text span { font-size: 12px; color: var(--wm-ink-dim); line-height: 1.3; }
 .wm-install-text b { color: var(--wm-ink); }
+/* Compact CTA on the right — sized like a callbox tag, not a chunky pill. */
 .wm-install-go {
-  border: none; border-radius: 999px; cursor: pointer;
+  border: none; border-radius: 10px; cursor: pointer;
   background: var(--wm-accent); color: #fff;
-  font-family: var(--wm-rounded); font-size: 13px; font-weight: 800;
-  padding: 9px 14px; min-height: 38px;
+  font-family: var(--wm-rounded); font-size: 12px; font-weight: 800;
+  padding: 6px 10px; min-height: 28px;
+  letter-spacing: .01em;
   -webkit-tap-highlight-color: transparent;
 }
-.wm-install-go:active { transform: scale(.97); }
+.wm-install-go:active { transform: scale(.96); }
 .wm-install-dismiss {
   border: none; background: transparent;
-  font-size: 18px; color: var(--wm-ink-dim);
-  width: 32px; height: 32px; border-radius: 50%;
+  font-size: 16px; color: var(--wm-ink-dim);
+  width: 26px; height: 26px; border-radius: 50%;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -474,6 +477,36 @@ html, body {
 }
 .wm-sett-install-btn:active { background: var(--wm-accent-soft); }
 .wm-sett-install-note { font-size: 12.5px; color: var(--wm-ink-dim); line-height: 1.4; }
+
+/* Pull-to-refresh nudge — one-shot bouncing pill near the top of standalone
+   PWA viewers. Teaches the "hold ~3s at top" gesture that appshell.js wires
+   up; visible 7 s then auto-fades. localStorage one-shot. */
+.wm-ptr-hint {
+  position: fixed;
+  top: calc(var(--wm-bar-h) + 12px);
+  left: 50%;
+  z-index: 49;
+  background: rgba(15, 39, 72, .94);
+  color: #fff;
+  font-family: var(--wm-rounded);
+  font-size: 13px; font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.4);
+  cursor: pointer;
+  transform: translateX(-50%);
+  animation: wm-ptr-bounce 1.8s ease-in-out infinite;
+}
+.wm-ptr-arrow { font-size: 16px; line-height: 1; }
+.wm-ptr-hint.is-hiding { opacity: 0; transform: translate(-50%, -10px); transition: opacity .35s ease, transform .35s ease; animation: none; }
+@keyframes wm-ptr-bounce {
+  0%, 100% { transform: translate(-50%, 0); }
+  50%      { transform: translate(-50%, 5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wm-ptr-hint { animation: none; }
+}
 @keyframes wm-scroll-hint-bounce {
   0%, 100% { transform: translate(-50%, 0); }
   50%      { transform: translate(-50%, 5px); }
