@@ -408,7 +408,24 @@ html, body {
   to   { transform: translateY(0); opacity: 1; }
 }
 .wm-install-banner.is-hiding { opacity: 0; transform: translateY(40%); transition: opacity .2s ease, transform .2s ease; }
-.wm-install-icon { font-size: 28px; line-height: 1; }
+.wm-install-icon {
+  font-size: 28px;
+  line-height: 1;
+  color: #007aff; /* iOS systemBlue — matches the platform Share icon */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.wm-install-icon .wm-iphone-icon { color: var(--wm-ink); }
+.wm-install-icon .wm-download-icon { color: var(--wm-accent); }
+/* Inline iOS share glyph used in body copy — sits on the baseline next to
+   "Teilen" so the user maps the word to the icon they'll see on their phone. */
+.wm-ios-icon {
+  display: inline-block;
+  vertical-align: -3px;
+  color: #007aff;
+  margin: 0 1px;
+}
 .wm-install-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .wm-install-text strong { font-size: 15px; font-weight: 800; }
 .wm-install-text span { font-size: 12.5px; color: var(--wm-ink-dim); line-height: 1.3; }

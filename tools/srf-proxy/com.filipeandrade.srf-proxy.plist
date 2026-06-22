@@ -8,7 +8,7 @@
     launchctl start  com.filipeandrade.srf-proxy
   Check:
     launchctl list | grep srf-proxy
-    curl -s http://127.0.0.1:8787/health
+    curl -s http://127.0.0.1:8791/health
   Logs:
     tail -f /Users/filipeandrade/Library/Logs/srf-proxy.log
 -->
@@ -23,7 +23,7 @@
   </array>
   <key>EnvironmentVariables</key>
   <dict>
-    <key>SRF_PROXY_PORT</key><string>8787</string>
+    <key>SRF_PROXY_PORT</key><string>8791</string>
     <key>SRF_PROXY_PUBLIC_BASE</key><string>https://srf.filipeandrade.com</string>
     <key>PATH</key><string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
   </dict>

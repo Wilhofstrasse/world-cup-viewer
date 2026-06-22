@@ -21,7 +21,7 @@
 "use strict";
 
 (function () {
-  var APP_BUILT = "1.9.11"; // version of THIS shipped asset
+  var APP_BUILT = "1.9.12"; // version of THIS shipped asset
 
   // ── 1. Version stamp ─────────────────────────────────────────────────────
   function showVersion() {
@@ -247,7 +247,34 @@
 
     var hasNativePrompt = !!deferredInstallPrompt;
     var ios = isIOSSafari();
-    var iconHtml = '<div class="wm-install-icon" aria-hidden="true">📲</div>';
+    // iOS-style Share icon — square with arrow rising from the top. Inline SVG
+    // so it renders identically on every platform (emoji shifted from
+    // platform to platform; an SVG matches Apple's actual button glyph).
+    var SHARE_SVG =
+      '<svg class="wm-ios-icon" viewBox="0 0 16 18" width="14" height="16" aria-hidden="true">' +
+        '<path d="M8 1.5v9.5M8 1.5L5 4.5M8 1.5L11 4.5" ' +
+          'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '<rect x="2.5" y="7.25" width="11" height="9" rx="2" ' +
+          'fill="none" stroke="currentColor" stroke-width="1.4"/>' +
+      '</svg>';
+    // Banner leading-icon: small iPhone silhouette for iOS variant (matches
+    // the "Auf den Startbildschirm" mental model), download-arrow glyph for
+    // Chrome variant ("Installieren" CTA).
+    var IPHONE_SVG =
+      '<svg class="wm-iphone-icon" viewBox="0 0 18 28" width="22" height="34" aria-hidden="true">' +
+        '<rect x="1.5" y="1.5" width="15" height="25" rx="3" ' +
+          'fill="none" stroke="currentColor" stroke-width="1.6"/>' +
+        '<line x1="7" y1="23.2" x2="11" y2="23.2" ' +
+          'stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' +
+      '</svg>';
+    var DOWNLOAD_SVG =
+      '<svg class="wm-download-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">' +
+        '<path d="M12 3v12M12 15l-4-4M12 15l4-4" ' +
+          'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '<path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" ' +
+          'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg>';
+    var iconHtml = '<div class="wm-install-icon" aria-hidden="true">' + (ios ? IPHONE_SVG : DOWNLOAD_SVG) + '</div>';
     var dismissHtml = '<button class="wm-install-dismiss" type="button" aria-label="Schließen">✕</button>';
     var bodyHtml;
     if (hasNativePrompt) {
@@ -261,7 +288,7 @@
       bodyHtml =
         '<div class="wm-install-text">' +
           '<strong>Auf den Startbildschirm</strong>' +
-          '<span>Tippe unten auf <b>Teilen</b> ⬆ → <b>Zum Home-Bildschirm</b>.</span>' +
+          '<span>Tippe unten auf <b>Teilen</b> ' + SHARE_SVG + ' → <b>Zum Home-Bildschirm</b>.</span>' +
         '</div>';
     } else {
       bodyHtml =

@@ -1,6 +1,6 @@
 {
   "name": "world-cup-viewer",
-  "version": "1.9.11",
+  "version": "1.9.12",
   "type": "module",
   "private": true,
   "scripts": {
