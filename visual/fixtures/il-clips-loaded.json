@@ -1,0 +1,42 @@
+{
+  "show": {
+    "id": "c55b9fb8-e108-4994-a1d0-8c288bf8d5bc",
+    "urn": "urn:srf:show:tv:c55b9fb8-e108-4994-a1d0-8c288bf8d5bc",
+    "title": "FIFA WM 2026 Clips"
+  },
+  "episodeList": [
+    {
+      "id": "ep-argentinien-algerien",
+      "publishedDate": "2026-06-17T01:00:00+02:00",
+      "imageUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUiQGoxoZbnAAAACklEQVR4nGNgAAAAAgABc3UBGAAAAABJRU5ErkJggg==",
+      "mediaList": [
+        {
+          "id": "media-arg-alg",
+          "mediaType": "VIDEO",
+          "urn": "urn:srf:video:fixture-argentinien-algerien-2026-06-17",
+          "title": "Die Live-Highlights bei Argentinien - Algerien",
+          "date": "2026-06-17T01:00:00+02:00",
+          "duration": 360000,
+          "imageUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUiQGoxoZbnAAAACklEQVR4nGNgAAAAAgABc3UBGAAAAABJRU5ErkJggg=="
+        }
+      ]
+    },
+    {
+      "id": "ep-oesterreich-jordanien",
+      "publishedDate": "2026-06-16T22:00:00+02:00",
+      "imageUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUiQGoxoZbnAAAACklEQVR4nGNgAAAAAgABc3UBGAAAAABJRU5ErkJggg==",
+      "mediaList": [
+        {
+          "id": "media-aut-jor",
+          "mediaType": "VIDEO",
+          "urn": "urn:srf:video:fixture-oesterreich-jordanien-2026-06-16",
+          "title": "Die Live-Highlights bei Österreich - Jordanien",
+          "date": "2026-06-16T22:00:00+02:00",
+          "duration": 348000,
+          "imageUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUiQGoxoZbnAAAACklEQVR4nGNgAAAAAgABc3UBGAAAAABJRU5ErkJggg=="
+        }
+      ]
+    }
+  ],
+  "next": null
+}

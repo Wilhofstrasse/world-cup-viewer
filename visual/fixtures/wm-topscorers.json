@@ -1,0 +1,11 @@
+{
+  "scorers": [
+    { "rank": 1, "player": "L. Messi", "idPlayer": "169200", "team": "Argentinien", "idTeam": "43922", "goals": 3, "assists": 1, "matches": 1, "photoUrl": null },
+    { "rank": 2, "player": "M. Arnautović", "idPlayer": "169201", "team": "Österreich", "idTeam": "775", "goals": 2, "assists": 0, "matches": 1, "photoUrl": null },
+    { "rank": 3, "player": "M. Schmid", "idPlayer": "169202", "team": "Österreich", "idTeam": "775", "goals": 1, "assists": 1, "matches": 1, "photoUrl": null },
+    { "rank": 4, "player": "Y. Al-Naimat", "idPlayer": "169203", "team": "Jordanien", "idTeam": "1110", "goals": 1, "assists": 0, "matches": 1, "photoUrl": null },
+    { "rank": 4, "player": "K. Mbappé", "idPlayer": "169204", "team": "Frankreich", "idTeam": "43928", "goals": 1, "assists": 0, "matches": 1, "photoUrl": null }
+  ],
+  "updatedAt": 1750521600,
+  "season": "285023"
+}

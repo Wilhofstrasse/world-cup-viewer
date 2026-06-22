@@ -1,0 +1,78 @@
+{
+  "matches": [
+    {
+      "id": 400021496,
+      "dateISO": "2026-06-17T01:00:00Z",
+      "status": "finished",
+      "teamA": "Argentinien",
+      "teamB": "Algerien",
+      "scoreA": 3,
+      "scoreB": 0,
+      "minute": null,
+      "goals": [
+        { "team": "A", "minute": 17, "extra": null, "scorer": "Messi", "type": "goal" },
+        { "team": "A", "minute": 60, "extra": null, "scorer": "Messi", "type": "goal" },
+        { "team": "A", "minute": 76, "extra": null, "scorer": "Messi", "type": "goal" }
+      ],
+      "stageId": "289273",
+      "round": "Vorrunde",
+      "group": "J",
+      "idTeamA": "43922",
+      "idTeamB": "43843"
+    },
+    {
+      "id": 400021440,
+      "dateISO": "2026-06-15T18:00:00Z",
+      "status": "finished",
+      "teamA": "Österreich",
+      "teamB": "Jordanien",
+      "scoreA": 2,
+      "scoreB": 1,
+      "minute": null,
+      "goals": [
+        { "team": "A", "minute": 12, "extra": null, "scorer": "Schmid", "type": "goal" },
+        { "team": "A", "minute": 54, "extra": null, "scorer": "Arnautović", "type": "goal" },
+        { "team": "B", "minute": 88, "extra": null, "scorer": "Al-Naimat", "type": "goal" }
+      ],
+      "stageId": "289273",
+      "round": "Vorrunde",
+      "group": "J",
+      "idTeamA": "775",
+      "idTeamB": "1110"
+    },
+    {
+      "id": 400021441,
+      "dateISO": "2026-06-18T16:00:00Z",
+      "status": "scheduled",
+      "teamA": "Deutschland",
+      "teamB": "Curaçao",
+      "scoreA": null,
+      "scoreB": null,
+      "minute": null,
+      "goals": [],
+      "stageId": "289273",
+      "round": "Vorrunde",
+      "group": "E",
+      "idTeamA": "43948",
+      "idTeamB": "43891"
+    },
+    {
+      "id": 400021442,
+      "dateISO": "2026-06-19T20:00:00Z",
+      "status": "scheduled",
+      "teamA": "Schweiz",
+      "teamB": "Brasilien",
+      "scoreA": null,
+      "scoreB": null,
+      "minute": null,
+      "goals": [],
+      "stageId": "289273",
+      "round": "Vorrunde",
+      "group": "E",
+      "idTeamA": "43964",
+      "idTeamB": "43961"
+    }
+  ],
+  "updatedAt": 1750521600,
+  "season": "285023"
+}
