@@ -7,6 +7,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "dev": "wrangler dev",
+    "visual": "node visual/run.mjs",
+    "visual:bless": "node visual/run.mjs --bless",
     "predeploy": "bash .deploy-gate.sh",
     "deploy": "wrangler deploy"
   },

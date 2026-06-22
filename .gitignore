@@ -27,3 +27,9 @@ wm-smoke*.mjs
 tools/goal-detector/.state.json
 tools/goal-detector/.tmp/
 tools/goal-detector/models/*.bin
+
+# Visual-diff harness — test results + HTML report + lockfile.
+# Baselines (visual/specs/**/*.png) are committed; outputs are not.
+visual/test-results/
+visual/report/
+visual/.run.lock
