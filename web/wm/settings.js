@@ -140,6 +140,15 @@ function renderShell(container) {
       <h3 class="wm-sett-sec">Aktivitäten</h3>
       <div id="wmSettEvents" class="wm-sett-list"></div>
 
+      <h3 class="wm-sett-sec">App auf Startbildschirm</h3>
+      <div class="wm-sett-install" id="wmSettInstall">
+        <div class="wm-sett-install-row">
+          <span class="wm-sett-install-status" id="wmSettInstallStatus">…</span>
+          <button id="wmSettInstallBtn" class="wm-sett-install-btn" type="button">Anleitung anzeigen</button>
+        </div>
+        <p class="wm-sett-install-note">Auf iPhone: Browser-Menü ⬆ → «Zum Home-Bildschirm». Auf Android: Browser-Menü → «App installieren».</p>
+      </div>
+
       <h3 class="wm-sett-sec">Über</h3>
       <div class="wm-sett-meta">
         <a href="feedback.html" class="wm-sett-link">✉ Feedback senden</a>
@@ -147,6 +156,30 @@ function renderShell(container) {
         <div class="wm-sett-version">App-Version <span id="wmSettVer">…</span></div>
       </div>
     </div>`;
+  wireInstallRow();
+}
+
+function wireInstallRow() {
+  const statusEl = document.getElementById("wmSettInstallStatus");
+  const btn = document.getElementById("wmSettInstallBtn");
+  if (!statusEl || !btn) return;
+  const status = typeof window.wmInstallStatus === "function" ? window.wmInstallStatus() : "unsupported";
+  const labels = {
+    installed: { text: "✓ App ist installiert", btn: null },
+    installable: { text: "Installation verfügbar", btn: "Jetzt installieren" },
+    "ios-instructions": { text: "iPhone-Anleitung verfügbar", btn: "Anleitung anzeigen" },
+    unsupported: { text: "Im Browser ohne Installations-Schnittstelle geöffnet", btn: "Anleitung anzeigen" },
+  };
+  const label = labels[status] || labels.unsupported;
+  statusEl.textContent = label.text;
+  if (!label.btn) {
+    btn.hidden = true;
+    return;
+  }
+  btn.textContent = label.btn;
+  btn.addEventListener("click", () => {
+    if (typeof window.wmShowInstallPrompt === "function") window.wmShowInstallPrompt();
+  });
 }
 
 function renderTotals(t) {

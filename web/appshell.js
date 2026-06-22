@@ -21,7 +21,7 @@
 "use strict";
 
 (function () {
-  var APP_BUILT = "1.9.10"; // version of THIS shipped asset
+  var APP_BUILT = "1.9.11"; // version of THIS shipped asset
 
   // ── 1. Version stamp ─────────────────────────────────────────────────────
   function showVersion() {
@@ -193,10 +193,143 @@
       .catch(function () {});
   }
 
+  // ── 3. Add-to-home-screen nudge (v1.9.10) ────────────────────────────────
+  // beforeinstallprompt: Chrome/Edge/Android Chromium fires when the app meets
+  // installability criteria. iOS Safari has no event — detect heuristically
+  // and show a static "Teilen → Zum Home-Bildschirm" hint instead.
+  var INSTALL_LS_KEY = "wm.install.dismissed";
+  var INSTALL_SUPPRESS_DAYS = 7;
+  var deferredInstallPrompt = null;
+
+  function isStandalone() {
+    return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
+      || window.navigator.standalone === true;
+  }
+
+  function isIOSSafari() {
+    var ua = navigator.userAgent;
+    if (!/iPad|iPhone|iPod/.test(ua) || window.MSStream) return false;
+    return /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+  }
+
+  function installRecentlyDismissed() {
+    try {
+      var ts = parseInt(localStorage.getItem(INSTALL_LS_KEY) || "0", 10);
+      if (!ts) return false;
+      return (Date.now() - ts) < INSTALL_SUPPRESS_DAYS * 86400 * 1000;
+    } catch (_e) { return false; }
+  }
+
+  function markInstallDismissed() {
+    try { localStorage.setItem(INSTALL_LS_KEY, String(Date.now())); } catch (_e) {}
+  }
+
+  function hideInstallBanner() {
+    var el = document.getElementById("wmInstallBanner");
+    if (!el) return;
+    el.classList.add("is-hiding");
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 220);
+  }
+
+  // Builds + shows the banner. `forceShow` skips the recently-dismissed gate so
+  // the Einstellungen "Anleitung anzeigen" button can always re-trigger it.
+  function showInstallBanner(forceShow) {
+    if (isStandalone()) return;
+    if (!forceShow && installRecentlyDismissed()) return;
+    var existing = document.getElementById("wmInstallBanner");
+    if (existing) existing.parentNode.removeChild(existing);
+
+    var banner = document.createElement("div");
+    banner.id = "wmInstallBanner";
+    banner.className = "wm-install-banner";
+    banner.setAttribute("role", "dialog");
+    banner.setAttribute("aria-label", "App installieren");
+
+    var hasNativePrompt = !!deferredInstallPrompt;
+    var ios = isIOSSafari();
+    var iconHtml = '<div class="wm-install-icon" aria-hidden="true">📲</div>';
+    var dismissHtml = '<button class="wm-install-dismiss" type="button" aria-label="Schließen">✕</button>';
+    var bodyHtml;
+    if (hasNativePrompt) {
+      bodyHtml =
+        '<div class="wm-install-text">' +
+          '<strong>WM 2026 installieren</strong>' +
+          '<span>Eigenes Icon auf dem Startbildschirm — startet schneller, läuft auch offline.</span>' +
+        '</div>' +
+        '<button class="wm-install-go" type="button">Installieren</button>';
+    } else if (ios) {
+      bodyHtml =
+        '<div class="wm-install-text">' +
+          '<strong>Auf den Startbildschirm</strong>' +
+          '<span>Tippe unten auf <b>Teilen</b> ⬆ → <b>Zum Home-Bildschirm</b>.</span>' +
+        '</div>';
+    } else {
+      bodyHtml =
+        '<div class="wm-install-text">' +
+          '<strong>App installieren</strong>' +
+          '<span>Im Browser-Menü: «App installieren» / «Zum Dock hinzufügen».</span>' +
+        '</div>';
+    }
+    banner.innerHTML = iconHtml + bodyHtml + dismissHtml;
+    document.body.appendChild(banner);
+
+    var goBtn = banner.querySelector(".wm-install-go");
+    if (goBtn) {
+      goBtn.addEventListener("click", function () {
+        if (!deferredInstallPrompt) { hideInstallBanner(); return; }
+        try {
+          deferredInstallPrompt.prompt();
+          var p = deferredInstallPrompt.userChoice;
+          if (p && typeof p.then === "function") {
+            p.then(function () { deferredInstallPrompt = null; hideInstallBanner(); });
+          } else {
+            deferredInstallPrompt = null;
+            hideInstallBanner();
+          }
+        } catch (_e) {
+          deferredInstallPrompt = null;
+          hideInstallBanner();
+        }
+      });
+    }
+    banner.querySelector(".wm-install-dismiss").addEventListener("click", function () {
+      markInstallDismissed();
+      hideInstallBanner();
+    });
+  }
+
+  function attachInstallNudge() {
+    if (isStandalone()) return;
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      showInstallBanner(false);
+    });
+    window.addEventListener("appinstalled", function () {
+      deferredInstallPrompt = null;
+      markInstallDismissed();
+      hideInstallBanner();
+    });
+    // iOS Safari has no event — auto-show after a beat so the page paints first.
+    if (isIOSSafari() && !installRecentlyDismissed()) {
+      setTimeout(function () { showInstallBanner(false); }, 1500);
+    }
+  }
+
+  // Expose a manual trigger for the Einstellungen "Anleitung anzeigen" button.
+  window.wmShowInstallPrompt = function () { showInstallBanner(true); };
+  window.wmInstallStatus = function () {
+    if (isStandalone()) return "installed";
+    if (deferredInstallPrompt) return "installable";
+    if (isIOSSafari()) return "ios-instructions";
+    return "unsupported";
+  };
+
   function init() {
     swRecover();
     showVersion();
     attachPullToRefresh();
+    attachInstallNudge();
   }
 
   if (document.readyState !== "loading") init();
