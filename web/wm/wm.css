@@ -341,11 +341,9 @@ body[data-tab="highlights"] { background: var(--wm-feed-bg); }
 
 .wm-slide {
   position: relative;
-  /* Slide is `--wm-peek-h` shorter than the snap window so the next clip's
-     top edge peeks above the bottom of the viewport — a "more below" hint
-     without an explicit "scroll" affordance on every slide. Desktop card
-     block flips `--wm-peek-h` to 0 (each card is already self-framed). */
-  height: calc(100dvh - var(--wm-bar-h) - var(--wm-peek-h));
+  /* Default: slide fills the whole snap window. The last slide always uses
+     this (nothing below to peek into) and the empty/error slide too. */
+  height: calc(100dvh - var(--wm-bar-h));
   scroll-snap-align: start;
   scroll-snap-stop: always;
   overflow: hidden;
@@ -353,6 +351,13 @@ body[data-tab="highlights"] { background: var(--wm-feed-bg); }
   color: #fff;
   display: flex;
   align-items: flex-end;
+}
+/* Mid-feed slides are `--wm-peek-h` shorter than the snap window so the next
+   clip's top edge peeks above the viewport bottom — a "more below" hint
+   without an explicit "scroll" affordance. The LAST slide stays full-height
+   (above) so the feed doesn't stop with a dead navy band beneath it. */
+.wm-slide:not(:last-child) {
+  height: calc(100dvh - var(--wm-bar-h) - var(--wm-peek-h));
 }
 
 /* Animated chevron + "Mehr" copy on the FIRST slide only — guides a first-time
