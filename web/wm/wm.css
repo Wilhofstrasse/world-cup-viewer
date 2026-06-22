@@ -332,6 +332,11 @@ html, body {
   background: var(--wm-feed-bg);
   color: #fff;
 }
+/* iOS Safari with bottom URL bar shrinks dvh dynamically, so the body
+   (cream `--wm-paper`) bleeds below the feed and shows as a white band
+   between the last slide and the address bar. Paint the body dark on the
+   Highlights tab so the bleed matches the feed background seamlessly. */
+body[data-tab="highlights"] { background: var(--wm-feed-bg); }
 .wm-feed::-webkit-scrollbar { display: none; }
 
 .wm-slide {
@@ -507,6 +512,63 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .wm-ptr-hint { animation: none; }
 }
+
+/* ────────────────────────────────────────────────────────────────────────
+   Ruhmeshalle / Hall of Fame (v1.9.14)
+   - Three ranked lists across every WM season FIFA exposes.
+   - Photo / initial fallback, gold-silver-bronze medal accents for top 3.
+   ──────────────────────────────────────────────────────────────────────── */
+.wm-hof { display: flex; flex-direction: column; gap: 12px; padding-bottom: 24px; }
+.wm-hof-tabs {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  padding: 6px;
+  background: var(--wm-line-soft); border-radius: 12px;
+}
+.wm-hof-tab {
+  border: none; background: transparent; cursor: pointer;
+  font-family: var(--wm-rounded); font-size: 12px; font-weight: 800;
+  padding: 9px 4px; min-height: 38px; border-radius: 8px;
+  color: var(--wm-ink-dim);
+  -webkit-tap-highlight-color: transparent;
+  line-height: 1.15;
+}
+.wm-hof-tab.is-active { background: var(--wm-paper); color: var(--wm-ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.wm-hof-list { display: flex; flex-direction: column; gap: 8px; }
+.wm-hof-row {
+  display: grid;
+  grid-template-columns: 32px 44px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--wm-paper);
+  border: 1.5px solid var(--wm-line-soft);
+  border-radius: 14px;
+}
+.wm-hof-rank {
+  font-family: var(--wm-mono);
+  font-size: 16px; font-weight: 800;
+  color: var(--wm-ink-dim);
+  text-align: center;
+}
+.wm-hof-rank-1 { color: #cba135; }
+.wm-hof-rank-2 { color: #a1a1a1; }
+.wm-hof-rank-3 { color: #b87333; }
+.wm-hof-photo {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--wm-line-soft);
+  object-fit: cover; object-position: center top;
+  font-family: var(--wm-rounded); font-weight: 800; font-size: 18px;
+  color: var(--wm-ink); display: inline-flex; align-items: center; justify-content: center;
+}
+.wm-hof-photo-fallback { color: var(--wm-ink-dim); }
+.wm-hof-name { min-width: 0; }
+.wm-hof-n { font-size: 14.5px; font-weight: 800; color: var(--wm-ink); line-height: 1.15; }
+.wm-hof-s { font-size: 11.5px; color: var(--wm-ink-dim); line-height: 1.3; margin-top: 2px; word-break: break-word; }
+.wm-hof-val { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.wm-hof-v { font-family: var(--wm-mono); font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 800; color: var(--wm-accent); }
+.wm-hof-vl { font-size: 10.5px; font-weight: 700; color: var(--wm-ink-dim); letter-spacing: .04em; text-transform: uppercase; }
+.wm-hof-foot { font-size: 11.5px; color: var(--wm-ink-dim); text-align: center; padding-top: 6px; }
 @keyframes wm-scroll-hint-bounce {
   0%, 100% { transform: translate(-50%, 0); }
   50%      { transform: translate(-50%, 5px); }

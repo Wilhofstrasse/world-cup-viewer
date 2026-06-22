@@ -19,12 +19,14 @@ import { initTabellen, destroyTabellen } from "./tabellen.js";
 import { initBracket, destroyBracket } from "./bracket.js";
 import { initKader, destroyKader } from "./kader.js";
 import { initAufstellungen, destroyAufstellungen } from "./aufstellungen.js";
+import { initHallOfFame, destroyHallOfFame } from "./halloffame.js";
 import { initSettings, destroySettings } from "./settings.js";
 import { track } from "./track.js";
 
 const SUBVIEWS = [
   { key: "topscorers", label: "Torjägerliste", title: "Torjägerliste", icon: "⚽", sub: "Goldener Schuh · Tore, Vorlagen, Spiele", section: "Statistiken", ready: true, primary: true },
   { key: "tabellen", label: "Tabellen", title: "Tabellen", icon: "📊", sub: "Offizielle Gruppen mit Qualifikationsstatus", section: "Statistiken", ready: true },
+  { key: "halloffame", label: "Ruhmeshalle", title: "Ruhmeshalle", icon: "🏅", sub: "Top-Torschützen aller Zeiten, beste Einzel-WM, meiste Teilnahmen", section: "Statistiken", ready: true },
   { key: "bracket", label: "K.-o.-Baum", title: "K.-o.-Baum", icon: "🏆", sub: "Viertelfinal bis Finale · der Weg zum Pokal", section: "Spielplan", ready: true },
   { key: "lineups", label: "Aufstellungen", title: "Aufstellungen", icon: "🎽", sub: "Formationen, Startelf, Auswechslungen", section: "Spielplan", ready: true },
   { key: "squads", label: "Kader", title: "Kader", icon: "👥", sub: "Alle 48 Teams · Tippe auf einen Spieler für die Karte", section: "Spieler & Mannschaften", ready: true },
@@ -93,6 +95,7 @@ export function openMehrSubview(key) {
   track("mehr_sub_open", { target: key });
   if (key === "topscorers") initTopScorers(el);
   else if (key === "tabellen") initTabellen(el);
+  else if (key === "halloffame") initHallOfFame(el);
   else if (key === "bracket") initBracket(el);
   else if (key === "lineups") initAufstellungen(el);
   else if (key === "squads") initKader(el);
@@ -103,6 +106,7 @@ export function closeMehrSubview() {
   if (!currentView) return;
   if (currentView === "topscorers") destroyTopScorers();
   else if (currentView === "tabellen") destroyTabellen();
+  else if (currentView === "halloffame") destroyHallOfFame();
   else if (currentView === "bracket") destroyBracket();
   else if (currentView === "lineups") destroyAufstellungen();
   else if (currentView === "squads") destroyKader();

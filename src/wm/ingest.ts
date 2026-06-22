@@ -23,16 +23,23 @@ import {
   loadWmTopScorers,
   loadWmTabellen,
   loadWmSquads,
+  loadWmHallOfFame,
   saveWmData,
   saveWmTopScorers,
   saveWmTabellen,
   saveWmSquads,
+  saveWmHallOfFame,
 } from "./store.js";
 import { fetchTopScorers, enrichScorerTeams, fetchTabellen, fetchSquads } from "./fifa.js";
+import { ingestHallOfFame } from "./halloffame.js";
 
 const TOPSCORERS_MAX_AGE_MS = 30 * 60 * 1000; // refresh every 30 min in-window
 const TABELLEN_MAX_AGE_MS = 30 * 60 * 1000;
 const SQUADS_MAX_AGE_MS = 6 * 60 * 60 * 1000; // squads change rarely → 6 h
+// Hall-of-Fame iterates all 23 WM seasons — heavy. Refresh once per week
+// (or once when missing). The current-tournament numbers also flow in via
+// the WM 2026 season's top-scorers blob each refresh.
+const HALLOFFAME_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Tournament window (Europe/Zurich offsets). Outside this, ingest no-ops.
 const WM_START_MS = Date.parse("2026-06-11T00:00:00+02:00");
@@ -182,6 +189,18 @@ export async function runWmIngest(env: Env): Promise<void> {
   const prevTab = await loadWmTabellen(env);
   const tabStale = !prevTab.rows.length || (nowMs - prevTab.updatedAt * 1000 > TABELLEN_MAX_AGE_MS);
   if (tabStale) await refreshTabellen(env, nowMs);
+
+  // Hall of Fame — heavy (23 FIFA season calls). Refresh weekly, or seed
+  // whenever the blob is empty. Failures are swallowed: the player view falls
+  // back to its empty-state when the R2 object is absent.
+  const prevHof = await loadWmHallOfFame(env);
+  const hofStale = !prevHof.topScorers.length || (nowMs - prevHof.updatedAt * 1000 > HALLOFFAME_MAX_AGE_MS);
+  if (hofStale) {
+    try {
+      const fresh = await ingestHallOfFame();
+      await saveWmHallOfFame(env, fresh);
+    } catch (_e) {/* skip — try again next tick */}
+  }
 
   if (!shouldFetch(prev, nowMs)) return;
 
