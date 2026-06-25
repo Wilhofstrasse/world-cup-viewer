@@ -17,6 +17,21 @@ An allow-list (SRGSSR + Akamai + SRF domains) keeps the proxy from becoming
 an open relay. HLS playlists (`.m3u8`) get URL-rewritten on the fly so the
 player keeps fetching segments through us, not direct to Akamai.
 
+> **⚠ The proxy host must be in Switzerland.** SRF geoblocks by the egress IP
+> of whoever fetches the stream, and that is the proxy host (it makes the
+> outbound SRF requests on the viewer's behalf — both the playlist AND every
+> rewritten segment). Run it on a CH VPS or a Mac physically in CH. If the
+> proxy runs from abroad (e.g. a laptop in Germany) SRF geoblocks the proxy
+> just like a direct hit, and non-CH viewers get a black 0:00 player even
+> though `/health` and the tunnel are green. This is the most common
+> "everything looks up but videos won't play abroad" failure.
+
+> **⚠ `cloudflared-config.yml` is reference, not the live config.** The running
+> tunnel is token/dashboard-managed (`cloudflared --token <jwt>`), so its
+> ingress comes from the Cloudflare Zero Trust dashboard, not this repo file.
+> Change ingress in the dashboard; edit the file only if you switch back to a
+> `--config … run` tunnel.
+
 ## Files
 
 | File | Role |

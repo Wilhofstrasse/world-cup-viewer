@@ -80,10 +80,21 @@ try {
 // never blocks the initial render. CH visitors don't need the proxy at all; the
 // rare non-CH visitor sees the first clip without the proxy and any subsequent
 // fetch (HLS, drawer refresh) reads window.WM_SRF_PROXY after this resolves.
-fetch("/api/config", { cache: "no-store" })
-  .then((r) => (r.ok ? r.json() : {}))
-  .then((cfg) => { window.WM_SRF_PROXY = (cfg && cfg.srfProxy) || ""; })
-  .catch(() => {});
+//
+// Re-readable, not boot-once: /api/config keys srfProxy off the visitor's geo
+// (CF cf.country). If the user toggles a Swiss-exit VPN AFTER boot, a one-shot
+// pin would keep routing HLS through the geoblocked DE proxy → black at 0:00.
+// We re-pin on tab refocus (a natural moment after flipping a VPN) so the next
+// clip fetches direct under CH. Fire-and-forget; errors leave the prior value.
+async function refreshConfig() {
+  try {
+    const r = await fetch("/api/config", { cache: "no-store" });
+    const cfg = r.ok ? await r.json() : {};
+    window.WM_SRF_PROXY = (cfg && cfg.srfProxy) || "";
+  } catch (_e) {/* keep the previously pinned value */}
+}
+refreshConfig();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshConfig(); });
 
 // The ☰ drawer lives in the header and is a GLOBAL control backed by the
 // Highlights clip list, so initialise the feed at boot REGARDLESS of the active

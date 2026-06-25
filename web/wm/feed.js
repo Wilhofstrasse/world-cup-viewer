@@ -226,7 +226,10 @@ function loadHls() {
   if (hlsLoading) return hlsLoading;
   hlsLoading = new Promise((resolve) => {
     const s = document.createElement("script");
-    s.src = "vendor/hls.light.min.js";
+    // Absolute, origin-root path so it resolves regardless of the document base
+    // (/, /wm, or an installed-PWA /wm/). A relative "vendor/…" would 404 under a
+    // trailing-slash base, leaving Hls unloaded → silent black on desktop Chrome.
+    s.src = "/vendor/hls.light.min.js";
     s.onload = () => resolve(window.Hls || null);
     s.onerror = () => resolve(null);
     document.head.appendChild(s);
@@ -312,19 +315,63 @@ async function playSlide(slideEl) {
   video.autoplay = true;
   video.preload = "none";
 
-  const native = video.canPlayType("application/vnd.apple.mpegurl");
-  if (native) {
+  // Surface a playback failure the same way the fetchHls catch does (visible
+  // .wm-error → "Konnte nicht geladen werden.") instead of a silent black
+  // player at 0:00. Reused by the <video> error listener and the hls.js fatal
+  // handler below. Idempotent — only the first failure flips the slide.
+  const surfaceError = (detail) => {
+    if (slideEl.classList.contains("wm-error")) return;
+    try { if (video._hls) video._hls.destroy(); } catch (_e) {}
+    slideEl.classList.remove("playing", "loading");
+    slideEl.classList.add("wm-error");
+    track("clip_play_error", { target: clip.urn, detail });
+  };
+  // The native <video> error event catches the desktop-Chrome case where a
+  // raw TS-HLS stream is handed straight to the element and silently stalls.
+  video.addEventListener("error", () => surfaceError("video-element"));
+
+  // Pick the playback engine. CRITICAL: do NOT trust canPlayType() to choose.
+  // Desktop Chrome returns "maybe" for application/vnd.apple.mpegurl yet cannot
+  // actually demux a raw HLS manifest — handing it video.src=playlist yields
+  // `DEMUXER_ERROR_COULD_NOT_PARSE` and a silent black player stuck at 0:00
+  // (verified 25.06.2026: Chrome black, Safari plays the same clip on the same
+  // CH IP). So drive every MSE browser (Chrome/Firefox/Edge) through hls.js and
+  // reserve the native path for Safari/iOS, where HLS is first-class — and where
+  // hls.js is anyway unsupported (iOS WKWebView has no usable MSE for it).
+  const Hls = await loadHls();
+  const isSafari = /^((?!chrome|chromium|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent || "");
+  const canNative = !!video.canPlayType("application/vnd.apple.mpegurl");
+  if (isSafari && canNative) {
+    video.src = src;
+  } else if (Hls && Hls.isSupported()) {
+    const hls = new Hls({ enableWorker: true });
+    // Fatal hls.js errors: attempt hls.js's documented recovery once per kind
+    // before giving up — a single dropped segment on flaky mobile shouldn't
+    // flip the slide to a permanent error. A hard geoblock (segment 000)
+    // exhausts the small retry budget and THEN surfaces .wm-error; truly
+    // unrecoverable kinds (manifest parse, etc.) surface immediately.
+    let netRetry = 0, mediaRetry = 0;
+    hls.on(Hls.Events.ERROR, (_e, data) => {
+      if (!data || !data.fatal) return;
+      if (data.type === Hls.ErrorTypes.NETWORK_ERROR && netRetry++ < 2) {
+        hls.startLoad();
+      } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRetry++ < 2) {
+        hls.recoverMediaError();
+      } else {
+        surfaceError(data.type);
+      }
+    });
+    hls.loadSource(src);
+    hls.attachMedia(video);
+    video._hls = hls;
+  } else if (canNative) {
+    // Non-Safari that claims native HLS but has no hls.js (e.g. the vendor
+    // script failed to load): last-resort native. If it can't decode, the
+    // <video> error listener above flips to .wm-error, not a silent black frame.
     video.src = src;
   } else {
-    const Hls = await loadHls();
-    if (Hls && Hls.isSupported()) {
-      const hls = new Hls({ enableWorker: true });
-      hls.loadSource(src);
-      hls.attachMedia(video);
-      video._hls = hls;
-    } else {
-      video.src = src; // last-ditch
-    }
+    surfaceError("no-hls-support");
+    return;
   }
 
   slideEl.classList.remove("loading");
