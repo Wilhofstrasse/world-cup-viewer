@@ -194,7 +194,9 @@ async function ingestLocalizedLanguages(env: Env, nowMs: number, deMatches: Matc
   for (const m of deMatches) {
     if (m.stageId && m.roundKey) stageMap[m.stageId] = m.roundKey;
   }
-  await saveStageMap(env, stageMap);
+  // Persisting the stagemap is best-effort: a transient R2 put must never abort
+  // the localized passes (German blobs are already saved by the caller).
+  try { await saveStageMap(env, stageMap); } catch {/* keep last-good stagemap */}
 
   const goalsById = new Map(deMatches.map((m) => [m.id, m.goals]));
   const clipById = new Map(deMatches.filter((m) => m.clipUrn).map((m) => [m.id, m.clipUrn!]));

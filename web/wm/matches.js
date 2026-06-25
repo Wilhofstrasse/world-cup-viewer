@@ -27,8 +27,15 @@ let lastMatches = []; // last list passed to render — needed by jumpToSpieleMa
 // fall back to "group".
 const ROUND_KEY_TO_DICT = { group: "vorrunde", r32: "r32", r16: "r16", qf: "qf", sf: "sf", third: "thirdPlace", final: "final" };
 const ROUND_RANK = { group: 0, r32: 1, r16: 2, qf: 3, sf: 4, third: 5, final: 6 };
-const roundKeyOf = (m) => m.roundKey || "group";
-const roundLabel = (key) => t("spiele.round." + (ROUND_KEY_TO_DICT[key] || "vorrunde"));
+// Never coerce a missing roundKey to "group" — that would mislabel a knockout
+// match (whose IdStage wasn't in the learned stagemap) as a group match. Bucket
+// it under "unknown", which sorts last and is labelled from the match's own
+// (server-localized) round string.
+const roundKeyOf = (m) => m.roundKey || "unknown";
+const roundLabel = (key, list) =>
+  ROUND_KEY_TO_DICT[key]
+    ? t("spiele.round." + ROUND_KEY_TO_DICT[key])
+    : (list && list[0] && list[0].round) || t("spiele.section.knockout");
 
 /** Flag for a team, language-independent: FIFA id first, name fallback. */
 const teamFlag = (name, idTeam) => flagForId(idTeam) || flagFor(name);
@@ -66,7 +73,7 @@ function fixtureRow(m) {
   };
 
   const when = showScore ? "" : `<div class="wm-match-when">${esc(kickoff(m.dateISO))}</div>`;
-  const liveBadge = live ? `<span class="wm-live-badge">${esc(t("spiele.liveBadge", { minute: m.minute || "" }))}</span>` : "";
+  const liveBadge = live ? `<span class="wm-live-badge">${esc(t("spiele.liveBadge", { minute: m.minute ? m.minute + "'" : "" }))}</span>` : "";
 
   // Backlink to the matching Highlights clip when one exists. Renders on
   // finished/live matches with a clip; placeholder until linkstore has clips.
@@ -188,11 +195,14 @@ function render(matches) {
     html += acc(roundLabel("r16"), rowsFor(r16), groupFlags(r16));
   }
 
-  // ── K.-O.-RUNDE: QF and later — one accordion per round ──
+  // ── K.-O.-RUNDE: QF and later (+ any unknown bucket) — one accordion per round ──
   const laterKeys = koKeys.filter((k) => k !== "r32" && k !== "r16");
   if (laterKeys.length) {
     html += `<div class="wm-sec">${t("spiele.section.knockout")}</div>`;
-    for (const k of laterKeys) html += acc(roundLabel(k), rowsFor(byKey.get(k)), groupFlags(byKey.get(k)));
+    for (const k of laterKeys) {
+      const list = byKey.get(k);
+      html += acc(roundLabel(k, list), rowsFor(list), groupFlags(list));
+    }
   }
 
   root.innerHTML = html;

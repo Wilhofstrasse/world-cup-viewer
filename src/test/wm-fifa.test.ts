@@ -21,6 +21,8 @@ import {
   resolveRoundKey,
   normLang,
   fifaLocale,
+  ROUND_LABELS,
+  ROUND_ORDER,
   mapFifaTopScorer,
   enrichScorerTeams,
   teamNameMap,
@@ -147,6 +149,44 @@ describe("learnStageMap / resolveRoundKey", () => {
     expect(en.round).toBe("Group Stage"); // localized display
     expect(en.roundOrder).toBe(0);
   });
+
+  it("localizes the round label in pt-BR off the same de-learned id", () => {
+    const map = learnStageMap(list);
+    const pt = mapFifaMatchToMatch(list[0]!, map, "pt-BR")!;
+    expect(pt.roundKey).toBe("group");
+    expect(pt.round).toBe("Fase de Grupos");
+    expect(pt.roundOrder).toBe(0);
+  });
+});
+
+describe("ROUND_LABELS / ROUND_ORDER (byte-identical de invariant — all 7 keys)", () => {
+  // Freeze the de column: any drift in a knockout label is a German regression.
+  const DE_EXPECTED = {
+    group: "Vorrunde", r32: "Sechzehntelfinale", r16: "Achtelfinale",
+    qf: "Viertelfinale", sf: "Halbfinale", third: "Spiel um Platz 3", final: "Final",
+  } as const;
+  const EN_EXPECTED = {
+    group: "Group Stage", r32: "Round of 32", r16: "Round of 16",
+    qf: "Quarter-finals", sf: "Semi-finals", third: "Third-Place Play-off", final: "Final",
+  } as const;
+  const PT_EXPECTED = {
+    group: "Fase de Grupos", r32: "Rodada de 32", r16: "Oitavas de final",
+    qf: "Quartas de final", sf: "Semifinais", third: "Disputa de 3º lugar", final: "Final",
+  } as const;
+  const KEYS = ["group", "r32", "r16", "qf", "sf", "third", "final"] as const;
+
+  it("de labels are exactly the pre-i18n strings", () => {
+    for (const k of KEYS) expect(ROUND_LABELS.de[k]).toBe(DE_EXPECTED[k]);
+  });
+  it("en + pt-BR labels are fully populated (no empty/missing key)", () => {
+    for (const k of KEYS) {
+      expect(ROUND_LABELS.en[k]).toBe(EN_EXPECTED[k]);
+      expect(ROUND_LABELS["pt-BR"][k]).toBe(PT_EXPECTED[k]);
+    }
+  });
+  it("ROUND_ORDER ranks every key 0..6 with no gaps", () => {
+    expect(KEYS.map((k) => ROUND_ORDER[k])).toEqual([0, 1, 2, 3, 4, 5, 6]);
+  });
 });
 
 describe("mapTimelineToGoals", () => {
@@ -175,6 +215,20 @@ describe("mapTimelineToGoals", () => {
     expect(own[0]!.type).toBe("own");
     expect(own[0]!.scorer).toBe("Aguerd");
     expect(own[0]!.team).toBe("A"); // Algerien player → counts for Argentinien (A)
+  });
+
+  it("prefers IdTeam over the name even when the name matches the OTHER side", () => {
+    // Parens name "Argentina" matches teamA by name, but IdTeam points to B.
+    // IdTeam must win (the short-circuit before the name branch).
+    const g = mapTimelineToGoals(
+      [{ Type: 0, MatchMinute: "12'", IdTeam: "B2", EventDescription: [{ Description: "MESSI (Argentina) scores!" }] }],
+      "Argentina",
+      "Brasil",
+      "A1",
+      "B2",
+    );
+    expect(g).toHaveLength(1);
+    expect(g[0]!.team).toBe("B"); // id wins over the (Argentina) name → teamA
   });
 
   it("resolves the side by IdTeam even when the team text is unrecognizable", () => {
@@ -231,6 +285,13 @@ describe("normLang / fifaLocale", () => {
     expect(fifaLocale("de")).toBe("de-DE");
     expect(fifaLocale("en")).toBe("en-GB"); // en-US falls back at FIFA → pin en-GB
     expect(fifaLocale("pt-BR")).toBe("pt-BR"); // pt-PT falls back → pin pt-BR
+  });
+  it("composes: an unsupported/odd client lang resolves to de-DE", () => {
+    // The real call path is fifaLocale(normLang(clientInput)).
+    expect(fifaLocale(normLang("fr"))).toBe("de-DE");
+    expect(fifaLocale(normLang("EN"))).toBe("de-DE"); // case-sensitive normLang → default
+    expect(fifaLocale(normLang(""))).toBe("de-DE");
+    expect(fifaLocale(normLang("pt-BR"))).toBe("pt-BR");
   });
 });
 
