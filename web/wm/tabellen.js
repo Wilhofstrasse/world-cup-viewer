@@ -13,7 +13,8 @@
 
 "use strict";
 
-import { flagFor } from "./parse.js";
+import { flagFor, flagForId } from "./parse.js";
+import { t, apiLang } from "./i18n.js";
 
 const API_BASE = window.WM_API_BASE || "";
 
@@ -36,8 +37,8 @@ function groupBy(rows) {
 }
 
 function badgeHtml(q) {
-  if (q === "qualified") return `<span class="wm-tb-badge qual" aria-label="Qualifiziert">●</span>`;
-  if (q === "eliminated") return `<span class="wm-tb-badge elim" aria-label="Ausgeschieden">○</span>`;
+  if (q === "qualified") return `<span class="wm-tb-badge qual" aria-label="${t("tabellen.badge.qualified")}">●</span>`;
+  if (q === "eliminated") return `<span class="wm-tb-badge elim" aria-label="${t("tabellen.badge.eliminated")}">○</span>`;
   return "";
 }
 
@@ -49,27 +50,27 @@ function tableHtml(rows) {
     return `
       <tr class="${qualifyClass}">
         <td class="pos">${r.position || ""}</td>
-        <td class="tm"><span class="tmw"><span class="f">${flagFor(r.team)}</span><span class="n">${esc(r.team)}</span>${badgeHtml(r.qualification)}</span></td>
+        <td class="tm"><span class="tmw"><span class="f">${flagForId(r.idTeam) || flagFor(r.team)}</span><span class="n">${esc(r.team)}</span>${badgeHtml(r.qualification)}</span></td>
         <td class="num">${r.played}</td>
         <td class="num pts">${r.points}</td>
       </tr>
       <tr class="details">
         <td></td>
         <td colspan="3" class="dt">
-          <span><b>S</b> ${r.won}</span><span><b>U</b> ${r.drawn}</span><span><b>N</b> ${r.lost}</span>
-          <span><b>Tore</b> ${r.goalsFor}:${r.goalsAgainst}</span>
-          <span><b>TD</b> ${r.goalsDiff > 0 ? "+" + r.goalsDiff : r.goalsDiff}</span>
+          <span><b>${t("tabellen.col.won")}</b> ${r.won}</span><span><b>${t("tabellen.col.drawn")}</b> ${r.drawn}</span><span><b>${t("tabellen.col.lost")}</b> ${r.lost}</span>
+          <span><b>${t("tabellen.col.goals")}</b> ${r.goalsFor}:${r.goalsAgainst}</span>
+          <span><b>${t("tabellen.col.goalDiff")}</b> ${r.goalsDiff > 0 ? "+" + r.goalsDiff : r.goalsDiff}</span>
         </td>
       </tr>`;
   };
   return `
     <table class="wm-tb-table">
-      <thead><tr><th class="num">#</th><th>Team</th><th class="num">Sp</th><th class="num">Pkt</th></tr></thead>
+      <thead><tr><th class="num">#</th><th>${t("tabellen.header.team")}</th><th class="num">${t("tabellen.header.played")}</th><th class="num">${t("tabellen.header.points")}</th></tr></thead>
       <tbody>${rows.map(tr).join("")}</tbody>
     </table>
     <div class="wm-tb-foot">
-      <span class="wm-tb-legend"><span class="dot"></span>qualifiziert · <span class="ring"></span>ausgeschieden</span>
-      <button class="wm-tb-toggle" type="button">Details ▾</button>
+      <span class="wm-tb-legend"><span class="dot"></span>${t("tabellen.legend.qualified")} · <span class="ring"></span>${t("tabellen.legend.eliminated")}</span>
+      <button class="wm-tb-toggle" type="button">${t("tabellen.toggle.details")}</button>
     </div>`;
 }
 
@@ -82,23 +83,23 @@ function renderRows(rows) {
       const open = i === 0; // first accordion open by default (matches Spiele)
       return `<details class="wm-tb-acc"${open ? " open" : ""}>
         <summary class="wm-tb-head">
-          <span class="wm-tb-label">Gruppe ${esc(g)}</span>
+          <span class="wm-tb-label">${t("tabellen.group.label", { g: esc(g) })}</span>
           <span class="wm-tb-chev" aria-hidden="true">▸</span>
         </summary>
         <div class="wm-tb-body">${tableHtml(list)}</div>
       </details>`;
     })
     .join("");
-  return `<div class="wm-tb-sec">Vorrunde</div>${accs}`;
+  return `<div class="wm-tb-sec">${t("tabellen.section.groupStage")}</div>${accs}`;
 }
 
 function render(state) {
   if (!mounted) return;
   if (state.kind === "loading") {
-    mounted.innerHTML = `<div class="wm-tb-sec">Vorrunde</div>${["A", "B", "C"]
+    mounted.innerHTML = `<div class="wm-tb-sec">${t("tabellen.section.groupStage")}</div>${["A", "B", "C"]
       .map(
         (g) =>
-          `<div class="wm-tb-acc"><div class="wm-tb-head"><span class="wm-tb-label">Gruppe ${g}</span><span class="wm-tb-chev">▸</span></div></div>`,
+          `<div class="wm-tb-acc"><div class="wm-tb-head"><span class="wm-tb-label">${t("tabellen.group.label", { g })}</span><span class="wm-tb-chev">▸</span></div></div>`,
       )
       .join("")}`;
     return;
@@ -107,8 +108,8 @@ function render(state) {
     mounted.innerHTML = `
       <div class="wm-ts-empty">
         <div class="ic">⚠</div>
-        <div class="t">Konnte nicht geladen werden.</div>
-        <div class="s">Bitte nochmals versuchen.</div>
+        <div class="t">${t("common.loadError")}</div>
+        <div class="s">${t("common.loadErrorRetry")}</div>
       </div>`;
     return;
   }
@@ -116,8 +117,8 @@ function render(state) {
     mounted.innerHTML = `
       <div class="wm-ts-empty">
         <div class="ic">📊</div>
-        <div class="t">Tabellen noch nicht verfügbar</div>
-        <div class="s">Spielbeginn am 18.06.2026</div>
+        <div class="t">${t("tabellen.empty.title")}</div>
+        <div class="s">${t("tabellen.empty.startHint")}</div>
       </div>`;
     return;
   }
@@ -128,7 +129,7 @@ function render(state) {
     btn.addEventListener("click", () => {
       const body = btn.closest(".wm-tb-body");
       const open = body.classList.toggle("show-details");
-      btn.textContent = open ? "Weniger ▴" : "Details ▾";
+      btn.textContent = open ? t("tabellen.toggle.less") : t("tabellen.toggle.details");
     });
   });
 }
@@ -137,7 +138,7 @@ async function load() {
   lastState = { kind: "loading" };
   render(lastState);
   try {
-    const res = await fetch(`${API_BASE}/api/wm/tabellen`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/api/wm/tabellen?lang=${apiLang()}`, { cache: "no-store" });
     if (!res.ok) throw new Error("status " + res.status);
     const data = await res.json();
     const rows = Array.isArray(data.rows) ? data.rows : [];

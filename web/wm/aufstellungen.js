@@ -16,6 +16,7 @@
 "use strict";
 
 import { flagFor } from "./parse.js";
+import { t, apiLang, fmtKickoff } from "./i18n.js";
 
 const API_BASE = window.WM_API_BASE || "";
 const FIFA_LIVE = (stage, match) =>
@@ -35,10 +36,10 @@ function loc(arr) {
   return (Array.isArray(arr) && arr[0] && arr[0].Description) || "";
 }
 
-function fmtKickoff(iso) {
+function kickoffLabel(iso) {
   const d = new Date(iso);
   if (isNaN(+d)) return "";
-  return d.toLocaleString("de-CH", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Zurich" });
+  return fmtKickoff(d);
 }
 
 function selectableMatches(all) {
@@ -59,18 +60,18 @@ function defaultMatchId(list) {
 }
 
 function pickerHtml() {
-  if (!matches.length) return `<div class="wm-au-empty">Keine Spiele mit Aufstellungen verfügbar.</div>`;
+  if (!matches.length) return `<div class="wm-au-empty">${t("spiele.aufstellungen.pickerEmpty")}</div>`;
   const cur = matches.find((m) => String(m.id) === String(currentMatchId)) || matches[0];
   const rows = matches.slice(0, 24).map((m) => {
     const cls = String(m.id) === String(cur?.id) ? "wm-au-pick-row is-active" : "wm-au-pick-row";
-    const sc = m.status === "finished" || m.status === "live" ? `${m.scoreA}:${m.scoreB}` : fmtKickoff(m.dateISO);
+    const sc = m.status === "finished" || m.status === "live" ? `${m.scoreA}:${m.scoreB}` : kickoffLabel(m.dateISO);
     return `<button class="${cls}" data-id="${esc(m.id)}" type="button"><span class="ta">${flagFor(m.teamA)} ${esc(m.teamA)}</span><span class="sc">${esc(sc)}</span><span class="tb">${esc(m.teamB)} ${flagFor(m.teamB)}</span></button>`;
   }).join("");
   return `
     <details class="wm-au-picker">
       <summary class="wm-au-picker-head">
-        <span class="wm-au-cur">${cur ? `${flagFor(cur.teamA)} ${esc(cur.teamA)} <span class="vs">–</span> ${esc(cur.teamB)} ${flagFor(cur.teamB)}` : "Spiel wählen"}</span>
-        <span class="wm-au-edit">Wechseln ▾</span>
+        <span class="wm-au-cur">${cur ? `${flagFor(cur.teamA)} ${esc(cur.teamA)} <span class="vs">–</span> ${esc(cur.teamB)} ${flagFor(cur.teamB)}` : t("spiele.aufstellungen.pickPrompt")}</span>
+        <span class="wm-au-edit">${t("spiele.aufstellungen.pickerSwitch")}</span>
       </summary>
       <div class="wm-au-picker-list">${rows}</div>
     </details>`;
@@ -80,8 +81,8 @@ function sidePillHtml() {
   return `
     <div class="wm-au-side">
       <div class="wm-au-side-pill" role="tablist">
-        <button class="wm-au-side-tab ${currentSide === "home" ? "on" : ""}" data-side="home" type="button">Heim</button>
-        <button class="wm-au-side-tab ${currentSide === "away" ? "on" : ""}" data-side="away" type="button">Auswärts</button>
+        <button class="wm-au-side-tab ${currentSide === "home" ? "on" : ""}" data-side="home" type="button">${t("spiele.aufstellungen.sideHome")}</button>
+        <button class="wm-au-side-tab ${currentSide === "away" ? "on" : ""}" data-side="away" type="button">${t("spiele.aufstellungen.sideAway")}</button>
       </div>
     </div>`;
 }
@@ -188,7 +189,7 @@ function pitchSvg(team) {
     })
     .join("");
   return `
-    <svg viewBox="0 0 ${W} ${H}" aria-label="Spielfeld">
+    <svg viewBox="0 0 ${W} ${H}" aria-label="${esc(t("spiele.aufstellungen.pitchAria"))}">
       <defs>
         <linearGradient id="pitchg" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#fbf8f1"/>
@@ -230,33 +231,33 @@ function benchHtml(team) {
       const num = p.ShirtNumber ?? "–";
       const posLabel = loc(p.PositionLocalized) || "";
       const psShort = posLabel.startsWith("Tor")
-        ? "TW"
+        ? t("spiele.aufstellungen.posGk")
         : posLabel.startsWith("Abw")
-        ? "AB"
+        ? t("spiele.aufstellungen.posDef")
         : posLabel.startsWith("Mit")
-        ? "MF"
+        ? t("spiele.aufstellungen.posMid")
         : posLabel.startsWith("Ang")
-        ? "ST"
+        ? t("spiele.aufstellungen.posFwd")
         : "—";
       return `<button class="wm-au-b-row" data-id="${esc(p.IdPlayer || "")}" type="button"><span class="n">${num}</span><span class="nm">${esc(name)}</span><span class="ps">${psShort}</span></button>`;
     })
     .join("");
-  return `<h4 class="wm-au-bench-lbl">Ersatzbank</h4><div class="wm-au-bench">${rows}</div>`;
+  return `<h4 class="wm-au-bench-lbl">${t("spiele.aufstellungen.benchHeading")}</h4><div class="wm-au-bench">${rows}</div>`;
 }
 
 function lineupHtml() {
-  if (!lineup) return `<div class="wm-au-empty">Aufstellung wird geladen…</div>`;
+  if (!lineup) return `<div class="wm-au-empty">${t("spiele.aufstellungen.lineupLoading")}</div>`;
   const team = currentSide === "home" ? lineup.HomeTeam : lineup.AwayTeam;
-  if (!team) return `<div class="wm-au-empty">Keine Aufstellung verfügbar.</div>`;
+  if (!team) return `<div class="wm-au-empty">${t("spiele.aufstellungen.lineupEmpty")}</div>`;
   const teamName = loc(team.TeamName) || "";
   const tactics = team.Tactics || "—";
   const coaches = team.Coaches || [];
   const coachName = coaches[0] && (loc(coaches[0].Name) || coaches[0].Name) || "";
   return `
     <div class="wm-au-pitch-wrap">
-      <div class="wm-au-tactics"><span>${esc(teamName)} — <b>${esc(tactics)}</b></span>${coachName ? `<span>Trainer: ${esc(coachName)}</span>` : ""}</div>
+      <div class="wm-au-tactics"><span>${esc(teamName)} — <b>${esc(tactics)}</b></span>${coachName ? `<span>${esc(t("spiele.aufstellungen.coach", { coachName }))}</span>` : ""}</div>
       ${pitchSvg(team)}
-      <div class="wm-au-legend"><span><span class="sw y"></span>Gelb</span><span><span class="sw r"></span>Rot</span><span>${esc(tactics)}</span></div>
+      <div class="wm-au-legend"><span><span class="sw y"></span>${t("spiele.aufstellungen.legendYellow")}</span><span><span class="sw r"></span>${t("spiele.aufstellungen.legendRed")}</span><span>${esc(tactics)}</span></div>
     </div>
     ${benchHtml(team)}`;
 }
@@ -302,7 +303,7 @@ async function loadLineup() {
     return;
   }
   const c = mounted?.querySelector("#wmAuContent");
-  if (c) c.innerHTML = `<div class="wm-au-empty">Aufstellung wird geladen…</div>`;
+  if (c) c.innerHTML = `<div class="wm-au-empty">${t("spiele.aufstellungen.lineupLoading")}</div>`;
   try {
     const res = await fetch(FIFA_LIVE(m.stageId, m.id), { headers: { Accept: "application/json" } });
     if (!res.ok) throw new Error("status " + res.status);
@@ -315,20 +316,20 @@ async function loadLineup() {
 
 async function load() {
   if (!mounted) return;
-  mounted.innerHTML = `<div class="wm-au-empty">Spiele werden geladen…</div>`;
+  mounted.innerHTML = `<div class="wm-au-empty">${t("spiele.aufstellungen.matchesLoading")}</div>`;
   try {
-    const res = await fetch(`${API_BASE}/api/wm/matches`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/api/wm/matches?lang=${apiLang()}`, { cache: "no-store" });
     if (!res.ok) throw new Error("status " + res.status);
     const data = await res.json();
     const all = Array.isArray(data.matches) ? data.matches : [];
     matches = selectableMatches(all).sort((a, b) => (b.dateISO || "").localeCompare(a.dateISO || ""));
     if (!matches.length) {
-      mounted.innerHTML = `<div class="wm-au-empty">Aufstellungen erscheinen ca. 60 Minuten vor Anstoss.</div>`;
+      mounted.innerHTML = `<div class="wm-au-empty">${t("spiele.aufstellungen.noMatchesYet")}</div>`;
       return;
     }
     currentMatchId = defaultMatchId(matches);
   } catch (_e) {
-    mounted.innerHTML = `<div class="wm-au-empty">Konnte nicht geladen werden.</div>`;
+    mounted.innerHTML = `<div class="wm-au-empty">${t("common.loadError")}</div>`;
     return;
   }
   await loadLineup();

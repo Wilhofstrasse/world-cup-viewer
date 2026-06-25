@@ -22,15 +22,16 @@ import { initAufstellungen, destroyAufstellungen } from "./aufstellungen.js";
 import { initHallOfFame, destroyHallOfFame } from "./halloffame.js";
 import { initSettings, destroySettings } from "./settings.js";
 import { track } from "./track.js";
+import { t } from "./i18n.js";
 
 const SUBVIEWS = [
-  { key: "topscorers", label: "Torjägerliste", title: "Torjägerliste", icon: "⚽", sub: "Goldener Schuh · Tore, Vorlagen, Spiele", section: "Statistiken", ready: true, primary: true },
-  { key: "tabellen", label: "Tabellen", title: "Tabellen", icon: "📊", sub: "Offizielle Gruppen mit Qualifikationsstatus", section: "Statistiken", ready: true },
-  { key: "halloffame", label: "Ruhmeshalle", title: "Ruhmeshalle", icon: "🏅", sub: "Top-Torschützen aller Zeiten, beste Einzel-WM, meiste Teilnahmen", section: "Statistiken", ready: true },
-  { key: "bracket", label: "K.-o.-Baum", title: "K.-o.-Baum", icon: "🏆", sub: "Viertelfinal bis Finale · der Weg zum Pokal", section: "Spielplan", ready: true },
-  { key: "lineups", label: "Aufstellungen", title: "Aufstellungen", icon: "🎽", sub: "Formationen, Startelf, Auswechslungen", section: "Spielplan", ready: true },
-  { key: "squads", label: "Kader", title: "Kader", icon: "👥", sub: "Alle 48 Teams · Tippe auf einen Spieler für die Karte", section: "Spieler & Mannschaften", ready: true },
-  { key: "settings", label: "Einstellungen", title: "Einstellungen", icon: "⚙️", sub: "Besucherkarte · Feedback · App-Version", section: "App", ready: true },
+  { key: "topscorers", label: t("mehr.topscorers.label"), title: t("mehr.topscorers.title"), icon: "⚽", sub: t("mehr.topscorers.sub"), section: t("mehr.section.statistiken"), ready: true, primary: true },
+  { key: "tabellen", label: t("mehr.tabellen.label"), title: t("mehr.tabellen.title"), icon: "📊", sub: t("mehr.tabellen.sub"), section: t("mehr.section.statistiken"), ready: true },
+  { key: "halloffame", label: t("mehr.halloffame.label"), title: t("mehr.halloffame.title"), icon: "🏅", sub: t("mehr.halloffame.sub"), section: t("mehr.section.statistiken"), ready: true },
+  { key: "bracket", label: t("mehr.bracket.label"), title: t("mehr.bracket.title"), icon: "🏆", sub: t("mehr.bracket.sub"), section: t("mehr.section.spielplan"), ready: true },
+  { key: "lineups", label: t("mehr.lineups.label"), title: t("mehr.lineups.title"), icon: "🎽", sub: t("mehr.lineups.sub"), section: t("mehr.section.spielplan"), ready: true },
+  { key: "squads", label: t("mehr.squads.label"), title: t("mehr.squads.title"), icon: "👥", sub: t("mehr.squads.sub"), section: t("mehr.section.spielerMannschaften"), ready: true },
+  { key: "settings", label: t("mehr.settings.label"), title: t("mehr.settings.title"), icon: "⚙️", sub: t("mehr.settings.sub"), section: t("mehr.section.app"), ready: true },
 ];
 
 let currentView = null;
@@ -55,7 +56,7 @@ function renderLanding() {
   }
 
   const itemHtml = (v) => {
-    const chev = v.ready ? `<span class="wm-mehr-chev">▸</span>` : `<span class="wm-mehr-soon">bald</span>`;
+    const chev = v.ready ? `<span class="wm-mehr-chev">▸</span>` : `<span class="wm-mehr-soon">${t("mehr.soonBadge")}</span>`;
     return `
       <button class="wm-mehr-item ${v.primary ? "is-primary" : ""}" data-view="${v.key}" ${v.ready ? "" : "disabled aria-disabled=\"true\""}>
         <span class="wm-mehr-ico" aria-hidden="true">${v.icon}</span>

@@ -15,6 +15,8 @@
 
 "use strict";
 
+import { t, apiLang, fmtDateShort } from "./i18n.js";
+
 const API_BASE = window.WM_API_BASE || "";
 
 let mounted = null;
@@ -37,9 +39,9 @@ function renderShell(container) {
   container.innerHTML = `
     <div class="wm-hof">
       <div class="wm-hof-tabs" role="tablist">
-        <button class="wm-hof-tab" data-tab="topScorers" role="tab">Tore aller Zeiten</button>
-        <button class="wm-hof-tab" data-tab="bestSingleWM" role="tab">Tore in einem WM</button>
-        <button class="wm-hof-tab" data-tab="mostTourneys" role="tab">Meiste Teilnahmen</button>
+        <button class="wm-hof-tab" data-tab="topScorers" role="tab">${esc(t("halloffame.tab.allTimeGoals"))}</button>
+        <button class="wm-hof-tab" data-tab="bestSingleWM" role="tab">${esc(t("halloffame.tab.bestSingleWM"))}</button>
+        <button class="wm-hof-tab" data-tab="mostTourneys" role="tab">${esc(t("halloffame.tab.mostTourneys"))}</button>
       </div>
       <div class="wm-hof-list" id="wmHofList"></div>
       <div class="wm-hof-foot" id="wmHofFoot"></div>
@@ -85,26 +87,26 @@ function renderList() {
   const list = document.getElementById("wmHofList");
   if (!list) return;
   if (!cached) {
-    list.innerHTML = `<p class="wm-state">Wird geladen…</p>`;
+    list.innerHTML = `<p class="wm-state">${esc(t("common.loading"))}</p>`;
     return;
   }
   if (tab === "topScorers") {
     const rows = cached.topScorers || [];
-    if (!rows.length) { list.innerHTML = `<p class="wm-state">Noch keine Daten.</p>`; return; }
+    if (!rows.length) { list.innerHTML = `<p class="wm-state">${esc(t("common.noData"))}</p>`; return; }
     list.innerHTML = rows.map((p, i) =>
-      row(i + 1, p.name, "Tore", p.totalGoals, p.tournaments ? `${p.tournaments} ${p.tournaments === 1 ? "WM" : "WM-Turniere"}` : "", p.photoUrl),
+      row(i + 1, p.name, t("halloffame.label.goals"), p.totalGoals, p.tournaments ? (p.tournaments === 1 ? t("halloffame.sub.tournamentsSingular", { tournaments: p.tournaments }) : t("halloffame.sub.tournamentsPlural", { tournaments: p.tournaments })) : "", p.photoUrl),
     ).join("");
   } else if (tab === "bestSingleWM") {
     const rows = cached.bestSingleWM || [];
-    if (!rows.length) { list.innerHTML = `<p class="wm-state">Noch keine Daten.</p>`; return; }
+    if (!rows.length) { list.innerHTML = `<p class="wm-state">${esc(t("common.noData"))}</p>`; return; }
     list.innerHTML = rows.map((p, i) =>
-      row(i + 1, p.name, "Tore", p.goals, p.season ? p.season.replace(/™/g, "").trim() : "", p.photoUrl),
+      row(i + 1, p.name, t("halloffame.label.goals"), p.goals, p.season ? p.season.replace(/™/g, "").trim() : "", p.photoUrl),
     ).join("");
   } else {
     const rows = cached.mostTourneys || [];
-    if (!rows.length) { list.innerHTML = `<p class="wm-state">Noch keine Daten.</p>`; return; }
+    if (!rows.length) { list.innerHTML = `<p class="wm-state">${esc(t("common.noData"))}</p>`; return; }
     list.innerHTML = rows.map((p, i) =>
-      row(i + 1, p.name, p.tournaments === 1 ? "WM" : "WMs", p.tournaments, p.seasons ? p.seasons.map((s) => s.replace(/FIFA |™| World Cup/g, "").trim()).join(", ") : "", p.photoUrl),
+      row(i + 1, p.name, p.tournaments === 1 ? t("halloffame.label.tournamentSingular") : t("halloffame.label.tournamentPlural"), p.tournaments, p.seasons ? p.seasons.map((s) => s.replace(/FIFA |™| World Cup/g, "").trim()).join(", ") : "", p.photoUrl),
     ).join("");
   }
 }
@@ -113,13 +115,13 @@ function renderFooter() {
   const foot = document.getElementById("wmHofFoot");
   if (!foot || !cached) return;
   const dt = cached.updatedAt ? new Date(cached.updatedAt * 1000) : null;
-  const stamp = dt ? dt.toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
-  foot.innerHTML = `<span>Stand ${esc(stamp)} · ${cached.seasonsIngested || "?"} WM-Turniere · Quelle: FIFA</span>`;
+  const stamp = dt ? fmtDateShort(dt) : t("common.emptyDash");
+  foot.innerHTML = `<span>${esc(t("halloffame.footer.stand", { stamp, seasonsIngested: cached.seasonsIngested || "?" }))}</span>`;
 }
 
 async function load() {
   try {
-    const res = await fetch(`${API_BASE}/api/wm/halloffame`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/api/wm/halloffame?lang=${apiLang()}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`${res.status}`);
     cached = await res.json();
   } catch {

@@ -21,7 +21,7 @@
 "use strict";
 
 (function () {
-  var APP_BUILT = "1.10.1"; // version of THIS shipped asset
+  var APP_BUILT = "1.11.0"; // version of THIS shipped asset
 
   // ── 1. Version stamp ─────────────────────────────────────────────────────
   function showVersion() {
@@ -243,7 +243,10 @@
     banner.id = "wmInstallBanner";
     banner.className = "wm-install-banner";
     banner.setAttribute("role", "dialog");
-    banner.setAttribute("aria-label", "App installieren");
+    // Localized via the i18n module's global (set by app.js boot); falls back to
+    // the German literal if i18n hasn't loaded yet.
+    function tt(key, deText, params) { var f = window.t; return f ? f(key, params) : deText; }
+    banner.setAttribute("aria-label", tt("settings.installBanner.dialogLabel", "App installieren"));
 
     var hasNativePrompt = !!deferredInstallPrompt;
     var ios = isIOSSafari();
@@ -275,26 +278,26 @@
           'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
       '</svg>';
     var iconHtml = '<div class="wm-install-icon" aria-hidden="true">' + (ios ? IPHONE_SVG : DOWNLOAD_SVG) + '</div>';
-    var dismissHtml = '<button class="wm-install-dismiss" type="button" aria-label="Schließen">✕</button>';
+    var dismissHtml = '<button class="wm-install-dismiss" type="button" aria-label="' + tt("common.close", "Schließen") + '">✕</button>';
     var bodyHtml;
     if (hasNativePrompt) {
       bodyHtml =
         '<div class="wm-install-text">' +
-          '<strong>WM 2026 installieren</strong>' +
-          '<span>Eigenes Icon auf dem Startbildschirm — startet schneller, läuft auch offline.</span>' +
+          '<strong>' + tt("settings.installBanner.native.title", "WM 2026 installieren") + '</strong>' +
+          '<span>' + tt("settings.installBanner.native.body", "Eigenes Icon auf dem Startbildschirm — startet schneller, läuft auch offline.") + '</span>' +
         '</div>' +
-        '<button class="wm-install-go" type="button">Installieren</button>';
+        '<button class="wm-install-go" type="button">' + tt("settings.installBanner.installButton", "Installieren") + '</button>';
     } else if (ios) {
       bodyHtml =
         '<div class="wm-install-text">' +
-          '<strong>Auf den Startbildschirm</strong>' +
-          '<span>Tippe unten auf <b>Teilen</b> ' + SHARE_SVG + ' → <b>Zum Home-Bildschirm</b>.</span>' +
+          '<strong>' + tt("settings.installBanner.ios.title", "Auf den Startbildschirm") + '</strong>' +
+          '<span>' + tt("settings.installBanner.ios.body", 'Tippe unten auf <b>Teilen</b> ' + SHARE_SVG + ' → <b>Zum Home-Bildschirm</b>.', { shareIcon: SHARE_SVG }) + '</span>' +
         '</div>';
     } else {
       bodyHtml =
         '<div class="wm-install-text">' +
-          '<strong>App installieren</strong>' +
-          '<span>Im Browser-Menü: «App installieren» / «Zum Dock hinzufügen».</span>' +
+          '<strong>' + tt("settings.installBanner.generic.title", "App installieren") + '</strong>' +
+          '<span>' + tt("settings.installBanner.generic.body", "Im Browser-Menü: «App installieren» / «Zum Dock hinzufügen».") + '</span>' +
         '</div>';
     }
     banner.innerHTML = iconHtml + bodyHtml + dismissHtml;
@@ -367,7 +370,8 @@
       hint.id = "wmPtrHint";
       hint.className = "wm-ptr-hint";
       hint.setAttribute("role", "status");
-      hint.innerHTML = '<span class="wm-ptr-arrow" aria-hidden="true">↓</span><span>Ziehen + halten zum Aktualisieren</span>';
+      var ptrLabel = window.t ? window.t("settings.ptrHint.label") : "Ziehen + halten zum Aktualisieren";
+      hint.innerHTML = '<span class="wm-ptr-arrow" aria-hidden="true">↓</span><span>' + ptrLabel + '</span>';
       document.body.appendChild(hint);
       try { localStorage.setItem(PTR_HINT_KEY, String(Date.now())); } catch (_e) {}
       // Tap dismisses early.

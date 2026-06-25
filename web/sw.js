@@ -18,7 +18,7 @@
 
 "use strict";
 
-const SHELL_CACHE = "wm-shell-v42";
+const SHELL_CACHE = "wm-shell-v43";
 const DATA_CACHE = "wm-data-v2";
 const THUMB_CACHE = "wm-thumbs-v2";
 const THUMB_MAX = 120; // cap stored thumbnails
@@ -34,6 +34,7 @@ const KILL_DONE = "wm-killswitch-v10-done";
 // makes Safari refuse the navigation).
 const WM_SHELL = [
   "/wm/app.js",
+  "/wm/i18n.js",
   "/wm/feed.js",
   "/wm/matches.js",
   "/wm/standings.js",

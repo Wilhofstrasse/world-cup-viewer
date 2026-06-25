@@ -13,6 +13,7 @@
 
 import { flagFor, flagFromIso3, nameFromIso3 } from "./parse.js";
 import { track } from "./track.js";
+import { t, apiLang, fmtDateShort } from "./i18n.js";
 
 const FIFA_PLAYER_URL = (id) => `https://api.fifa.com/api/v3/players/${encodeURIComponent(id)}?language=de-DE`;
 const FIFA_SEASON = "285023";
@@ -30,7 +31,7 @@ function ensureOverlay() {
   overlay.id = "wmPlayerOverlay";
   overlay.className = "wm-pk-overlay";
   overlay.hidden = true;
-  overlay.innerHTML = `<div class="wm-pk-sheet" role="dialog" aria-modal="true"><button class="wm-pk-close" id="wmPkClose" type="button" aria-label="Schliessen">✕</button><div class="wm-pk-body" id="wmPkBody"></div></div>`;
+  overlay.innerHTML = `<div class="wm-pk-sheet" role="dialog" aria-modal="true"><button class="wm-pk-close" id="wmPkClose" type="button" aria-label="${t("common.close")}">✕</button><div class="wm-pk-body" id="wmPkBody"></div></div>`;
   document.body.appendChild(overlay);
   overlay.addEventListener("click", (ev) => {
     if (ev.target === overlay) close();
@@ -72,13 +73,13 @@ function fmtDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
   if (isNaN(+d)) return "";
-  return d.toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" });
+  return fmtDateShort(d);
 }
 
 function footLabel(code) {
-  if (code === 1 || code === "Left" || code === "Links") return "Links";
-  if (code === 2 || code === "Right" || code === "Rechts") return "Rechts";
-  if (code === 3) return "Beidfüssig";
+  if (code === 1 || code === "Left" || code === "Links") return t("mehr.spielerkarte.footLeft");
+  if (code === 2 || code === "Right" || code === "Rechts") return t("mehr.spielerkarte.footRight");
+  if (code === 3) return t("mehr.spielerkarte.footBoth");
   return null;
 }
 
@@ -99,7 +100,7 @@ async function fetchPlayer(idPlayer) {
 async function ensureSquadIndex() {
   if (squadIndex) return squadIndex;
   try {
-    const res = await fetch(SQUADS_URL, { cache: "no-store" });
+    const res = await fetch(`${SQUADS_URL}?lang=${apiLang()}`, { cache: "no-store" });
     if (!res.ok) { squadIndex = new Map(); return squadIndex; }
     const data = await res.json();
     const out = new Map();
@@ -118,7 +119,7 @@ async function ensureSquadIndex() {
 /** Try to enrich with WM 2026 statistics from the locally-served topscorers blob. */
 async function fetchWmStats(name) {
   try {
-    const res = await fetch(TOPSCORERS_URL, { cache: "no-store" });
+    const res = await fetch(`${TOPSCORERS_URL}?lang=${apiLang()}`, { cache: "no-store" });
     if (!res.ok) return null;
     const data = await res.json();
     const row = (data.scorers || []).find(
@@ -150,33 +151,33 @@ function render(player, wmStats, squadEntry) {
     null;
 
   const heroPhoto = photo
-    ? `<div class="wm-pk-photo" data-zoomable data-src="${esc(photo)}" role="button" aria-label="Foto vergrössern" style="background-image:url('${esc(photo)}')"></div>`
+    ? `<div class="wm-pk-photo" data-zoomable data-src="${esc(photo)}" role="button" aria-label="${t("mehr.spielerkarte.enlargePhoto")}" style="background-image:url('${esc(photo)}')"></div>`
     : `<div class="wm-pk-photo">${esc(initial(name))}</div>`;
 
   const stripCell = (lbl, val, sub) => `
     <div class="wm-pk-cell"><div class="lbl">${lbl}</div><div class="val">${val}</div>${sub ? `<div class="sub">${sub}</div>` : ""}</div>`;
   const strip = `
     <div class="wm-pk-strip">
-      ${stripCell("Grösse", height != null ? height : "–", height != null ? "cm" : "")}
-      ${stripCell("Alter", age != null ? age : "–", birth ? esc(fmtDate(birth)) : "")}
-      ${stripCell("Caps", caps != null ? caps : "–", "")}
-      ${stripCell("Tore", goals != null ? goals : "–", "")}
+      ${stripCell(t("mehr.spielerkarte.height"), height != null ? height : "–", height != null ? t("mehr.spielerkarte.heightUnit") : "")}
+      ${stripCell(t("mehr.spielerkarte.age"), age != null ? age : "–", birth ? esc(fmtDate(birth)) : "")}
+      ${stripCell(t("mehr.spielerkarte.caps"), caps != null ? caps : "–", "")}
+      ${stripCell(t("common.goals"), goals != null ? goals : "–", "")}
     </div>`;
 
   const bio = `
     <div class="wm-pk-kv">
-      ${birthPlace ? `<div class="row"><span class="k">Geburtsort</span><span class="v">${esc(birthPlace)}</span></div>` : ""}
-      ${foot ? `<div class="row"><span class="k">Starker Fuss</span><span class="v"><span class="chip">${foot}</span></span></div>` : ""}
+      ${birthPlace ? `<div class="row"><span class="k">${t("mehr.spielerkarte.birthPlace")}</span><span class="v">${esc(birthPlace)}</span></div>` : ""}
+      ${foot ? `<div class="row"><span class="k">${t("mehr.spielerkarte.strongFoot")}</span><span class="v"><span class="chip">${foot}</span></span></div>` : ""}
     </div>`;
 
   const wmBlock = wmStats
     ? `
-      <div class="wm-pk-sec-lbl">WM 2026 — Bilanz</div>
+      <div class="wm-pk-sec-lbl">${t("mehr.spielerkarte.wmBilanz")}</div>
       <div class="wm-pk-wm">
-        <div class="g"><div class="v">${wmStats.goals}</div><div class="l">Tore</div></div>
-        <div class="g"><div class="v">${wmStats.assists}</div><div class="l">Vorlagen</div></div>
-        <div class="g"><div class="v">${wmStats.matches}</div><div class="l">Spiele</div></div>
-        <div class="g"><div class="v">${wmStats.rank}</div><div class="l">Rang</div></div>
+        <div class="g"><div class="v">${wmStats.goals}</div><div class="l">${t("common.goals")}</div></div>
+        <div class="g"><div class="v">${wmStats.assists}</div><div class="l">${t("common.assists")}</div></div>
+        <div class="g"><div class="v">${wmStats.matches}</div><div class="l">${t("common.matches")}</div></div>
+        <div class="g"><div class="v">${wmStats.rank}</div><div class="l">${t("common.rank")}</div></div>
       </div>`
     : "";
 
@@ -199,7 +200,7 @@ function openLightbox(src) {
     lb = document.createElement("div");
     lb.id = "wmPkLightbox";
     lb.className = "wm-pk-lightbox";
-    lb.innerHTML = `<button class="wm-pk-lightbox-close" aria-label="Schliessen">✕</button><img alt="" />`;
+    lb.innerHTML = `<button class="wm-pk-lightbox-close" aria-label="${t("common.close")}">✕</button><img alt="" />`;
     document.body.appendChild(lb);
     lb.addEventListener("click", (ev) => {
       if (ev.target === lb || ev.target.classList.contains("wm-pk-lightbox-close") || ev.target.tagName === "IMG" && ev.target !== ev.currentTarget && false) {
@@ -215,7 +216,7 @@ function openLightbox(src) {
 async function open(idPlayer) {
   ensureOverlay();
   const body = overlay.querySelector("#wmPkBody");
-  body.innerHTML = `<div class="wm-pk-loading">Lade Spielerkarte…</div>`;
+  body.innerHTML = `<div class="wm-pk-loading">${t("mehr.spielerkarte.loading")}</div>`;
   overlay.hidden = false;
   overlay.style.display = ""; // clear the close()-injected display:none
   document.body.classList.add("wm-pk-open");
@@ -234,7 +235,7 @@ async function open(idPlayer) {
       });
     });
   } catch (_e) {
-    body.innerHTML = `<div class="wm-pk-loading">Spielerkarte konnte nicht geladen werden.</div>`;
+    body.innerHTML = `<div class="wm-pk-loading">${t("mehr.spielerkarte.loadError")}</div>`;
   }
 }
 

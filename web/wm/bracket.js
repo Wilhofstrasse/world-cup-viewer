@@ -14,18 +14,20 @@
 
 "use strict";
 
-import { flagFor } from "./parse.js";
+import { flagFor, flagForId } from "./parse.js";
+import { t, apiLang, fmtKickoff as fmtKick } from "./i18n.js";
 
 const API_BASE = window.WM_API_BASE || "";
 
-// FIFA stage ids — finals only.
+// FIFA stage ids — finals only (language-invariant).
 const STAGE_QF = "289289";
 const STAGE_SF = "289290";
 const STAGE_FINAL = "289292";
 const STAGE_THIRD = "289291";
 
-// Display labels.
-const LABEL = { [STAGE_QF]: "Viertelfinale", [STAGE_SF]: "Halbfinale", [STAGE_FINAL]: "Finale", [STAGE_THIRD]: "Spiel um Platz 3" };
+// stage id → spiele.round.* dict key (localized label via t()).
+const STAGE_LABEL_KEY = { [STAGE_QF]: "spiele.round.qf", [STAGE_SF]: "spiele.round.sf", [STAGE_FINAL]: "spiele.round.final", [STAGE_THIRD]: "spiele.round.thirdPlace" };
+const stageLabel = (stageId) => t(STAGE_LABEL_KEY[stageId] || "spiele.round.final");
 
 let mounted = null;
 let lastState = { kind: "loading" };
@@ -36,8 +38,7 @@ function esc(s) {
 
 function fmtKickoff(iso) {
   const d = new Date(iso);
-  if (isNaN(+d)) return "";
-  return d.toLocaleString("de-CH", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Zurich" });
+  return isNaN(+d) ? "" : fmtKick(d);
 }
 
 /** Returns "win" | "lose" | null. Loser greyed; winner gets bold + ink edge. */
@@ -58,14 +59,14 @@ function cellHtml(m, opts = {}) {
   const wA = sideOutcome(m, "A");
   const wB = sideOutcome(m, "B");
 
-  const row = (name, score, outcome) => {
+  const row = (name, score, outcome, idTeam) => {
     const cls = ["row"];
     if (outcome === "win") cls.push("win");
     if (outcome === "lose") cls.push("lose");
     if (!name) cls.push("ph");
     const lab = name
-      ? `<span class="nm"><span class="f">${flagFor(name)}</span><span class="lab">${esc(name)}</span></span>`
-      : `<span class="nm"><span class="lab">${esc(opts.placeholderText || "TBD")}</span></span>`;
+      ? `<span class="nm"><span class="f">${flagForId(idTeam) || flagFor(name)}</span><span class="lab">${esc(name)}</span></span>`
+      : `<span class="nm"><span class="lab">${esc(opts.placeholderText || t("mehr.bracket.tbd"))}</span></span>`;
     const sc = showScore && score != null ? `<span class="sc">${score}</span>` : `<span class="sc">–</span>`;
     return `<div class="${cls.join(" ")}">${lab}${sc}</div>`;
   };
@@ -78,10 +79,10 @@ function cellHtml(m, opts = {}) {
   if (opts.final) cls.push("final");
   if (opts.third) cls.push("third");
   const style = `top:${opts.top}px;left:${opts.left}px`;
-  const crown = opts.final ? `<span class="crown">Weltmeister</span>` : "";
-  const thirdLbl = opts.third ? `<div class="third-lbl">Spiel um Platz 3</div>` : "";
+  const crown = opts.final ? `<span class="crown">${esc(t("mehr.bracket.worldChampion"))}</span>` : "";
+  const thirdLbl = opts.third ? `<div class="third-lbl">${esc(t("spiele.round.thirdPlace"))}</div>` : "";
 
-  return `<div class="${cls.join(" ")}" style="${style}" data-mid="${m.id}">${crown}${thirdLbl}${row(m.teamA, m.scoreA, wA)}${row(m.teamB, m.scoreB, wB)}${liveMark}${when}</div>`;
+  return `<div class="${cls.join(" ")}" style="${style}" data-mid="${m.id}">${crown}${thirdLbl}${row(m.teamA, m.scoreA, wA, m.idTeamA)}${row(m.teamB, m.scoreB, wB, m.idTeamB)}${liveMark}${when}</div>`;
 }
 
 /** Build the SVG connector lines for VF→HF→Final. Ink stroke follows winners. */
@@ -133,10 +134,10 @@ function fillSlots(matches) {
 
   // Pad to fixed slot counts so the tree is always the same shape.
   const blank = (label) => ({ id: "ph-" + label, status: "scheduled", teamA: null, teamB: null, scoreA: null, scoreB: null, dateISO: "", round: label, stageId: "", _placeholder: label });
-  while (qfs.length < 4) qfs.push(blank("Viertelfinale"));
-  while (sfs.length < 2) sfs.push(blank("Halbfinale"));
-  while (finals.length < 1) finals.push(blank("Finale"));
-  while (thirds.length < 1) thirds.push(blank("Spiel um Platz 3"));
+  while (qfs.length < 4) qfs.push(blank(stageLabel(STAGE_QF)));
+  while (sfs.length < 2) sfs.push(blank(stageLabel(STAGE_SF)));
+  while (finals.length < 1) finals.push(blank(stageLabel(STAGE_FINAL)));
+  while (thirds.length < 1) thirds.push(blank(stageLabel(STAGE_THIRD)));
   return { qfs: qfs.slice(0, 4), sfs: sfs.slice(0, 2), final: finals[0], third: thirds[0] };
 }
 
@@ -160,8 +161,8 @@ function renderTree(matches) {
       cellHtml(m, { top: sfTops[i], left: 200, placeholderText: m._placeholder ? `${m._placeholder} ${i + 1}` : "TBD" }),
     )
     .join("");
-  const finalCell = cellHtml(final, { top: finalTop, left: 396, final: true, placeholderText: "Finale" });
-  const thirdCell = cellHtml(third, { top: thirdTop, left: 396, third: true, placeholderText: "Spiel um Platz 3" });
+  const finalCell = cellHtml(final, { top: finalTop, left: 396, final: true, placeholderText: stageLabel(STAGE_FINAL) });
+  const thirdCell = cellHtml(third, { top: thirdTop, left: 396, third: true, placeholderText: stageLabel(STAGE_THIRD) });
 
   const qfPos = qfs.map((m, i) => ({
     y: qfTops[i] + cardHalf,
@@ -176,11 +177,11 @@ function renderTree(matches) {
   const finalPos = { y: finalTop + cardHalf };
 
   const stages = `
-    <div class="stage" style="left:0">Viertelfinale</div>
-    <div class="stage" style="left:200px">Halbfinale</div>
-    <div class="stage" style="left:396px;color:var(--wm-ink)">🏆 Finale</div>`;
+    <div class="stage" style="left:0">${esc(stageLabel(STAGE_QF))}</div>
+    <div class="stage" style="left:200px">${esc(stageLabel(STAGE_SF))}</div>
+    <div class="stage" style="left:396px;color:var(--wm-ink)">${esc(t("mehr.bracket.finalColumnHeading"))}</div>`;
   return `
-    <div class="wm-kb-hint">Finalrunde — <b>Viertelfinale bis Finale</b>. Sieger fett, dunkle Linie folgt dem Weg ins Finale.<br>Sechzehntel- &amp; Achtelfinale unter Tab «Spiele».</div>
+    <div class="wm-kb-hint">${t("mehr.bracket.hint")}</div>
     <div class="wm-kb-scroll"><div class="wm-kb-tree">
       ${stages}
       ${linesSvg(qfPos, sfPos, finalPos)}
@@ -194,11 +195,11 @@ function renderTree(matches) {
 function render(state) {
   if (!mounted) return;
   if (state.kind === "loading") {
-    mounted.innerHTML = `<div class="wm-kb-hint">Lade Finalrunde…</div>`;
+    mounted.innerHTML = `<div class="wm-kb-hint">${t("mehr.bracket.loading")}</div>`;
     return;
   }
   if (state.kind === "error") {
-    mounted.innerHTML = `<div class="wm-ts-empty"><div class="ic">⚠</div><div class="t">Konnte nicht geladen werden.</div><div class="s">Bitte nochmals versuchen.</div></div>`;
+    mounted.innerHTML = `<div class="wm-ts-empty"><div class="ic">⚠</div><div class="t">${t("common.loadError")}</div><div class="s">${t("common.loadErrorRetry")}</div></div>`;
     return;
   }
   mounted.innerHTML = renderTree(state.matches);
@@ -227,7 +228,7 @@ async function load() {
   lastState = { kind: "loading" };
   render(lastState);
   try {
-    const res = await fetch(`${API_BASE}/api/wm/matches`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/api/wm/matches?lang=${apiLang()}`, { cache: "no-store" });
     if (!res.ok) throw new Error("status " + res.status);
     const data = await res.json();
     const matches = (Array.isArray(data.matches) ? data.matches : []).filter(

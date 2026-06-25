@@ -15,9 +15,10 @@ import { fetchClips, fetchHls } from "./il.js";
 import { parseMatchTitle, classifyClip, flagFor } from "./parse.js";
 import { findMatchByTeams, findClipByTeams, getAllMatches, setClips, subscribe, prefetchMatches } from "./linkstore.js";
 import { track } from "./track.js";
+import { t, fmtTimeHM, fmtDateShort, fmtDateWeekday } from "./i18n.js";
 
 const CACHE_KEY = "wm.clips.v1";
-const KIND_LABEL = { match: "Spielzusammenfassung", summary: "Zusammenfassung", goal: "Szene", feature: "Magazin" };
+const KIND_LABEL = { match: t("feed.kind.match"), summary: t("feed.kind.summary"), goal: t("feed.kind.goal"), feature: t("feed.kind.feature") };
 
 let clips = [];
 let hlsLoading = null;
@@ -38,11 +39,11 @@ function fmtWhen(iso) {
   if (isNaN(+d)) return "";
   const today = new Date();
   const sameDay = d.toDateString() === today.toDateString();
-  if (sameDay) return "Heute";
+  if (sameDay) return t("common.today");
   const y = new Date(today);
   y.setDate(today.getDate() - 1);
-  if (d.toDateString() === y.toDateString()) return "Gestern";
-  return d.toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" });
+  if (d.toDateString() === y.toDateString()) return t("common.yesterday");
+  return fmtDateShort(d);
 }
 
 /** Decorate a raw clip with derived presentation fields. */
@@ -63,10 +64,10 @@ function scoreLineMarkup(clip) {
   if (!m) return "";
   if (m.status === "live") {
     const minute = m.minute ? `${m.minute}'` : "";
-    return `<div class="wm-score is-live"><span class="wm-score-val">${m.scoreA ?? 0} – ${m.scoreB ?? 0}</span><span class="wm-score-live">● LIVE ${minute}</span></div>`;
+    return `<div class="wm-score is-live"><span class="wm-score-val">${m.scoreA ?? 0} – ${m.scoreB ?? 0}</span><span class="wm-score-live">${t("feed.score.live", { minute })}</span></div>`;
   }
   if (m.status === "finished" && m.scoreA != null && m.scoreB != null) {
-    return `<div class="wm-score"><span class="wm-score-val">${m.scoreA} – ${m.scoreB}</span><span class="wm-score-tag">Endstand</span></div>`;
+    return `<div class="wm-score"><span class="wm-score-val">${m.scoreA} – ${m.scoreB}</span><span class="wm-score-tag">${t("feed.score.finalTag")}</span></div>`;
   }
   return "";
 }
@@ -76,7 +77,7 @@ function infoChipMarkup(clip) {
   if (!clip.match) return "";
   const m = findMatchByTeams(clip.match.teamA, clip.match.teamB);
   if (!m) return "";
-  return `<button class="wm-info-chip" type="button" data-mid="${m.id}">→ Spielinfo</button>`;
+  return `<button class="wm-info-chip" type="button" data-mid="${m.id}">${t("feed.infoChip")}</button>`;
 }
 
 function slideMarkup(clip, i) {
@@ -92,7 +93,7 @@ function slideMarkup(clip, i) {
       <div class="wm-media-well">
         <div class="wm-thumb"${thumb} aria-hidden="true"></div>
         <div class="wm-scrim" aria-hidden="true"></div>
-        <button class="wm-playbtn" type="button" aria-label="Abspielen">▶</button>
+        <button class="wm-playbtn" type="button" aria-label="${t("feed.play.ariaLabel")}">▶</button>
       </div>
       <div class="wm-meta">
         ${flags}
@@ -135,7 +136,7 @@ function render() {
       .filter(Boolean),
   );
   if (!visible.length) {
-    feed.innerHTML = `<section class="wm-slide wm-empty"><p>Noch keine Clips.<br>Schau später nochmal vorbei.</p></section>`;
+    feed.innerHTML = `<section class="wm-slide wm-empty"><p>${t("feed.empty.noClips")}</p></section>`;
     return;
   }
   feed.innerHTML = visible.map(slideMarkup).join("");
@@ -170,7 +171,7 @@ function attachScrollHint(feed) {
   const hint = document.createElement("div");
   hint.className = "wm-scroll-hint";
   hint.setAttribute("aria-hidden", "true");
-  hint.textContent = "Mehr";
+  hint.textContent = t("feed.scrollHint");
   firstSlide.appendChild(hint);
   const onScroll = () => {
     if (feed.scrollTop <= 30) return;
@@ -268,8 +269,8 @@ function renderMarkers(slideEl, markers, durationSec) {
     dot.className = "wm-marker-dot";
     dot.type = "button";
     dot.style.left = `${(pct * 100).toFixed(2)}%`;
-    dot.title = m.label || "Tor";
-    dot.setAttribute("aria-label", "Springe zu " + (m.label || "Tor"));
+    dot.title = m.label || t("feed.marker.goal");
+    dot.setAttribute("aria-label", t("feed.marker.jumpTo", { label: m.label || t("feed.marker.goal") }));
     dot.addEventListener("click", (ev) => {
       ev.stopPropagation();
       const v = slideEl.querySelector(".wm-video");
@@ -495,14 +496,14 @@ function dayLabel(iso) {
   const d = new Date(iso);
   if (isNaN(+d)) return "";
   const today = new Date();
-  if (d.toDateString() === today.toDateString()) return "Heute";
+  if (d.toDateString() === today.toDateString()) return t("common.today");
   const tom = new Date(today);
   tom.setDate(today.getDate() + 1);
-  if (d.toDateString() === tom.toDateString()) return "Morgen";
+  if (d.toDateString() === tom.toDateString()) return t("common.tomorrow");
   const y = new Date(today);
   y.setDate(today.getDate() - 1);
-  if (d.toDateString() === y.toDateString()) return "Gestern";
-  return d.toLocaleDateString("de-CH", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
+  if (d.toDateString() === y.toDateString()) return t("common.yesterday");
+  return fmtDateWeekday(d);
 }
 
 /** Kickoff time HH:MM, mono, for the timeline rail. */
@@ -510,7 +511,7 @@ function dayTime(iso) {
   if (!iso) return "";
   const d = new Date(iso);
   if (isNaN(+d)) return "";
-  return d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Zurich" });
+  return fmtTimeHM(d);
 }
 
 /** (Re)render the drawer as a vertical timeline grouped by day. */
@@ -544,7 +545,7 @@ function renderDrawerList(q) {
   const items = [...clipItems, ...upcomingItems].filter((it) => !ql || itemSearchText(it).includes(ql));
 
   if (!items.length) {
-    const msg = ql ? "Kein Spiel gefunden." : clipsLoading ? "Spiele werden geladen…" : "Noch keine Spiele.";
+    const msg = ql ? t("feed.drawer.noMatch") : clipsLoading ? t("feed.drawer.loading") : t("feed.drawer.noGames");
     list.innerHTML = `<p class="wm-drawer-empty">${msg}</p>`;
     return;
   }
@@ -560,7 +561,7 @@ function renderDrawerList(q) {
     const cls = upcoming ? "wm-drawer-item is-upcoming" : (isCur ? "wm-drawer-item is-current" : "wm-drawer-item");
     const rowCls = upcoming ? "wm-drawer-row is-upcoming" : (isCur ? "wm-drawer-row is-current" : "wm-drawer-row");
     const rightSlot = match
-      ? `<button class="wm-drawer-info" data-mid="${match.id}" type="button" aria-label="Spielinfo öffnen" title="Spielinfo">ⓘ</button>`
+      ? `<button class="wm-drawer-info" data-mid="${match.id}" type="button" aria-label="${t("feed.drawer.infoOpen.ariaLabel")}" title="${t("feed.drawer.infoOpen.title")}">ⓘ</button>`
       : `<span class="wm-drawer-info-spacer" aria-hidden="true"></span>`;
     const time = dayTime(kickoffISO);
     const dataAttrs = upcoming
@@ -582,7 +583,7 @@ function renderDrawerList(q) {
     return `<div class="wm-drawer-day"><div class="wm-drawer-day-head">${esc(label)}</div><div class="wm-drawer-day-list">${arr.map(itemMarkup).join("")}</div></div>`;
   }
 
-  const loadingHint = clipsLoading && !ql ? `<p class="wm-drawer-loading">Weitere Spiele werden geladen…</p>` : "";
+  const loadingHint = clipsLoading && !ql ? `<p class="wm-drawer-loading">${t("feed.drawer.loadingMore")}</p>` : "";
   if (ql) {
     list.innerHTML = `<div class="wm-drawer-search-list">${items.map(itemMarkup).join("")}</div>`;
   } else {
@@ -601,7 +602,7 @@ function renderDrawerList(q) {
     }
     list.innerHTML = sortedKeys.map((k) => {
       const arr = groups.get(k);
-      const label = dayLabel(arr[0].kickoffISO) || "—";
+      const label = dayLabel(arr[0].kickoffISO) || t("feed.drawer.dayFallback");
       return dayGroup(label, arr);
     }).join("") + loadingHint;
   }
@@ -711,7 +712,7 @@ export async function initFeed() {
   } catch (e) {
     if (!clips.length) {
       document.getElementById("wmFeed").innerHTML =
-        `<section class="wm-slide wm-empty"><p>Keine Verbindung.<br>Highlights konnten nicht geladen werden.</p></section>`;
+        `<section class="wm-slide wm-empty"><p>${t("feed.error.offline")}</p></section>`;
     }
   } finally {
     clipsLoading = false;
