@@ -29,9 +29,24 @@ import {
   saveWmTabellen,
   saveWmSquads,
   saveWmHallOfFame,
+  saveStageMap,
 } from "./store.js";
-import { fetchTopScorers, enrichScorerTeams, fetchTabellen, fetchSquads } from "./fifa.js";
+import {
+  fetchTopScorers,
+  enrichScorerTeams,
+  fetchTabellen,
+  fetchSquads,
+  fetchRawFifaMatches,
+  mapFifaMatchToMatch,
+  type AppLang,
+  type RoundKey,
+} from "./fifa.js";
 import { ingestHallOfFame } from "./halloffame.js";
+
+// Languages we serve FIFA data in. de is the budget-bearing default (it does the
+// expensive timeline/goal fetches); en + pt-BR are cheap localized passes that
+// reuse the de goals[] (Side A/B + CAPS surname are language-invariant).
+const EXTRA_LANGS: readonly AppLang[] = ["en", "pt-BR"];
 
 const TOPSCORERS_MAX_AGE_MS = 30 * 60 * 1000; // refresh every 30 min in-window
 const TABELLEN_MAX_AGE_MS = 30 * 60 * 1000;
@@ -87,8 +102,8 @@ function needsGoals(fresh: Match, prev: Match | undefined): boolean {
  * keyless request. matches[] is read-only (never mutated).
  */
 /** Build an idPlayer → photoUrl map from the cached squads blob (if any). */
-async function loadSquadPhotoMap(env: Env): Promise<Map<string, string>> {
-  const sq = await loadWmSquads(env);
+async function loadSquadPhotoMap(env: Env, lang: AppLang = "de"): Promise<Map<string, string>> {
+  const sq = await loadWmSquads(env, lang);
   const m = new Map<string, string>();
   for (const team of sq.squads || []) {
     for (const p of team.players || []) {
@@ -98,10 +113,10 @@ async function loadSquadPhotoMap(env: Env): Promise<Map<string, string>> {
   return m;
 }
 
-async function refreshTopScorers(env: Env, matches: Match[], nowMs: number): Promise<void> {
+async function refreshTopScorers(env: Env, matches: Match[], nowMs: number, lang: AppLang = "de"): Promise<void> {
   if ((env.WM_API_PROVIDER || "fifa") !== "fifa") return; // only the FIFA path provides this feed
   try {
-    const raw = await fetchTopScorers(env);
+    const raw = await fetchTopScorers(env, lang);
     const idToTeam = new Map<string, string>();
     for (const m of matches) {
       if (m.idTeamA) idToTeam.set(m.idTeamA, m.teamA);
@@ -109,7 +124,7 @@ async function refreshTopScorers(env: Env, matches: Match[], nowMs: number): Pro
     }
     // Cross-join with the squads blob so each scorer carries a real player
     // photo (the topscorers endpoint never ships photoUrl; the squads one does).
-    const photoMap = await loadSquadPhotoMap(env);
+    const photoMap = await loadSquadPhotoMap(env, lang);
     const scorers = enrichScorerTeams(raw, idToTeam).map((s) =>
       s.photoUrl || !s.idPlayer ? s : photoMap.has(s.idPlayer) ? { ...s, photoUrl: photoMap.get(s.idPlayer) || null } : s,
     );
@@ -118,7 +133,7 @@ async function refreshTopScorers(env: Env, matches: Match[], nowMs: number): Pro
       season: env.WM_SEASON || "2026",
       scorers,
     };
-    await saveWmTopScorers(env, ts);
+    await saveWmTopScorers(env, ts, lang);
   } catch {
     // upstream hiccup — keep last good topscorers blob, retry next tick
   }
@@ -128,16 +143,16 @@ async function refreshTopScorers(env: Env, matches: Match[], nowMs: number): Pro
  * Refreshes the all-48-team squads blob from FIFA (keyless, single request).
  * Squads change rarely; the freshness clock is 6 h.
  */
-async function refreshSquads(env: Env, nowMs: number): Promise<void> {
+async function refreshSquads(env: Env, nowMs: number, lang: AppLang = "de"): Promise<void> {
   if ((env.WM_API_PROVIDER || "fifa") !== "fifa") return;
   try {
-    const squads = await fetchSquads(env);
+    const squads = await fetchSquads(env, lang);
     const data: WmSquads = {
       updatedAt: Math.floor(nowMs / 1000),
       season: env.WM_SEASON || "2026",
       squads,
     };
-    await saveWmSquads(env, data);
+    await saveWmSquads(env, data, lang);
   } catch {
     // upstream hiccup — keep last good blob, retry next tick
   }
@@ -147,18 +162,76 @@ async function refreshSquads(env: Env, nowMs: number): Promise<void> {
  * Refreshes the group-standings blob from FIFA (keyless, single request) — its
  * own freshness clock, same as top scorers. No budget gate.
  */
-async function refreshTabellen(env: Env, nowMs: number): Promise<void> {
+async function refreshTabellen(env: Env, nowMs: number, lang: AppLang = "de"): Promise<void> {
   if ((env.WM_API_PROVIDER || "fifa") !== "fifa") return;
   try {
-    const rows = await fetchTabellen(env);
+    const rows = await fetchTabellen(env, lang);
     const data: WmTabellen = {
       updatedAt: Math.floor(nowMs / 1000),
       season: env.WM_SEASON || "2026",
       rows,
     };
-    await saveWmTabellen(env, data);
+    await saveWmTabellen(env, data, lang);
   } catch {
     // upstream hiccup — keep last good blob, retry next tick
+  }
+}
+
+/**
+ * En / pt-BR localized passes. FIFA-only, cheap: NO timeline fetches — the de
+ * goals[] are copied by match id (Side A/B + CAPS surname are language-invariant).
+ * Each localized matches feed is mapped against the IdStage→RoundKey map built
+ * from the German matches, so rounds localize without trusting the foreign
+ * StageName text. Squads/topscorers/tabellen are re-fetched in the language.
+ */
+async function ingestLocalizedLanguages(env: Env, nowMs: number, deMatches: Match[]): Promise<void> {
+  if ((env.WM_API_PROVIDER || "fifa").toLowerCase() !== "fifa") return;
+  if (!deMatches.length) return;
+
+  // Stage map straight from the de matches (they already carry roundKey via the
+  // German bridge) — no extra fetch. Persist for observability/fallback.
+  const stageMap: Record<string, RoundKey> = {};
+  for (const m of deMatches) {
+    if (m.stageId && m.roundKey) stageMap[m.stageId] = m.roundKey;
+  }
+  await saveStageMap(env, stageMap);
+
+  const goalsById = new Map(deMatches.map((m) => [m.id, m.goals]));
+  const clipById = new Map(deMatches.filter((m) => m.clipUrn).map((m) => [m.id, m.clipUrn!]));
+
+  for (const lang of EXTRA_LANGS) {
+    try {
+      const rawL = await fetchRawFifaMatches(env, lang);
+      const matchesL: Match[] = [];
+      for (const r of rawL) {
+        const m = mapFifaMatchToMatch(r, stageMap, lang);
+        if (!m) continue;
+        m.goals = goalsById.get(m.id) ?? []; // language-invariant, copied from de
+        const clip = clipById.get(m.id);
+        if (clip) m.clipUrn = clip;
+        matchesL.push(m);
+      }
+      if (matchesL.length) {
+        await saveWmData(env, { updatedAt: Math.floor(nowMs / 1000), season: env.WM_SEASON || "2026", matches: matchesL }, lang);
+      }
+      // Localized light blobs (own keyless fetches each): squads first so the
+      // topscorers photo-join reads a fresh same-language squads blob.
+      await refreshSquads(env, nowMs, lang);
+      await refreshTopScorers(env, matchesL, nowMs, lang);
+      await refreshTabellen(env, nowMs, lang);
+
+      // Hall of Fame per language (season labels + team names localize). Heavy
+      // (~23 keyless season calls), so weekly per lang, or when the blob is empty.
+      const prevHofL = await loadWmHallOfFame(env, lang);
+      const hofStaleL = !prevHofL.topScorers.length || (nowMs - prevHofL.updatedAt * 1000 > HALLOFFAME_MAX_AGE_MS);
+      if (hofStaleL) {
+        try {
+          await saveWmHallOfFame(env, await ingestHallOfFame(lang), lang);
+        } catch {/* keep last good for this lang */}
+      }
+    } catch {
+      // keep last-good blobs for this language; retry next tick
+    }
   }
 }
 
@@ -250,4 +323,8 @@ export async function runWmIngest(env: Env): Promise<void> {
   // keyless requests on the FIFA path.
   await refreshTopScorers(env, fresh, nowMs);
   await refreshTabellen(env, nowMs);
+
+  // en + pt-BR localized passes — only after we have fresh German matches with
+  // goals to copy. Cheap (no timeline fetches); FIFA-only.
+  await ingestLocalizedLanguages(env, nowMs, fresh);
 }

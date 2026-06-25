@@ -14,6 +14,7 @@
 import type { Env } from "./types.js";
 import { runWmIngest } from "./wm/ingest.js";
 import { loadWmData, loadWmTopScorers, loadWmTabellen, loadWmSquads, loadWmHallOfFame } from "./wm/store.js";
+import { normLang, type AppLang } from "./wm/fifa.js";
 
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -28,29 +29,43 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-async function handleMatches(env: Env): Promise<Response> {
-  const data = await loadWmData(env);
-  return json({ matches: data.matches, updatedAt: data.updatedAt, season: data.season });
+/**
+ * Resolves the served language from ?lang= (canonical de|en|pt-BR), falling back
+ * to the first Accept-Language tag, else de. Echoed in each response so the
+ * client can detect a silent fallback.
+ */
+function langOf(url: URL, request: Request): AppLang {
+  const q = url.searchParams.get("lang");
+  if (q) return normLang(q);
+  const al = (request.headers.get("accept-language") || "").toLowerCase();
+  if (al.startsWith("pt")) return "pt-BR";
+  if (al.startsWith("en")) return "en";
+  return "de";
 }
 
-async function handleTopScorers(env: Env): Promise<Response> {
-  const data = await loadWmTopScorers(env);
-  return json({ scorers: data.scorers, updatedAt: data.updatedAt, season: data.season });
+async function handleMatches(env: Env, lang: AppLang): Promise<Response> {
+  const data = await loadWmData(env, lang);
+  return json({ matches: data.matches, updatedAt: data.updatedAt, season: data.season, lang });
 }
 
-async function handleTabellen(env: Env): Promise<Response> {
-  const data = await loadWmTabellen(env);
-  return json({ rows: data.rows, updatedAt: data.updatedAt, season: data.season });
+async function handleTopScorers(env: Env, lang: AppLang): Promise<Response> {
+  const data = await loadWmTopScorers(env, lang);
+  return json({ scorers: data.scorers, updatedAt: data.updatedAt, season: data.season, lang });
 }
 
-async function handleSquads(env: Env): Promise<Response> {
-  const data = await loadWmSquads(env);
-  return json({ squads: data.squads, updatedAt: data.updatedAt, season: data.season });
+async function handleTabellen(env: Env, lang: AppLang): Promise<Response> {
+  const data = await loadWmTabellen(env, lang);
+  return json({ rows: data.rows, updatedAt: data.updatedAt, season: data.season, lang });
 }
 
-async function handleHallOfFame(env: Env): Promise<Response> {
-  const data = await loadWmHallOfFame(env);
-  return json(data);
+async function handleSquads(env: Env, lang: AppLang): Promise<Response> {
+  const data = await loadWmSquads(env, lang);
+  return json({ squads: data.squads, updatedAt: data.updatedAt, season: data.season, lang });
+}
+
+async function handleHallOfFame(env: Env, lang: AppLang): Promise<Response> {
+  const data = await loadWmHallOfFame(env, lang);
+  return json({ ...data, lang });
 }
 
 interface MarkersBody {
@@ -253,11 +268,11 @@ export default {
     }
 
     try {
-      if (pathname === "/api/wm/matches" && method === "GET") return await handleMatches(env);
-      if (pathname === "/api/wm/topscorers" && method === "GET") return await handleTopScorers(env);
-      if (pathname === "/api/wm/tabellen" && method === "GET") return await handleTabellen(env);
-      if (pathname === "/api/wm/squads" && method === "GET") return await handleSquads(env);
-      if (pathname === "/api/wm/halloffame" && method === "GET") return await handleHallOfFame(env);
+      if (pathname === "/api/wm/matches" && method === "GET") return await handleMatches(env, langOf(url, request));
+      if (pathname === "/api/wm/topscorers" && method === "GET") return await handleTopScorers(env, langOf(url, request));
+      if (pathname === "/api/wm/tabellen" && method === "GET") return await handleTabellen(env, langOf(url, request));
+      if (pathname === "/api/wm/squads" && method === "GET") return await handleSquads(env, langOf(url, request));
+      if (pathname === "/api/wm/halloffame" && method === "GET") return await handleHallOfFame(env, langOf(url, request));
       {
         const m = /^\/api\/wm\/markers\/(.+)$/.exec(pathname);
         if (m) {
