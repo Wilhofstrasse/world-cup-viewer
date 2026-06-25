@@ -978,8 +978,11 @@ body[data-tab="highlights"] { background: var(--wm-feed-bg); }
 /* ════════════════════════════════════════════════════════════════════════
    Torjägerliste — Golden Boot ranked list.
    ════════════════════════════════════════════════════════════════════════ */
+.wm-ts-mode {
+  display: flex; justify-content: center; margin: 4px 0 8px;
+}
 .wm-ts-scope {
-  display: flex; justify-content: center; margin: 4px 0 16px;
+  display: flex; justify-content: center; margin: 0 0 16px;
 }
 .wm-ts-scope-pill {
   display: inline-flex;
@@ -1031,6 +1034,7 @@ body[data-tab="highlights"] { background: var(--wm-feed-bg); }
   overflow: hidden;
 }
 .wm-ts-row.rk-1 .wm-ts-photo { border-color: #d4a017; border-width: 2px; }
+.wm-ts-photo.is-flag { font-size: 24px; line-height: 1; color: var(--wm-ink); }
 .wm-ts-who { min-width: 0; }
 .wm-ts-name { font-size: 15px; font-weight: 800; line-height: 1.2;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.005em; }
