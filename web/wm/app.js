@@ -14,6 +14,25 @@ import { initMehr, openMehrSubview, closeMehrSubview } from "./mehr.js";
 import { findClipByTeams, getMatch } from "./linkstore.js";
 import { openSpielerkarte } from "./spielerkarten.js";
 import { track } from "./track.js";
+import { getLang, t } from "./i18n.js";
+
+// i18n boot — runs before any view mounts. Expose t() + the active language to
+// non-module call sites (appshell.js, inline handlers), set <html lang>, and
+// paint the static index.html chrome (tab labels, header, drawer) in the active
+// language. A language CHANGE is a full reload (see settings.js), so painting
+// once at boot is sufficient.
+window.WM_LANG = getLang();
+window.t = t;
+try { document.documentElement.lang = getLang() === "ptBR" ? "pt-BR" : getLang(); } catch (_e) {}
+
+function paintStaticChrome() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-html]").forEach((el) => { el.innerHTML = t(el.getAttribute("data-i18n-html")); });
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria-label"))));
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => el.setAttribute("placeholder", t(el.getAttribute("data-i18n-placeholder"))));
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => el.setAttribute("title", t(el.getAttribute("data-i18n-title"))));
+}
+paintStaticChrome();
 
 const inited = { highlights: false, spiele: false, mehr: false };
 

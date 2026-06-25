@@ -48,49 +48,49 @@
        the body[data-subview] selector — same chrome, less moving parts. ── -->
   <header class="wm-bar">
     <div class="wm-brand">
-      <button class="wm-menu-btn" id="wmMenuBtn" type="button" aria-label="Zu einem Spiel springen" aria-expanded="false" aria-controls="wmDrawer">☰</button>
-      <button class="wm-back-btn" id="wmBackBtn" type="button" aria-label="Zurück">‹</button>
-      <span class="wm-appnav-link" aria-current="page">WM 2026</span>
+      <button class="wm-menu-btn" id="wmMenuBtn" type="button" aria-label="Zu einem Spiel springen" data-i18n-aria-label="common.jumpToMatch" aria-expanded="false" aria-controls="wmDrawer">☰</button>
+      <button class="wm-back-btn" id="wmBackBtn" type="button" aria-label="Zurück" data-i18n-aria-label="common.back">‹</button>
+      <span class="wm-appnav-link" aria-current="page" data-i18n="common.appTitle">WM 2026</span>
       <span class="wm-subtitle" id="wmSubtitle"></span>
       <span id="appVer" class="wm-ver"></span>
     </div>
-    <div class="wm-tabs" role="tablist" aria-label="WM Ansicht">
-      <button class="wm-tab" role="tab" data-tab="highlights" aria-selected="true">Highlights</button>
-      <button class="wm-tab" role="tab" data-tab="spiele" aria-selected="false">Spiele</button>
-      <button class="wm-tab" role="tab" data-tab="mehr" aria-selected="false">Mehr</button>
+    <div class="wm-tabs" role="tablist" aria-label="WM Ansicht" data-i18n-aria-label="common.viewSwitcherLabel">
+      <button class="wm-tab" role="tab" data-tab="highlights" aria-selected="true" data-i18n="feed.tab">Highlights</button>
+      <button class="wm-tab" role="tab" data-tab="spiele" aria-selected="false" data-i18n="spiele.tab">Spiele</button>
+      <button class="wm-tab" role="tab" data-tab="mehr" aria-selected="false" data-i18n="mehr.tab">Mehr</button>
     </div>
   </header>
 
   <!-- ── Highlights: full-screen swipe feed ── -->
-  <main id="view-highlights" class="wm-view" role="tabpanel" aria-label="Highlights">
+  <main id="view-highlights" class="wm-view" role="tabpanel" aria-label="Highlights" data-i18n-aria-label="feed.tab">
     <div class="wm-feed" id="wmFeed" aria-live="polite">
-      <section class="wm-slide wm-empty"><p>Highlights werden geladen…</p></section>
+      <section class="wm-slide wm-empty"><p data-i18n="feed.loading">Highlights werden geladen…</p></section>
     </div>
   </main>
 
   <!-- ── Spiele: schedule by round/group, scores + scorers ── -->
-  <section id="view-spiele" class="wm-view" role="tabpanel" aria-label="Spiele">
+  <section id="view-spiele" class="wm-view" role="tabpanel" aria-label="Spiele" data-i18n-aria-label="spiele.tab">
     <div class="wm-matches" id="wmMatches" aria-live="polite">
-      <p class="wm-state">Spielplan wird geladen…</p>
+      <p class="wm-state" data-i18n="spiele.loading">Spielplan wird geladen…</p>
     </div>
   </section>
 
   <!-- ── Mehr: sub-view router (landing + Torjäger/Tabellen/K.-o.-Baum/…) ── -->
-  <section id="view-mehr" class="wm-view" role="tabpanel" aria-label="Mehr">
+  <section id="view-mehr" class="wm-view" role="tabpanel" aria-label="Mehr" data-i18n-aria-label="mehr.tab">
     <div class="wm-mehr" id="wmMehr" aria-live="polite"></div>
   </section>
 
   <!-- ── Drawer overlay: body-level so ☰ works on both tabs ── -->
   <div class="wm-drawer-scrim" id="wmDrawerScrim" hidden></div>
-  <aside class="wm-drawer" id="wmDrawer" aria-hidden="true" aria-label="Zu einem Spiel springen">
+  <aside class="wm-drawer" id="wmDrawer" aria-hidden="true" aria-label="Zu einem Spiel springen" data-i18n-aria-label="common.jumpToMatch">
     <div class="wm-drawer-head">
-      <button class="wm-drawer-close" id="wmDrawerClose" type="button" aria-label="Schliessen">✕</button>
-      <span>Zu einem Spiel springen</span>
+      <button class="wm-drawer-close" id="wmDrawerClose" type="button" aria-label="Schliessen" data-i18n-aria-label="common.close">✕</button>
+      <span data-i18n="common.jumpToMatch">Zu einem Spiel springen</span>
     </div>
     <div class="wm-search">
-      <input type="search" id="wmSearch" class="wm-search-input" placeholder="Team oder Gruppe…"
+      <input type="search" id="wmSearch" class="wm-search-input" placeholder="Team oder Gruppe…" data-i18n-placeholder="common.searchPlaceholder"
              autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="search"
-             aria-label="Team oder Gruppe suchen">
+             aria-label="Team oder Gruppe suchen" data-i18n-aria-label="common.searchLabel">
     </div>
     <div class="wm-drawer-list" id="wmDrawerList"></div>
   </aside>

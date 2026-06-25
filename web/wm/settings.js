@@ -14,6 +14,29 @@
 
 "use strict";
 
+import { t, getLang, setLang } from "./i18n.js";
+
+// Endonyms — never translated, so a Brazilian who opened the app in German can
+// still find their language.
+const LANG_OPTS = [
+  { key: "de", flag: "🇩🇪", label: "Deutsch" },
+  { key: "en", flag: "🇬🇧", label: "English" },
+  { key: "ptBR", flag: "🇧🇷", label: "Português (Brasil)" },
+];
+
+/** Switch language: persist + full reload (re-fetches Worker data in the new lang). */
+function onPickLang(next) {
+  if (!next || next === getLang()) return;
+  setLang(next);
+  location.reload();
+}
+
+function wireLangRow() {
+  document.querySelectorAll("#wmSettLang .wm-sett-lang-btn").forEach((btn) =>
+    btn.addEventListener("click", () => onPickLang(btn.dataset.lang)),
+  );
+}
+
 const STATS_URL = "/api/stats";
 const LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
 const LEAFLET_JS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
@@ -125,37 +148,46 @@ function esc(s) {
 function renderShell(container) {
   container.innerHTML = `
     <div class="wm-sett">
-      <div class="wm-sett-totals" id="wmSettTotals">
-        <div class="wm-sett-cell"><div class="lbl">Ereignisse</div><div class="val">–</div></div>
-        <div class="wm-sett-cell"><div class="lbl">Sitzungen</div><div class="val">–</div></div>
-        <div class="wm-sett-cell"><div class="lbl">Länder</div><div class="val">–</div></div>
+      <h3 class="wm-sett-sec">${esc(t("settings.section.language"))}</h3>
+      <div class="wm-sett-lang" id="wmSettLang" role="radiogroup" aria-label="${esc(t("settings.language.ariaLabel"))}">
+        ${LANG_OPTS.map((o) => `
+          <button class="wm-sett-lang-btn" type="button" role="radio" data-lang="${o.key}" aria-checked="${String(getLang() === o.key)}">
+            <span class="flag">${o.flag}</span><span>${esc(o.label)}</span>
+          </button>`).join("")}
       </div>
 
-      <h3 class="wm-sett-sec">Besucherkarte (30 Tage)</h3>
+      <div class="wm-sett-totals" id="wmSettTotals">
+        <div class="wm-sett-cell"><div class="lbl">${esc(t("settings.totals.events"))}</div><div class="val">–</div></div>
+        <div class="wm-sett-cell"><div class="lbl">${esc(t("settings.totals.sessions"))}</div><div class="val">–</div></div>
+        <div class="wm-sett-cell"><div class="lbl">${esc(t("settings.totals.countries"))}</div><div class="val">–</div></div>
+      </div>
+
+      <h3 class="wm-sett-sec">${esc(t("settings.section.visitorMap"))}</h3>
       <div id="wmSettMap" class="wm-sett-map"></div>
 
-      <h3 class="wm-sett-sec">Top-Länder</h3>
+      <h3 class="wm-sett-sec">${esc(t("settings.section.topCountries"))}</h3>
       <div id="wmSettCountries" class="wm-sett-list"></div>
 
-      <h3 class="wm-sett-sec">Aktivitäten</h3>
+      <h3 class="wm-sett-sec">${esc(t("settings.section.activities"))}</h3>
       <div id="wmSettEvents" class="wm-sett-list"></div>
 
-      <h3 class="wm-sett-sec">App auf Startbildschirm</h3>
+      <h3 class="wm-sett-sec">${esc(t("settings.section.installHome"))}</h3>
       <div class="wm-sett-install" id="wmSettInstall">
         <div class="wm-sett-install-row">
           <span class="wm-sett-install-status" id="wmSettInstallStatus">…</span>
-          <button id="wmSettInstallBtn" class="wm-sett-install-btn" type="button">Anleitung anzeigen</button>
+          <button id="wmSettInstallBtn" class="wm-sett-install-btn" type="button">${esc(t("settings.install.showInstructions"))}</button>
         </div>
-        <p class="wm-sett-install-note">Auf iPhone: Browser-Menü ⬆ → «Zum Home-Bildschirm». Auf Android: Browser-Menü → «App installieren».</p>
+        <p class="wm-sett-install-note">${esc(t("settings.install.note"))}</p>
       </div>
 
-      <h3 class="wm-sett-sec">Über</h3>
+      <h3 class="wm-sett-sec">${esc(t("settings.section.about"))}</h3>
       <div class="wm-sett-meta">
-        <a href="feedback.html" class="wm-sett-link">✉ Feedback senden</a>
-        <a href="https://github.com/Wilhofstrasse/world-cup-viewer" class="wm-sett-link" target="_blank" rel="noopener">↗ Quellcode auf GitHub</a>
-        <div class="wm-sett-version">App-Version <span id="wmSettVer">…</span></div>
+        <a href="feedback.html" class="wm-sett-link">${esc(t("settings.about.feedback"))}</a>
+        <a href="https://github.com/Wilhofstrasse/world-cup-viewer" class="wm-sett-link" target="_blank" rel="noopener">${esc(t("settings.about.sourceCode"))}</a>
+        <div class="wm-sett-version">${esc(t("settings.about.appVersion"))} <span id="wmSettVer">…</span></div>
       </div>
     </div>`;
+  wireLangRow();
   wireInstallRow();
 }
 

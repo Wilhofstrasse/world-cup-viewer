@@ -414,6 +414,73 @@ export function flagFor(teamName) {
   return iso ? isoToFlag(iso) : "⚽";
 }
 
+/**
+ * FIFA IdTeam → flag emoji, for the 48 WM-2026 teams. Language-INVARIANT: the
+ * id is the same whether the Worker serves "Deutschland", "Germany", or
+ * "Alemanha", so flags stay correct in every language without a per-language
+ * name table. Built from the German feed via flagFor() (handles England/
+ * Scotland subdivision flags too). flagForId(id) ?? flagFor(name) at call sites.
+ */
+const FIFA_TEAM_FLAG = {
+  "43855": "🇪🇬", // Ägypten
+  "43843": "🇩🇿", // Algerien
+  "43922": "🇦🇷", // Argentinien
+  "43976": "🇦🇺", // Australien
+  "43935": "🇧🇪", // Belgien
+  "44037": "🇧🇦", // Bosnien und Herzegowina
+  "43924": "🇧🇷", // Brasilien
+  "1895293": "🇨🇼", // Curaçao
+  "43948": "🇩🇪", // Deutschland
+  "20014": "🇨🇩", // DR Kongo
+  "43927": "🇪🇨", // Ecuador
+  "43854": "🇨🇮", // Elfenbeinküste
+  "43942": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", // England
+  "43946": "🇫🇷", // Frankreich
+  "43860": "🇬🇭", // Ghana
+  "43908": "🇭🇹", // Haiti
+  "43817": "🇮🇷", // IR Iran
+  "43818": "🇮🇶", // Irak
+  "43819": "🇯🇵", // Japan
+  "43820": "🇯🇴", // Jordanien
+  "43899": "🇨🇦", // Kanada
+  "43850": "🇨🇻", // Kap Verde
+  "43834": "🇶🇦", // Katar
+  "43926": "🇨🇴", // Kolumbien
+  "43938": "🇭🇷", // Kroatien
+  "43872": "🇲🇦", // Marokko
+  "43911": "🇲🇽", // Mexiko
+  "43978": "🇳🇿", // Neuseeland
+  "43960": "🇳🇱", // Niederlande
+  "43961": "🇳🇴", // Norwegen
+  "43934": "🇦🇹", // Österreich
+  "43914": "🇵🇦", // Panama
+  "43928": "🇵🇾", // Paraguay
+  "43963": "🇵🇹", // Portugal
+  "43822": "🇰🇷", // Republik Korea
+  "43835": "🇸🇦", // Saudi-Arabien
+  "43967": "🏴󠁧󠁢󠁳󠁣󠁴󠁿", // Schottland
+  "43970": "🇸🇪", // Schweden
+  "43971": "🇨🇭", // Schweiz
+  "43879": "🇸🇳", // Senegal
+  "43969": "🇪🇸", // Spanien
+  "43883": "🇿🇦", // Südafrika
+  "43995": "🇨🇿", // Tschechien
+  "43888": "🇹🇳", // Tunesien
+  "43972": "🇹🇷", // Türkei
+  "43930": "🇺🇾", // Uruguay
+  "43921": "🇺🇸", // USA
+  "44005": "🇺🇿", // Usbekistan
+};
+
+/**
+ * @param {string|number} idTeam  FIFA IdTeam
+ * @returns {string|null} flag emoji, or null when the id is unknown (caller
+ *   should fall back to flagFor(name)).
+ */
+export function flagForId(idTeam) {
+  return FIFA_TEAM_FLAG[String(idTeam || "")] || null;
+}
+
 // ---------------------------------------------------------------------------
 // Watch-link (SRF Play deep link) — brief format, raw colons (not %3A)
 // ---------------------------------------------------------------------------

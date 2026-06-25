@@ -19,7 +19,8 @@
 
 "use strict";
 
-import { flagFor } from "./parse.js";
+import { flagFor, flagForId } from "./parse.js";
+import { t, apiLang } from "./i18n.js";
 
 const API_BASE = window.WM_API_BASE || "";
 
@@ -70,7 +71,7 @@ function aggregateByCountry(scorers) {
   const byTeam = new Map();
   for (const s of scorers) {
     const key = s.idTeam || s.team || "?";
-    const cur = byTeam.get(key) || { team: "", goals: 0, players: 0, assists: 0 };
+    const cur = byTeam.get(key) || { team: "", idTeam: s.idTeam || null, goals: 0, players: 0, assists: 0 };
     if (!cur.team && s.team) cur.team = s.team;
     cur.goals += s.goals || 0;
     cur.assists += s.assists || 0;
@@ -97,35 +98,37 @@ function rowHtml(s, isTied) {
     ? `<span class="wm-ts-photo" style="background-image:url('${esc(s.photoUrl)}')"></span>`
     : `<span class="wm-ts-photo">${esc(initial(s.player))}</span>`;
   const dataAttr = s.idPlayer ? ` data-id="${esc(s.idPlayer)}"` : "";
+  const flag = flagForId(s.idTeam) || flagFor(s.team);
   return `
     <div class="wm-ts-row ${rankClass(s.rank)} ${s.idPlayer ? "is-tappable" : ""}"${dataAttr}>
       <div class="wm-ts-rank">${rankHtml(s.rank, isTied)}</div>
       ${photo}
       <div class="wm-ts-who">
         <div class="wm-ts-name">${esc(s.player)}</div>
-        <div class="wm-ts-team"><span class="f">${flagFor(s.team)}</span>${esc(s.team || "—")}</div>
+        <div class="wm-ts-team"><span class="f">${flag}</span>${esc(s.team || "—")}</div>
       </div>
       <div class="wm-ts-stat">
         <div class="wm-ts-goals"><span class="ic">⚽</span>${s.goals}</div>
-        <div class="wm-ts-sub">${s.assists} V · ${s.matches} Sp</div>
+        <div class="wm-ts-sub">${esc(t("topscorers.statAssistsMatches", { "s.assists": s.assists, "s.matches": s.matches }))}</div>
       </div>
     </div>`;
 }
 
 function countryRowHtml(c, isTied) {
-  const players = c.players === 1 ? "1 Spieler" : `${c.players} Spieler`;
-  const name = c.team || "Unbekannt";
+  const players = c.players === 1 ? t("topscorers.playerCountOne") : t("topscorers.playerCountOther", { "c.players": c.players });
+  const name = c.team || t("common.unknown");
+  const flag = flagForId(c.idTeam) || flagFor(c.team);
   return `
     <div class="wm-ts-row ${rankClass(c.rank)}">
       <div class="wm-ts-rank">${rankHtml(c.rank, isTied)}</div>
-      <span class="wm-ts-photo is-flag">${flagFor(c.team)}</span>
+      <span class="wm-ts-photo is-flag">${flag}</span>
       <div class="wm-ts-who">
         <div class="wm-ts-name">${esc(name)}</div>
-        <div class="wm-ts-team">${players}</div>
+        <div class="wm-ts-team">${esc(players)}</div>
       </div>
       <div class="wm-ts-stat">
         <div class="wm-ts-goals"><span class="ic">⚽</span>${c.goals}</div>
-        <div class="wm-ts-sub">${c.assists} V</div>
+        <div class="wm-ts-sub">${esc(t("topscorers.statAssists", { "c.assists": c.assists }))}</div>
       </div>
     </div>`;
 }
@@ -139,31 +142,31 @@ function emptyHtml() {
   return `
     <div class="wm-ts-empty">
       <div class="ic">⚽</div>
-      <div class="t">Noch keine Tore</div>
-      <div class="s">Spielbeginn am 18.06.2026</div>
+      <div class="t">${t("topscorers.emptyTitle")}</div>
+      <div class="s">${t("topscorers.emptySubtitle")}</div>
     </div>`;
 }
 
 function modePillHtml() {
   const opt = (key, label) =>
-    `<button class="wm-ts-scope-tab" data-mode="${key}" aria-selected="${String(mode === key)}">${label}</button>`;
+    `<button class="wm-ts-scope-tab" data-mode="${key}" aria-selected="${String(mode === key)}">${esc(label)}</button>`;
   return `
     <div class="wm-ts-mode">
       <div class="wm-ts-scope-pill" role="tablist">
-        ${opt("spieler", "Spieler")}
-        ${opt("laender", "Länder")}
+        ${opt("spieler", t("topscorers.modePlayers"))}
+        ${opt("laender", t("topscorers.modeCountries"))}
       </div>
     </div>`;
 }
 
 function scopePillHtml() {
   const opt = (key, label) =>
-    `<button class="wm-ts-scope-tab" data-scope="${key}" aria-selected="${String(scope === key)}">${label}</button>`;
+    `<button class="wm-ts-scope-tab" data-scope="${key}" aria-selected="${String(scope === key)}">${esc(label)}</button>`;
   return `
     <div class="wm-ts-scope">
       <div class="wm-ts-scope-pill" role="tablist">
-        ${opt("vorrunde", "Vorrunde")}
-        ${opt("gesamt", "Gesamt")}
+        ${opt("vorrunde", t("topscorers.scopeGroupStage"))}
+        ${opt("gesamt", t("topscorers.scopeOverall"))}
       </div>
     </div>`;
 }
@@ -190,7 +193,7 @@ function render(state) {
   let body;
   if (state.kind === "loading") body = `<div class="wm-ts-list">${skeletonHtml()}</div>`;
   else if (state.kind === "empty") body = emptyHtml();
-  else if (state.kind === "error") body = `<div class="wm-ts-empty"><div class="ic">⚠</div><div class="t">Konnte nicht geladen werden.</div><div class="s">Bitte nochmals versuchen.</div></div>`;
+  else if (state.kind === "error") body = `<div class="wm-ts-empty"><div class="ic">⚠</div><div class="t">${t("common.loadError")}</div><div class="s">${t("common.loadErrorRetry")}</div></div>`;
   else body = listHtml(state);
   mounted.innerHTML = `${modePillHtml()}${scopePillHtml()}${body}`;
   mounted.querySelectorAll(".wm-ts-scope-tab[data-mode]").forEach((btn) =>
@@ -222,7 +225,7 @@ async function load() {
   lastState = { kind: "loading" };
   render(lastState);
   try {
-    const res = await fetch(`${API_BASE}/api/wm/topscorers`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/api/wm/topscorers?lang=${apiLang()}`, { cache: "no-store" });
     if (!res.ok) throw new Error("status " + res.status);
     const data = await res.json();
     // FIFA's /topseasonplayerstatistics endpoint ships EVERY registered player
