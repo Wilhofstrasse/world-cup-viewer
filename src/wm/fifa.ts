@@ -87,6 +87,27 @@ export function roundLabel(stageName: string): string {
 /** Our app-facing language codes (client sends these; R2 partitions on them). */
 export type AppLang = "de" | "en" | "pt-BR";
 export const DEFAULT_LANG: AppLang = "de";
+const APP_LANGS: readonly AppLang[] = ["de", "en", "pt-BR"];
+
+/** Validate/normalize an arbitrary string to a supported AppLang (else default). */
+export function normLang(s: string | null | undefined): AppLang {
+  const v = (s || "").trim();
+  return (APP_LANGS as readonly string[]).includes(v) ? (v as AppLang) : DEFAULT_LANG;
+}
+
+/**
+ * App lang → FIFA `language=` tag. Single source of truth — verified live
+ * (2026-06-25) against api.fifa.com: en-GB + pt-BR echo their own Locale; en-US
+ * and pt-PT silently fall back, so we pin en-GB / pt-BR exactly.
+ */
+const FIFA_LOCALE: Record<AppLang, string> = {
+  de: "de-DE",
+  en: "en-GB",
+  "pt-BR": "pt-BR",
+};
+export function fifaLocale(lang: AppLang): string {
+  return FIFA_LOCALE[lang] ?? FIFA_LOCALE[DEFAULT_LANG];
+}
 
 export type RoundKey = "group" | "r32" | "r16" | "qf" | "sf" | "third" | "final";
 
@@ -323,8 +344,10 @@ export function mapTimelineToGoals(
 // Network wrappers + provider
 // ---------------------------------------------------------------------------
 
-async function fifaGet<T>(path: string): Promise<T> {
-  const url = `${FIFA_BASE}${path}`;
+/** Appends the FIFA `language=` param itself so no call site can forget it. */
+async function fifaGet<T>(path: string, lang: AppLang = DEFAULT_LANG): Promise<T> {
+  const sep = path.includes("?") ? "&" : "?";
+  const url = `${FIFA_BASE}${path}${sep}language=${fifaLocale(lang)}`;
   const res = await fetch(url, {
     headers: { Accept: "application/json", "User-Agent": "Mozilla/5.0" },
   });
@@ -389,22 +412,24 @@ export function teamNameMap(rawMatches: FifaMatch[]): Map<string, string> {
 }
 
 export const fifaProvider: FootballProvider = {
-  async getMatches(env: Env): Promise<Match[]> {
+  async getMatches(env: Env, lang: AppLang = DEFAULT_LANG, stageMap: Record<string, RoundKey> = {}): Promise<Match[]> {
     const data = await fifaGet<FifaMatchesResponse>(
-      `/calendar/matches?idCompetition=${comp(env)}&idSeason=${season(env)}&count=500&language=de-DE`,
+      `/calendar/matches?idCompetition=${comp(env)}&idSeason=${season(env)}&count=500`,
+      lang,
     );
     const out: Match[] = [];
     for (const r of data.Results || []) {
-      const m = mapFifaMatchToMatch(r);
+      const m = mapFifaMatchToMatch(r, stageMap, lang);
       if (m) out.push(m);
     }
     return out;
   },
 
-  async getGoals(env: Env, match: Match): Promise<Goal[]> {
+  async getGoals(env: Env, match: Match, lang: AppLang = DEFAULT_LANG): Promise<Goal[]> {
     if (!match.stageId) return match.goals || [];
     const data = await fifaGet<FifaTimelineResponse>(
-      `/timelines/${comp(env)}/${season(env)}/${match.stageId}/${match.id}?language=de-DE`,
+      `/timelines/${comp(env)}/${season(env)}/${match.stageId}/${match.id}`,
+      lang,
     );
     return mapTimelineToGoals(data.Event || [], match.teamA, match.teamB, match.idTeamA, match.idTeamB);
   },
@@ -415,9 +440,10 @@ export const fifaProvider: FootballProvider = {
  * our normalized shape. Team names are filled where the response carries them;
  * the caller may enrich the rest from the matches feed (enrichScorerTeams).
  */
-export async function fetchTopScorers(env: Env): Promise<TopScorer[]> {
+export async function fetchTopScorers(env: Env, lang: AppLang = DEFAULT_LANG): Promise<TopScorer[]> {
   const data = await fifaGet<FifaTopScorersResponse>(
-    `/topseasonplayerstatistics/season/${season(env)}/topscorers?language=de-DE`,
+    `/topseasonplayerstatistics/season/${season(env)}/topscorers`,
+    lang,
   );
   const out: TopScorer[] = [];
   for (const row of data.PlayerStatsList || []) {
@@ -428,9 +454,10 @@ export async function fetchTopScorers(env: Env): Promise<TopScorer[]> {
 }
 
 /** Raw FIFA matches list — exposed so the ingest can derive teamNameMap from it. */
-export async function fetchRawFifaMatches(env: Env): Promise<FifaMatch[]> {
+export async function fetchRawFifaMatches(env: Env, lang: AppLang = DEFAULT_LANG): Promise<FifaMatch[]> {
   const data = await fifaGet<FifaMatchesResponse>(
-    `/calendar/matches?idCompetition=${comp(env)}&idSeason=${season(env)}&count=500&language=de-DE`,
+    `/calendar/matches?idCompetition=${comp(env)}&idSeason=${season(env)}&count=500`,
+    lang,
   );
   return data.Results || [];
 }
@@ -527,9 +554,10 @@ export function mapFifaSquad(raw: FifaSquadTeam): Squad | null {
 }
 
 /** All 48 team squads. Server-sorted by teamName for a stable list. */
-export async function fetchSquads(env: Env): Promise<Squad[]> {
+export async function fetchSquads(env: Env, lang: AppLang = DEFAULT_LANG): Promise<Squad[]> {
   const data = await fifaGet<FifaSquadsResponse>(
-    `/teams/squads/all/${comp(env)}/${season(env)}?language=de-DE`,
+    `/teams/squads/all/${comp(env)}/${season(env)}`,
+    lang,
   );
   const out: Squad[] = [];
   for (const t of data.Results || []) {
@@ -544,9 +572,10 @@ export async function fetchSquads(env: Env): Promise<Squad[]> {
  * Group-stage standings for all 12 groups. Sorted server-side by group letter
  * (A → L), then Position ascending so the client can render straight through.
  */
-export async function fetchTabellen(env: Env): Promise<TabellenRow[]> {
+export async function fetchTabellen(env: Env, lang: AppLang = DEFAULT_LANG): Promise<TabellenRow[]> {
   const data = await fifaGet<FifaStandingResponse>(
-    `/calendar/${comp(env)}/${season(env)}/289273/Standing?language=de-DE`,
+    `/calendar/${comp(env)}/${season(env)}/289273/Standing`,
+    lang,
   );
   const out: TabellenRow[] = [];
   for (const r of data.Results || []) {

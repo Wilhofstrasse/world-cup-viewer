@@ -23,6 +23,7 @@ import type {
   ApiFootballEvent,
   ApiFootballEventsResponse,
 } from "./types.js";
+import type { AppLang } from "./fifa.js"; // type-only → no runtime cycle
 
 // teamsMatch is the single shared, diacritic/co-host-tolerant comparator
 // (also used by the browser feed). esbuild bundles this .js into the Worker.
@@ -140,9 +141,9 @@ export function mapEventsToGoals(
 
 export interface FootballProvider {
   /** All WC fixtures (schedule + current score/status), goals[] left empty. */
-  getMatches(env: Env): Promise<Match[]>;
+  getMatches(env: Env, lang?: AppLang): Promise<Match[]>;
   /** Goal events for one match, mapped to its A/B sides. */
-  getGoals(env: Env, match: Match): Promise<Goal[]>;
+  getGoals(env: Env, match: Match, lang?: AppLang): Promise<Goal[]>;
 }
 
 function apiHost(env: Env): string {

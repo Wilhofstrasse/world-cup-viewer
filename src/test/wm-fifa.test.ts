@@ -19,6 +19,8 @@ import {
   roundLabel,
   learnStageMap,
   resolveRoundKey,
+  normLang,
+  fifaLocale,
   mapFifaTopScorer,
   enrichScorerTeams,
   teamNameMap,
@@ -212,6 +214,23 @@ describe("groupLetter / roundLabel", () => {
     expect(roundLabel("Erste Phase")).toBe("Vorrunde");
     expect(roundLabel("Achtelfinale")).toBe("Achtelfinale");
     expect(roundLabel("Finale")).toBe("Final");
+  });
+});
+
+describe("normLang / fifaLocale", () => {
+  it("normalizes only supported app langs, else defaults to de", () => {
+    expect(normLang("de")).toBe("de");
+    expect(normLang("en")).toBe("en");
+    expect(normLang("pt-BR")).toBe("pt-BR");
+    expect(normLang("fr")).toBe("de");
+    expect(normLang("")).toBe("de");
+    expect(normLang(null)).toBe("de");
+    expect(normLang("EN")).toBe("de"); // case-sensitive by design (client sends canonical)
+  });
+  it("maps app lang → the verified FIFA locale tag", () => {
+    expect(fifaLocale("de")).toBe("de-DE");
+    expect(fifaLocale("en")).toBe("en-GB"); // en-US falls back at FIFA → pin en-GB
+    expect(fifaLocale("pt-BR")).toBe("pt-BR"); // pt-PT falls back → pin pt-BR
   });
 });
 

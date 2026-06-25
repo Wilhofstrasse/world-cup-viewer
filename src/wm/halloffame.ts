@@ -15,6 +15,7 @@
  */
 
 import type { FifaTopScorerRow } from "./types.js";
+import { type AppLang, DEFAULT_LANG, fifaLocale } from "./fifa.js";
 
 /** A WM season ID + display label as FIFA returns it (`/seasons?idCompetition=17`). */
 export interface WmSeasonRef {
@@ -73,8 +74,9 @@ interface FifaTopScorersLite {
   PlayerStatsList?: FifaTopScorerRow[];
 }
 
-async function fifaGetJson<T>(path: string): Promise<T> {
-  const r = await fetch(`${FIFA_BASE}${path}`, {
+async function fifaGetJson<T>(path: string, lang: AppLang = DEFAULT_LANG): Promise<T> {
+  const sep = path.includes("?") ? "&" : "?";
+  const r = await fetch(`${FIFA_BASE}${path}${sep}language=${fifaLocale(lang)}`, {
     headers: { "User-Agent": "Mozilla/5.0", Accept: "application/json" },
   });
   if (!r.ok) throw new Error(`FIFA ${path} ${r.status}`);
@@ -82,9 +84,10 @@ async function fifaGetJson<T>(path: string): Promise<T> {
 }
 
 /** Pull every WM season FIFA exposes — used to fan out the per-season scrape. */
-export async function fetchWmSeasons(): Promise<WmSeasonRef[]> {
+export async function fetchWmSeasons(lang: AppLang = DEFAULT_LANG): Promise<WmSeasonRef[]> {
   const data = await fifaGetJson<FifaSeasonsResponse>(
     `/seasons?idCompetition=${COMPETITION_ID}&count=50`,
+    lang,
   );
   const out: WmSeasonRef[] = [];
   for (const r of data.Results || []) {
@@ -96,9 +99,10 @@ export async function fetchWmSeasons(): Promise<WmSeasonRef[]> {
 }
 
 /** Fetch per-season top scorers list (raw FIFA rows, mapped lightly). */
-async function fetchSeasonTopScorers(idSeason: string): Promise<FifaTopScorerRow[]> {
+async function fetchSeasonTopScorers(idSeason: string, lang: AppLang = DEFAULT_LANG): Promise<FifaTopScorerRow[]> {
   const data = await fifaGetJson<FifaTopScorersLite>(
-    `/topseasonplayerstatistics/season/${idSeason}/topscorers?language=de-DE`,
+    `/topseasonplayerstatistics/season/${idSeason}/topscorers`,
+    lang,
   );
   return data.PlayerStatsList || [];
 }
@@ -138,8 +142,8 @@ interface PerPlayerAcc {
  * Network calls are fanned out via Promise.allSettled so a single failed
  * season doesn't abort the ingest — we just skip it and continue.
  */
-export async function ingestHallOfFame(): Promise<WmHallOfFame> {
-  const seasons = await fetchWmSeasons();
+export async function ingestHallOfFame(lang: AppLang = DEFAULT_LANG): Promise<WmHallOfFame> {
+  const seasons = await fetchWmSeasons(lang);
   // Newest → oldest so `perSeason` reads chronologically when reversed in the UI.
   seasons.sort((a, b) => Number(b.idSeason) - Number(a.idSeason));
 
@@ -147,7 +151,7 @@ export async function ingestHallOfFame(): Promise<WmHallOfFame> {
 
   const settled = await Promise.allSettled(
     seasons.map(async (s) => {
-      const rows = await fetchSeasonTopScorers(s.idSeason);
+      const rows = await fetchSeasonTopScorers(s.idSeason, lang);
       for (const row of rows) {
         const info = row.PlayerInfo;
         if (!info) continue;
