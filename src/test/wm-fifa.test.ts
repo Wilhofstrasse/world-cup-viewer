@@ -17,6 +17,8 @@ import {
   mapTimelineToGoals,
   groupLetter,
   roundLabel,
+  learnStageMap,
+  resolveRoundKey,
   mapFifaTopScorer,
   enrichScorerTeams,
   teamNameMap,
@@ -68,6 +70,9 @@ describe("tidyName / scorerFromDescription", () => {
   it("strips the own-goal prefix before extracting the player", () => {
     expect(scorerFromDescription("Eigentor durch M.HANY (Ägypten).")).toEqual({ scorer: "Hany", team: "Ägypten" });
   });
+  it("strips the Portuguese own-goal prefix (pt-BR)", () => {
+    expect(scorerFromDescription("Gol contra de AGUERD (Argélia).")).toEqual({ scorer: "Aguerd", team: "Argélia" });
+  });
   it("returns null when there is no (Team) marker", () => {
     expect(scorerFromDescription("Anstoss")).toBeNull();
   });
@@ -108,6 +113,38 @@ describe("mapFifaMatchToMatch", () => {
     const stub = { IdMatch: "1", IdStage: "9", MatchStatus: 1, Date: "", Home: null, Away: null } as FifaMatch;
     expect(mapFifaMatchToMatch(stub)).toBeNull();
   });
+
+  it("emits a language-invariant roundKey + order (de back-compat: byte-identical round)", () => {
+    const m = mapFifaMatchToMatch(list[0]!)!; // single-arg call → de path, empty stage map
+    expect(m.round).toBe("Vorrunde"); // unchanged display label
+    expect(m.roundKey).toBe("group"); // NEW: stable identity from the German bridge
+    expect(m.roundOrder).toBe(0);
+  });
+});
+
+describe("learnStageMap / resolveRoundKey", () => {
+  const list = (matches as { Results: FifaMatch[] }).Results;
+
+  it("learns IdStage → RoundKey from the German feed", () => {
+    const map = learnStageMap(list);
+    const idStage = String(list[0]!.IdStage);
+    expect(map[idStage]).toBe("group"); // Argentinien–Algerien is a group match
+  });
+
+  it("resolves by learned id first, German bridge second, else null", () => {
+    expect(resolveRoundKey("123", null, { "123": "r16" })).toBe("r16"); // learned id wins
+    expect(resolveRoundKey("999", "Achtelfinale", {})).toBe("r16"); // German bridge fallback
+    expect(resolveRoundKey("999", "First Stage", {})).toBeNull(); // localized text never resolves
+    expect(resolveRoundKey("999", null, {})).toBeNull();
+  });
+
+  it("localizes the round label off the id, with no foreign fixture needed", () => {
+    const map = learnStageMap(list); // learned from de feed
+    const en = mapFifaMatchToMatch(list[0]!, map, "en")!;
+    expect(en.roundKey).toBe("group"); // same id → same key
+    expect(en.round).toBe("Group Stage"); // localized display
+    expect(en.roundOrder).toBe(0);
+  });
 });
 
 describe("mapTimelineToGoals", () => {
@@ -136,6 +173,32 @@ describe("mapTimelineToGoals", () => {
     expect(own[0]!.type).toBe("own");
     expect(own[0]!.scorer).toBe("Aguerd");
     expect(own[0]!.team).toBe("A"); // Algerien player → counts for Argentinien (A)
+  });
+
+  it("resolves the side by IdTeam even when the team text is unrecognizable", () => {
+    // Parens team is gibberish (a localized name we have no alias for); IdTeam carries truth.
+    const g = mapTimelineToGoals(
+      [{ Type: 0, MatchMinute: "10'", IdTeam: "B2", EventDescription: [{ Description: "XYZ (Foobar) marca!" }] }],
+      "Argentina",
+      "Brasil",
+      "A1",
+      "B2",
+    );
+    expect(g).toHaveLength(1);
+    expect(g[0]!.team).toBe("B"); // matched on IdTeam, not the unparseable name
+  });
+
+  it("flips an own goal credited by IdTeam to the benefiting side", () => {
+    const og = mapTimelineToGoals(
+      [{ Type: 34, MatchMinute: "55'", IdTeam: "B2", EventDescription: [{ Description: "Gol contra de SILVA (Brasil)." }] }],
+      "Argentina",
+      "Brasil",
+      "A1",
+      "B2",
+    );
+    expect(og).toHaveLength(1);
+    expect(og[0]!.team).toBe("A"); // Brasil (B) own goal → benefits Argentina (A)
+    expect(og[0]!.scorer).toBe("Silva");
   });
 });
 

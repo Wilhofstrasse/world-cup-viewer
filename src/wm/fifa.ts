@@ -64,13 +64,97 @@ const STAGE_TO_ROUND: Record<string, string> = {
 
 /** "Gruppe E" → "E" (FIFA uses a non-breaking space); blank → null. */
 export function groupLetter(groupName: string): string | null {
-  const g = (groupName || "").replace(/ /g, " ").replace(/^Gruppe\s*/i, "").trim();
+  const g = (groupName || "").replace(/ /g, " ").replace(/^(?:Gruppe|Group|Grupo)\s*/i, "").trim();
   return g || null;
 }
 
 /** FIFA StageName → display round ("Erste Phase" → "Vorrunde"); unknown passes through. */
 export function roundLabel(stageName: string): string {
   return STAGE_TO_ROUND[stageName] || stageName || "";
+}
+
+// ---------------------------------------------------------------------------
+// Language-invariant round identity (i18n decouple — see also store/ingest).
+//
+// FIFA's StageName is LOCALIZED ("Erste Phase" / "First Stage" / "Primeira
+// fase"), so it cannot be the stable key once we fetch en/pt-BR. RoundKey is the
+// language-invariant identity used for grouping + ordering on the client; the
+// visible label comes from ROUND_LABELS[lang][key]. The IdStage→RoundKey map is
+// learned once from the German feed (where GERMAN_STAGE_TO_KEY resolves every
+// stage) and then applied by IdStage to every language's feed.
+// ---------------------------------------------------------------------------
+
+/** Our app-facing language codes (client sends these; R2 partitions on them). */
+export type AppLang = "de" | "en" | "pt-BR";
+export const DEFAULT_LANG: AppLang = "de";
+
+export type RoundKey = "group" | "r32" | "r16" | "qf" | "sf" | "third" | "final";
+
+/** Stable grouping/sort order (Vorrunde first, Final last). */
+export const ROUND_ORDER: Record<RoundKey, number> = {
+  group: 0, r32: 1, r16: 2, qf: 3, sf: 4, third: 5, final: 6,
+};
+
+/**
+ * Per-language display labels. The `de` column reproduces the EXACT strings the
+ * app shipped before i18n (so German output stays byte-identical), matching the
+ * STAGE_TO_ROUND values above.
+ */
+export const ROUND_LABELS: Record<AppLang, Record<RoundKey, string>> = {
+  de: {
+    group: "Vorrunde", r32: "Sechzehntelfinale", r16: "Achtelfinale",
+    qf: "Viertelfinale", sf: "Halbfinale", third: "Spiel um Platz 3", final: "Final",
+  },
+  en: {
+    group: "Group Stage", r32: "Round of 32", r16: "Round of 16",
+    qf: "Quarter-finals", sf: "Semi-finals", third: "Third-Place Play-off", final: "Final",
+  },
+  "pt-BR": {
+    group: "Fase de Grupos", r32: "Rodada de 32", r16: "Oitavas de final",
+    qf: "Quartas de final", sf: "Semifinais", third: "Disputa de 3º lugar", final: "Final",
+  },
+};
+
+/**
+ * Bridges the GERMAN StageName → RoundKey. Keys are FIFA's de-DE StageName
+ * strings (NOT our display labels), so this is what learnStageMap reads off the
+ * German feed. Keep these exact — they are the de-path's only source of truth.
+ */
+const GERMAN_STAGE_TO_KEY: Record<string, RoundKey> = {
+  "Erste Phase": "group",
+  Sechzehntelfinale: "r32",
+  Achtelfinale: "r16",
+  Viertelfinale: "qf",
+  Halbfinale: "sf",
+  "Spiel um Platz drei": "third",
+  Finale: "final",
+};
+
+/** Build IdStage → RoundKey from the raw GERMAN FIFA matches feed. */
+export function learnStageMap(rawDeMatches: FifaMatch[]): Record<string, RoundKey> {
+  const out: Record<string, RoundKey> = {};
+  for (const r of rawDeMatches) {
+    const key = GERMAN_STAGE_TO_KEY[loc(r.StageName)];
+    if (key && r.IdStage) out[String(r.IdStage)] = key;
+  }
+  return out;
+}
+
+/**
+ * Resolves a match's canonical RoundKey WITHOUT trusting localized text:
+ *   1. learned IdStage→RoundKey map (works for every language), else
+ *   2. the German StageName bridge (back-compat for the de feed), else
+ *   3. null (caller falls back to the localized StageName as a display string).
+ */
+export function resolveRoundKey(
+  idStage: string,
+  stageNameDe: string | null,
+  learned: Record<string, RoundKey>,
+): RoundKey | null {
+  const hit = learned[idStage];
+  if (hit) return hit;
+  if (stageNameDe && GERMAN_STAGE_TO_KEY[stageNameDe]) return GERMAN_STAGE_TO_KEY[stageNameDe];
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -142,7 +226,9 @@ export function scorerFromDescription(desc: string): { scorer: string; team: str
   const s = (desc || "")
     .trim()
     .replace(/^Eigentor\s+(?:durch|von)\s+/i, "")
-    .replace(/^Own goal by\s+/i, "");
+    .replace(/^Own goal by\s+/i, "")
+    .replace(/^Gol\s+contra\s+de\s+/i, "") // pt-BR own goal
+    .replace(/^Autogol\s+de\s+/i, ""); //   pt-PT variant (belt-and-suspenders)
   const m = /^(.+?)\s*\(([^)]+)\)/.exec(s);
   if (!m) return null;
   return { scorer: tidyName(m[1]!), team: m[2]!.trim() };
@@ -159,10 +245,20 @@ export function mapFifaGoalType(type: number): GoalType {
  * unseeded knockout slot (Home/Away null) — those carry no team to merge on.
  * Score is null until the match is live/finished. goals[] is filled separately.
  */
-export function mapFifaMatchToMatch(raw: FifaMatch): Match | null {
+export function mapFifaMatchToMatch(
+  raw: FifaMatch,
+  stageMap: Record<string, RoundKey> = {},
+  lang: AppLang = DEFAULT_LANG,
+): Match | null {
   if (!raw.Home || !raw.Away) return null;
   const status = mapFifaStatus(raw.MatchStatus);
   const hasScore = status === "live" || status === "finished";
+  const idStage = String(raw.IdStage);
+  const stageName = loc(raw.StageName);
+  // Round identity from IdStage (language-invariant) — never from the localized
+  // StageName. The German bridge inside resolveRoundKey keeps the de feed exact
+  // even with an empty stageMap (back-compat with single-arg callers + tests).
+  const key = resolveRoundKey(idStage, lang === "de" ? stageName : null, stageMap);
   const out: Match = {
     id: parseInt(String(raw.IdMatch), 10),
     dateISO: raw.Date || "",
@@ -173,8 +269,10 @@ export function mapFifaMatchToMatch(raw: FifaMatch): Match | null {
     scoreB: hasScore ? raw.Away.Score ?? 0 : null,
     minute: status === "live" ? parseMatchMinute(raw.MatchTime).minute : null,
     goals: [],
-    stageId: String(raw.IdStage),
-    round: roundLabel(loc(raw.StageName)),
+    stageId: idStage,
+    roundKey: key,
+    roundOrder: key ? ROUND_ORDER[key] : 99,
+    round: key ? ROUND_LABELS[lang][key] : roundLabel(stageName), // localized display, raw fallback
     group: groupLetter(loc(raw.GroupName)),
   };
   if (raw.Home.IdTeam) out.idTeamA = raw.Home.IdTeam;
@@ -188,7 +286,13 @@ export function mapFifaMatchToMatch(raw: FifaMatch): Match | null {
  * is credited to the BENEFITING side (opponent of the player's team), so the
  * scorer list matches the scoreline. Sorted chronologically.
  */
-export function mapTimelineToGoals(events: FifaTimelineEvent[], teamA: string, teamB: string): Goal[] {
+export function mapTimelineToGoals(
+  events: FifaTimelineEvent[],
+  teamA: string,
+  teamB: string,
+  idTeamA?: string,
+  idTeamB?: string,
+): Goal[] {
   const out: Goal[] = [];
   for (const e of events) {
     if (!GOAL_TYPES.has(e.Type)) continue;
@@ -196,7 +300,12 @@ export function mapTimelineToGoals(events: FifaTimelineEvent[], teamA: string, t
     if (minute == null) continue; // no clock → shoot-out / invalid; never invent
     const parsed = scorerFromDescription(loc(e.EventDescription));
     if (!parsed) continue;
-    let team: Side | null = teamsMatch(parsed.team, teamA) ? "A" : teamsMatch(parsed.team, teamB) ? "B" : null;
+    // Side by IdTeam first (language-invariant); fall back to diacritic-tolerant
+    // name matching when the event or match lacks an id (e.g. de fixtures).
+    let team: Side | null = null;
+    if (e.IdTeam && idTeamA && e.IdTeam === idTeamA) team = "A";
+    else if (e.IdTeam && idTeamB && e.IdTeam === idTeamB) team = "B";
+    else team = teamsMatch(parsed.team, teamA) ? "A" : teamsMatch(parsed.team, teamB) ? "B" : null;
     if (!team) continue;
     const type = mapFifaGoalType(e.Type);
     if (type === "own") team = team === "A" ? "B" : "A";
@@ -297,7 +406,7 @@ export const fifaProvider: FootballProvider = {
     const data = await fifaGet<FifaTimelineResponse>(
       `/timelines/${comp(env)}/${season(env)}/${match.stageId}/${match.id}?language=de-DE`,
     );
-    return mapTimelineToGoals(data.Event || [], match.teamA, match.teamB);
+    return mapTimelineToGoals(data.Event || [], match.teamA, match.teamB, match.idTeamA, match.idTeamB);
   },
 };
 

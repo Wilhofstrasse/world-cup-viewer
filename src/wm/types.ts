@@ -47,8 +47,12 @@ export interface Match {
   clipUrn?: string;
   /** FIFA timeline stage id — server-side enrichment for the goals fetch. */
   stageId?: string;
-  /** Display round ("Vorrunde", "Achtelfinale", …) — drives the Spiele grouping. */
+  /** Display round ("Vorrunde", "Achtelfinale", …) — localized; for display only. */
   round?: string;
+  /** Language-invariant round identity — drives client grouping + ordering. */
+  roundKey?: "group" | "r32" | "r16" | "qf" | "sf" | "third" | "final" | null;
+  /** Stable sort index for roundKey (0 = group … 6 = final; 99 = unknown). */
+  roundOrder?: number;
   /** Group letter ("A"…"L") for Vorrunde matches; null otherwise. */
   group?: string | null;
   /** FIFA IdTeam for Home — server-side enrichment for cross-feed lookups (topscorers). */
