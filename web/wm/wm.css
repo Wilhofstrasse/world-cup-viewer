@@ -1139,93 +1139,213 @@ body[data-tab="highlights"] { background: var(--wm-feed-bg); }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   K.-o.-Baum — Finals tree (Mehr ▸ K.-o.-Baum).
+   K.-o.-Baum — radial 32-team knockout poster (Mehr ▸ K.-o.-Baum).
    ════════════════════════════════════════════════════════════════════════ */
 .wm-kb-hint {
-  padding: 4px 4px 10px;
-  font-size: 11.5px; color: var(--wm-ink-dim); line-height: 1.5;
+  padding: 26px 4px;
+  font-size: 13px; color: var(--wm-ink-dim); line-height: 1.5;
+  text-align: center;
 }
-.wm-kb-hint b { color: var(--wm-ink); font-weight: 800; }
-.wm-kb-scroll {
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
-  padding: 10px 0 18px;
-  margin: 0 -16px; /* bleed to viewport edge so scroll feels native */
-  padding-left: 16px; padding-right: 16px;
+.wm-kb-radial {
+  margin: -2px -16px 0;
+  padding: 0 16px 20px;
+  overflow: visible;
 }
-.wm-kb-tree { position: relative; width: 548px; height: 600px; }
-.wm-kb-tree .stage {
-  position: absolute; top: 0;
-  font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
-  color: var(--wm-accent); white-space: nowrap;
+.wm-kb-board {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  aspect-ratio: 720 / 760;
+  margin: 0 auto;
+  background: var(--wm-paper);
+  overflow: visible;
 }
-.wm-kb-tree .lines { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-.wm-kb-tree .card {
-  position: absolute; width: 158px;
+.wm-kb-title {
+  position: absolute;
+  left: 0; right: 0; top: 7px;
+  z-index: 4;
+  color: var(--wm-ink);
+  font-size: 26px; font-weight: 900; line-height: 1.1;
+  letter-spacing: 0;
+  text-align: center;
+  pointer-events: none;
+}
+.wm-kb-svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+  z-index: 1;
+}
+.wm-kb-line {
+  fill: none;
+  stroke: var(--wm-line);
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .88;
+}
+.wm-kb-line.is-pending { opacity: .76; }
+.wm-kb-line.is-live {
+  stroke: var(--wm-accent);
+  opacity: 1;
+}
+.wm-kb-center-ring {
+  fill: none;
+  stroke: var(--wm-line);
+  stroke-width: 2.2;
+  opacity: .86;
+}
+.wm-kb-dot {
+  fill: var(--wm-ink);
+  stroke: var(--wm-paper);
+  stroke-width: 2.2;
+}
+.wm-kb-dot.is-placeholder { opacity: .82; }
+.wm-kb-dot.is-live {
+  fill: var(--wm-accent);
+  animation: wm-kb-pulse 1.2s infinite;
+}
+@keyframes wm-kb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .38; } }
+.wm-kb-team,
+.wm-kb-center,
+.wm-kb-hit,
+.wm-kb-third {
+  position: absolute;
+  left: var(--x); top: var(--y);
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+.wm-kb-team {
+  width: 44px; height: 44px;
+  border: 3px solid var(--wm-paper);
+  border-radius: 50%;
   background: var(--wm-surface);
-  border: 1.5px solid var(--wm-line-soft);
-  border-radius: 13px; padding: 7px 12px; z-index: 2;
-  box-shadow: 0 1px 0 var(--wm-line-soft), 0 6px 14px rgba(28,28,28,.04);
-  font-family: var(--wm-rounded); color: var(--wm-ink);
+  box-shadow: 0 0 0 1.5px rgba(28,28,28,.09), 0 4px 10px rgba(28,28,28,.10);
+  display: inline-flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  color: var(--wm-ink);
+  font-family: var(--wm-rounded);
+  font-size: 30px; line-height: 1;
+  -webkit-tap-highlight-color: transparent;
 }
-.wm-kb-tree .row {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 8px; font-size: 13px; font-weight: 700; padding: 5px 0;
+button.wm-kb-team,
+button.wm-kb-center,
+.wm-kb-hit,
+.wm-kb-third {
+  cursor: pointer;
 }
-.wm-kb-tree .row + .row { border-top: 1px solid var(--wm-line-soft); }
-.wm-kb-tree .nm { display: flex; align-items: center; gap: 7px; min-width: 0; }
-.wm-kb-tree .nm .f { font-size: 16px; flex: none; line-height: 1; }
-.wm-kb-tree .nm .lab {
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  letter-spacing: -.005em;
+button.wm-kb-team {
+  padding: 0;
+  appearance: none;
 }
-.wm-kb-tree .sc {
-  font-family: var(--wm-mono); font-variant-numeric: tabular-nums;
-  font-weight: 800; flex: none; font-size: 14px;
+button.wm-kb-team:active,
+button.wm-kb-center:active,
+.wm-kb-third:active { transform: translate(-50%, -50%) scale(.96); }
+.wm-kb-team.is-placeholder {
+  background: var(--wm-paper);
+  border-color: var(--wm-line-soft);
+  box-shadow: inset 0 0 0 1.5px var(--wm-line-soft);
+  color: var(--wm-faint);
+  font-size: 16px;
+  font-weight: 900;
 }
-.wm-kb-tree .row.win { position: relative; }
-.wm-kb-tree .row.win::before {
-  content: ""; position: absolute; left: -12px; top: 50%;
-  transform: translateY(-50%);
-  width: 3px; height: 18px; background: var(--wm-ink); border-radius: 0 2px 2px 0;
+.wm-kb-team.is-winner {
+  box-shadow: 0 0 0 2px var(--wm-ink), 0 5px 12px rgba(28,28,28,.14);
 }
-.wm-kb-tree .row.win .lab { font-weight: 800; }
-.wm-kb-tree .row.lose { color: var(--wm-ink-dim); }
-.wm-kb-tree .row.lose .sc { color: var(--wm-faint); }
-.wm-kb-tree .row.ph .lab { color: var(--wm-faint); font-style: italic; font-weight: 600; }
-.wm-kb-tree .card.live {
-  border-color: var(--wm-accent); background: var(--wm-accent-soft);
-  box-shadow: 0 0 0 4px rgba(230,73,47,.12), 0 1px 0 var(--wm-line-soft), 0 6px 14px rgba(28,28,28,.04);
+.wm-kb-team.is-out {
+  opacity: .56;
+  filter: saturate(.75);
 }
-.wm-kb-tree .live-mark {
-  font-family: var(--wm-mono); font-size: 10px; color: var(--wm-accent); font-weight: 800;
-  text-align: center; padding-top: 6px;
-  border-top: 1px dashed rgba(230,73,47,.4);
-  margin-top: 3px; letter-spacing: .04em;
+.wm-kb-team.is-live {
+  box-shadow: 0 0 0 2px var(--wm-accent), 0 0 0 6px rgba(199,59,33,.14), 0 5px 12px rgba(28,28,28,.14);
 }
-.wm-kb-tree .live-mark::before { content: "●"; margin-right: 4px; animation: wm-kb-pulse 1.2s infinite; }
-@keyframes wm-kb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
-.wm-kb-tree .when {
-  font-family: var(--wm-mono); font-size: 10px; color: var(--wm-ink-dim);
-  text-align: center; padding-top: 6px;
-  border-top: 1px solid var(--wm-line-soft); margin-top: 3px; letter-spacing: .02em;
+.wm-kb-flag {
+  display: block;
+  transform: scale(1.2);
+  transform-origin: center;
 }
-.wm-kb-tree .card.final {
-  border: 2.5px solid var(--wm-ink);
-  box-shadow: 0 2px 0 var(--wm-ink), 0 10px 22px rgba(28,28,28,.10);
+.wm-kb-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
-.wm-kb-tree .crown {
-  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-  background: var(--wm-ink); color: var(--wm-paper);
-  font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
-  padding: 3px 10px; border-radius: 999px; white-space: nowrap;
-  display: inline-flex; align-items: center; gap: 5px;
+.wm-kb-hit {
+  width: 36px; height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  padding: 0;
+  z-index: 5;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
 }
-.wm-kb-tree .crown::before { content: "🏆"; font-size: 10px; }
-.wm-kb-tree .card.third { border-style: dashed; border-color: var(--wm-ink-dim); }
-.wm-kb-tree .third-lbl {
-  font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-  color: var(--wm-ink-dim); text-align: center;
-  padding-bottom: 4px; border-bottom: 1px solid var(--wm-line-soft); margin-bottom: 3px;
+.wm-kb-hit:focus-visible,
+.wm-kb-team:focus-visible,
+.wm-kb-center:focus-visible,
+.wm-kb-third:focus-visible {
+  outline: 3px solid var(--wm-accent);
+  outline-offset: 3px;
+}
+.wm-kb-center {
+  width: 76px; height: 92px;
+  border: 0;
+  background: transparent;
+  color: var(--wm-ink);
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0;
+  appearance: none;
+  z-index: 4;
+  -webkit-tap-highlight-color: transparent;
+}
+.wm-kb-center.is-live { color: var(--wm-accent); }
+.wm-kb-trophy {
+  width: 64px; height: 92px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.wm-kb-third {
+  min-width: 112px;
+  min-height: 30px;
+  border: 1.5px dashed var(--wm-ink-dim);
+  border-radius: 999px;
+  background: rgba(244,241,234,.92);
+  color: var(--wm-ink);
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 5px 10px;
+  font-family: var(--wm-rounded);
+  font-size: 9px; font-weight: 900; line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  box-shadow: 0 2px 7px rgba(28,28,28,.08);
+  z-index: 4;
+  appearance: none;
+}
+.wm-kb-third-flags {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+@media (max-width: 480px) {
+  .wm-kb-board { max-width: 390px; }
+  .wm-kb-title { top: 9px; font-size: 22px; }
+  .wm-kb-team { width: 29px; height: 29px; border-width: 2px; font-size: 20px; }
+  .wm-kb-team.is-placeholder { font-size: 12px; }
+  .wm-kb-hit { width: 32px; height: 32px; }
+  .wm-kb-center { width: 52px; height: 70px; }
+  .wm-kb-trophy { width: 46px; height: 66px; stroke-width: 4.3; }
+  .wm-kb-third {
+    min-width: 88px;
+    min-height: 24px;
+    padding: 4px 8px;
+    font-size: 8px;
+  }
+  .wm-kb-third-flags { font-size: 13px; }
 }
 
 /* Tappable row affordance — shared by topscorers + others that drill into Spielerkarten. */

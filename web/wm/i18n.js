@@ -165,10 +165,11 @@ const DICT = {
 
   // -- mehr --
   "mehr.bracket.finalColumnHeading": { de: "🏆 Finale", en: "🏆 Final", ptBR: "🏆 Final" },
-  "mehr.bracket.hint": { de: "Finalrunde — <b>Viertelfinale bis Finale</b>. Sieger fett, dunkle Linie folgt dem Weg ins Finale.<br>Sechzehntel- &amp; Achtelfinale unter Tab «Spiele».", en: "Knockout stage — <b>Quarter-finals to the Final</b>. Winners in bold, the dark line traces the path to the Final.<br>Round of 32 &amp; Round of 16 under the «Matches» tab.", ptBR: "Fase final — <b>Quartas de final até a Final</b>. Vencedores em negrito, a linha escura mostra o caminho até a Final.<br>Trinta e duas avos &amp; Oitavas de final na aba «Jogos»." },
+  "mehr.bracket.hint": { de: "Finalrunde — <b>Sechzehntelfinale bis Finale</b>. 32 Teams rund um den Pokal.", en: "Knockout stage — <b>Round of 32 to the Final</b>. 32 teams around the trophy.", ptBR: "Fase final — <b>dezesseis avos até a Final</b>. 32 seleções ao redor da taça." },
   "mehr.bracket.label": { de: "K.-o.-Baum", en: "Knockout Bracket", ptBR: "Chave Mata-Mata" },
   "mehr.bracket.loading": { de: "Lade Finalrunde…", en: "Loading knockout stage…", ptBR: "Carregando fase final…" },
-  "mehr.bracket.sub": { de: "Viertelfinal bis Finale · der Weg zum Pokal", en: "Quarter-finals to the Final · the road to the trophy", ptBR: "Quartas de final até a Final · o caminho até a taça" },
+  "mehr.bracket.posterTitle": { de: "World Cup 2026", en: "World Cup 2026", ptBR: "World Cup 2026" },
+  "mehr.bracket.sub": { de: "Sechzehntelfinal bis Finale · der Weg zum Pokal", en: "Round of 32 to the Final · the road to the trophy", ptBR: "Dezesseis avos até a Final · o caminho até a taça" },
   "mehr.bracket.tbd": { de: "TBD", en: "TBD", ptBR: "A definir" },
   "mehr.bracket.title": { de: "K.-o.-Baum", en: "Knockout Bracket", ptBR: "Chave Mata-Mata" },
   "mehr.bracket.worldChampion": { de: "Weltmeister", en: "World Champion", ptBR: "Campeão Mundial" },
